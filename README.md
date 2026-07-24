@@ -7,3 +7,4 @@ A branch `HML` é o ambiente de homologação e deve concentrar os testes de mig
 ## Documentação inicial
 
 - [Plano de modernização](docs/plano-modernizacao.md)
+- [Documentação por banco](docs/bancos/README.md)
