@@ -1,0 +1,92 @@
+{
+  "$comment": "Contrato de dados da Cobranca API (github.com/Maxwbh/cobranca-api). Extraido do docs/openapi.yaml (OpenAPI 3.0, Boleto CNAB API v1.5.0). Fragmento curado com os schemas consumidos pela engine PyCobranca; mantido em sincronia manual com o OpenAPI upstream.",
+  "fonte": "cobranca-api docs/openapi.yaml @ v1.5.0",
+  "openapi": "3.0",
+  "schemas": {
+    "BoletoData": {
+      "type": "object",
+      "required": [
+        "agencia", "conta_corrente", "nosso_numero", "valor",
+        "cedente", "documento_cedente", "sacado", "sacado_documento"
+      ],
+      "properties": {
+        "agencia": {"type": "string"},
+        "conta_corrente": {"type": "string"},
+        "nosso_numero": {"type": "string"},
+        "valor": {"type": "number"},
+        "cedente": {"type": "string"},
+        "documento_cedente": {"type": "string"},
+        "sacado": {"type": "string"},
+        "sacado_documento": {"type": "string"},
+        "convenio": {"type": "string"},
+        "carteira": {"type": "string"},
+        "data_vencimento": {"type": "string"},
+        "numero_documento": {"type": "string"},
+        "sacado_endereco": {"type": "string"},
+        "instrucao1": {"type": "string"},
+        "instrucao2": {"type": "string"},
+        "emv": {"type": "string"},
+        "pix_label": {"type": "string"},
+        "chave_pix": {"type": "string"},
+        "tipo_chave_pix": {"type": "string", "enum": ["cpf", "cnpj", "email", "telefone", "aleatoria"]},
+        "txid": {"type": "string"},
+        "logo_empresa": {"type": "string"},
+        "cor_marca": {"type": "string"},
+        "marca_dagua": {"type": "string"},
+        "rodape_contato": {"type": "string"},
+        "fonte_ttf": {"type": "string"},
+        "parcela_atual": {"type": "integer"},
+        "total_parcelas": {"type": "integer"}
+      }
+    },
+    "RemessaRequest": {
+      "type": "object",
+      "required": ["empresa_mae", "documento_cedente", "agencia", "conta_corrente", "pagamentos"],
+      "properties": {
+        "empresa_mae": {"type": "string"},
+        "documento_cedente": {"type": "string"},
+        "agencia": {"type": "string"},
+        "conta_corrente": {"type": "string"},
+        "digito_conta": {"type": "string"},
+        "convenio": {"type": "string"},
+        "carteira": {"type": "string"},
+        "variacao_carteira": {"type": "string"},
+        "codigo_beneficiario": {"type": "string"},
+        "sequencial_remessa": {"type": "integer"},
+        "pagamentos": {"type": "array", "items": {"$ref": "Pagamento"}}
+      }
+    },
+    "Pagamento": {
+      "type": "object",
+      "required": ["nosso_numero", "data_vencimento", "valor"],
+      "properties": {
+        "nosso_numero": {"type": "string"},
+        "numero_documento": {"type": "string"},
+        "data_vencimento": {"type": "string"},
+        "valor": {"type": "number"},
+        "nome_sacado": {"type": "string"},
+        "documento_sacado": {"type": "string"},
+        "endereco_sacado": {"type": "string"},
+        "bairro_sacado": {"type": "string"},
+        "cidade_sacado": {"type": "string"},
+        "uf_sacado": {"type": "string"},
+        "cep_sacado": {"type": "string"}
+      }
+    },
+    "RetornoItem": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "nosso_numero": {"type": "string"},
+        "numero_documento": {"type": "string"},
+        "data_credito": {"type": "string"},
+        "data_ocorrencia": {"type": "string"},
+        "valor_titulo": {"type": "number"},
+        "valor_pago": {"type": "number"},
+        "valor_tarifa": {"type": "number"},
+        "codigo_ocorrencia": {"type": "string"},
+        "motivo_ocorrencia": {"type": "string"}
+      }
+    }
+  }
+}
