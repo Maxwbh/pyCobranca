@@ -6,6 +6,11 @@ Todas as mudanças relevantes deste projeto são documentadas aqui. O formato se
 
 ## [Não lançado]
 
+## [1.0.0] - 2026-07-24
+
+Primeira versão pública — cobrança bancária brasileira em Python 3.14+ puro
+(boleto, CNAB 240/400 e PIX/Bolepix), com 18 bancos e um único `pip install`.
+
 ### Adicionado
 
 - **Logo opt-in no boleto** (`banco.logo`): o cabeçalho do recibo, da ficha e de ambos os lados do
