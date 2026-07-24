@@ -15,6 +15,14 @@ Documento de referência para conferir a implementação do BTG Pactual no PyCob
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [BTG Pactual — Cobrança](https://developers.empresas.btgpactual.com/docs/cobran%C3%A7a)
+- [BTG Pactual — CNAB Febraban 240 posições](https://developers.empresas.btgpactual.com/docs/cnab-febraban-240-posi%C3%A7%C3%B5es)
+- [BTG Pactual — Layouts suportados](https://developers.empresas.btgpactual.com/docs/layouts-suportados)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

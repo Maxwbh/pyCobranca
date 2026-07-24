@@ -15,6 +15,13 @@ Documento de referência para conferir a implementação do Sicredi no PyCobran�
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [Sicredi — Cobrança para empresas e manuais CNAB](https://www.sicredi.com.br/site/recebimentos-para-empresa/cobranca/)
+- [Sicredi — API Pix PJ](https://www.sicredi.com.br/site/pixpj/api-pix/)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

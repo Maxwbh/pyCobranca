@@ -15,6 +15,14 @@ Documento de referência para conferir a implementação do Caixa Econômica Fed
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [CAIXA — CNAB 400 cobrança](https://www.caixa.gov.br/Downloads/cobranca-caixa/Manual_de_Leiaute_de_Arquivo_Eletronico_CNAB_400.pdf)
+- [CAIXA — CNAB 240 cobrança](https://www.caixa.gov.br/Downloads/cobranca-caixa/Manual_de_Leiaute_de_Arquivo_Eletronico_CNAB_240.pdf)
+- [CAIXA — Código de barras SIGCB](https://www.caixa.gov.br/Downloads/cobranca-caixa/ESP_COD_BARRAS_SIGCB_COBRANCA_CAIXA.pdf)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

@@ -15,6 +15,13 @@ Documento de referência para conferir a implementação do Banco do Brasil no P
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [Banco do Brasil — Aplicativos/Leiautes de Arquivos](https://bb.com.br/site/pro-seu-negocio/aplicativos-leiautes-de-arquivos/)
+- [Banco do Brasil — API de Cobrança](https://bb.com.br/site/developers/api-cobranca/)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

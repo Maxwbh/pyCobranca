@@ -15,6 +15,13 @@ Documento de referência para conferir a implementação do Itaú no PyCobrança
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [Itaú — Cobrança CNAB 400](https://download.itau.com.br/bankline/layout_cobranca_400bytes_cnab_itau.pdf)
+- [Itaú — Cobrança CNAB 240](https://download.itau.com.br/bankline/cobranca_cnab240.pdf)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

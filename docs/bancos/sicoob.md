@@ -15,6 +15,13 @@ Documento de referência para conferir a implementação do Sicoob no PyCobranç
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [Sicoob — Validador CNAB](https://www.sicoob.com.br/web/sicoob/validador-cnab)
+- [Sicoob — Transferência de arquivos de cobrança bancária](https://www.sicoob.com.br/documents/2222345/8131567/Manual%2B-%2BTransfer%C3%A8ncia%2Bde%2BArquivos%2Bde%2BCobran%C3%A7a%2BBanc%C3%A1ria%2B-%2BSicoobnet%2BEmpresarial.pdf/3b291702-b88a-e73e-11e6-a9c73b55e06f?download=true&t=1609175823383)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |

@@ -15,6 +15,13 @@ Documento de referência para conferir a implementação do Santander no PyCobra
 | CNAB 400 | A confirmar no manual vigente |
 | PIX/Bolepix | A confirmar no manual vigente e/ou API do banco |
 
+## Fontes oficiais para preenchimento
+
+- [Banco Central — Lista de Participantes do STR](https://dadosabertos.bcb.gov.br/dataset/lista-de-participantes-do-str)
+- [Santander — Layout de Arquivos](https://www.santander.com.br/layout-de-arquivos)
+- [Santander — Cobrança 400 posições](https://cms.santander.com.br/sites/WPS/documentos/arq-layout-de-arquivos-download-cobr400ptbr/25-09-22_165104_layout-cobranca-400-posicoes-jul-2025-portugues.pdf)
+
+> As regras específicas deste arquivo devem ser preenchidas somente a partir dessas fontes oficiais, do manual vigente recebido no processo de homologação ou de evidência formal do banco.
 ## Campos obrigatórios do boleto
 
 | Campo PyCobrança | Tipo | Tamanho | Obrigatório | Observação |
