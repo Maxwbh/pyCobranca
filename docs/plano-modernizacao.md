@@ -155,31 +155,41 @@ pycobranca/
 
 ## Estratégia recomendada para renderização moderna do boleto
 
-A recomendação para o PyCobrança é adotar **HTML/CSS como fonte canônica do layout** e gerar PDF a partir desse HTML, mantendo uma interface de renderização com backends substituíveis.
+A decisão de arquitetura é adotar **ReportLab como renderizador padrão** do PyCobrança, mantendo **HTML+WeasyPrint** e **HTML+Playwright/Chromium** como backends opcionais por meio de uma interface de renderização plugável no código.
+
+Essa escolha prioriza previsibilidade de impressão, velocidade, baixo acoplamento operacional e controle fino do layout bancário. O HTML continua importante para pré-visualização, temas modernos e experiências visuais mais ricas, mas não deve ser o backend padrão inicial de geração final em produção.
+
+### Tabela de decisão
+
+Pontuação: 1 = fraco, 3 = médio, 5 = forte.
+
+| Modelo | Simples de implementar | Melhorias visuais | Fácil manutenção | Velocidade de renderização | Decisão |
+| --- | ---: | ---: | ---: | ---: | --- |
+| **ReportLab** | 4 | 3 | 4 | 5 | **Padrão do PyCobrança**. Melhor equilíbrio para boleto bancário, alto controle de coordenadas, boa performance e menos dependências de navegador. |
+| **HTML + WeasyPrint** | 4 | 5 | 4 | 3 | Backend opcional para modelos mais modernos, temas e pré-visualização com CSS de impressão. Requer validação de dependências nativas em HML. |
+| **HTML + Playwright/Chromium** | 3 | 5 | 3 | 2 | Backend opcional quando a fidelidade com navegador for prioridade. Mais pesado por depender de Chromium. |
+| **PDF fixo/manual** | 2 | 1 | 1 | 5 | Não recomendado como modelo principal; dificulta evolução, parametrização e testes. |
 
 ### Decisão proposta
 
-1. **Modelo canônico em HTML/CSS**
-   - Facilita evolução visual, temas, acessibilidade, pré-visualização no navegador e validação por produto/design.
-   - Permite usar o mesmo template para prévia web, testes de snapshot e geração final em PDF.
-   - Reduz o acoplamento entre regra bancária e posicionamento visual.
+1. **ReportLab como backend padrão**
+   - Gera PDF diretamente em Python, com controle preciso de posições, margens, códigos de barras, QR Code e blocos fixos do boleto.
+   - É adequado para layouts bancários, onde previsibilidade de impressão e estabilidade são mais importantes que liberdade visual total.
+   - Tende a ter melhor velocidade e menor custo operacional que um motor HTML completo, especialmente em lotes de 100 a 200 boletos.
 
-2. **PDF como formato final de distribuição**
-   - O cliente final e os bancos normalmente esperam um PDF estável para impressão, envio e arquivamento.
-   - O PDF deve ser artefato gerado, não o modelo principal editado manualmente.
+2. **HTML/CSS como backend opcional para experiência visual**
+   - Deve ser mantido via backends opcionais para templates modernos, prévia web e personalização visual.
+   - Pode usar WeasyPrint quando o objetivo for CSS de impressão server-side.
+   - Pode usar Playwright quando a prioridade for máxima fidelidade com renderização de navegador.
 
-3. **Backend padrão sugerido: WeasyPrint**
-   - É uma biblioteca Python voltada a converter HTML/CSS em PDF e usa padrões de impressão.
-   - Combina bem com templates Jinja2, CSS paginado, imagens, fontes e geração server-side.
-   - Deve ser validada em HML com os ambientes Docker/Linux usados pela cobrança_api por causa de dependências nativas de renderização.
+3. **Interface única de backends**
+   - O domínio do boleto não deve conhecer ReportLab, WeasyPrint ou Playwright diretamente.
+   - A aplicação deve escolher o backend por configuração, tenant, tipo de documento ou cenário de homologação.
+   - Todos os backends devem receber o mesmo `BoletoViewModel` já validado.
 
-4. **Backend alternativo: Playwright/Chromium**
-   - Usar quando for necessário maior fidelidade a recursos de navegador moderno ou quando o boleto compartilhar componentes com uma aplicação web.
-   - É mais pesado operacionalmente, pois exige Chromium no ambiente, mas tende a reproduzir CSS moderno com alta fidelidade.
-
-5. **Backend técnico/opcional: ReportLab**
-   - Manter como opção para layouts extremamente fixos, geração de alto volume ou necessidade de posicionamento absoluto pixel/pt a pixel/pt.
-   - Não deve ser a primeira escolha para modelos modernos, pois tende a tornar evolução visual e customização mais custosas.
+4. **PDF como formato final de distribuição**
+   - O PDF continua sendo o artefato final para impressão, envio e arquivamento.
+   - O modelo não deve ser um PDF fixo editado manualmente; deve ser gerado por template/código versionado e testável.
 
 ### Arquitetura de renderização
 
@@ -190,14 +200,12 @@ Dados validados do boleto
 ViewModel de impressão
         |
         v
-Template HTML/Jinja2 + CSS print
+RenderBackend selecionado por configuração
+        |-- ReportLabBackend    # padrão arquitetural
+        |-- WeasyPrintBackend   # opcional HTML/CSS
+        |-- PlaywrightBackend   # opcional Chromium
         |
-        +--> Prévia HTML em HML
-        |
-        +--> RenderBackend
-               |-- WeasyPrintBackend  # padrão
-               |-- PlaywrightBackend  # opcional
-               |-- ReportLabBackend   # fallback/alto controle
+        +--> Templates/componentes versionados
         |
         v
 PDF final + metadados + testes de regressão
@@ -211,30 +219,33 @@ PDF final + metadados + testes de regressão
   - O backend não calcula código de barras, linha digitável, PIX ou valores.
   - O backend apenas renderiza dados já validados pelo domínio.
   - Todo acesso a assets deve ser explícito para evitar vazamento de arquivos locais.
-  - O HTML/CSS deve ter testes de snapshot e fixtures por banco.
+  - O backend padrão deve ser `ReportLabBackend`.
+  - Backends HTML devem ser opcionais e ativados por configuração.
+  - Todos os backends devem passar pela mesma suíte de regressão de dados e layout.
 
 ### Critérios de escolha por cenário
 
 | Cenário | Estratégia indicada | Motivo |
 | --- | --- | --- |
-| Boleto moderno com marca, tema e evolução visual frequente. | HTML/CSS + WeasyPrint | Melhor equilíbrio entre manutenção, qualidade visual e operação Python. |
+| Boleto bancário padrão, alto volume ou lote assíncrono. | ReportLab | Melhor previsibilidade, controle de coordenadas e velocidade de renderização. |
+| Boleto moderno com marca, tema e evolução visual frequente. | HTML/CSS + WeasyPrint | Facilita evolução visual, mantendo geração server-side. |
 | Prévia web e PDF precisam ficar quase idênticos ao navegador. | HTML/CSS + Playwright | Usa motor Chromium e reduz diferença entre tela e PDF. |
-| Layout bancário rígido e de baixa mudança. | ReportLab | Dá controle fino de coordenadas e evita dependência de motor HTML. |
-| Alto volume com layout simples. | Benchmark entre WeasyPrint e ReportLab | A decisão deve ser guiada por tempo de renderização, memória e custo operacional em HML. |
+| Layout fixo validado por banco. | ReportLab | Dá controle fino de posicionamento e reduz variação entre ambientes. |
 
 ### Requisitos de homologação para renderização
 
-- Criar exemplos de boleto simples, Bolepix e carnê.
+- Criar exemplos de boleto simples, Bolepix e carnê usando `ReportLabBackend`.
 - Validar impressão em A4 com margens controladas.
 - Validar leitura de código de barras e QR Code após geração do PDF.
 - Criar testes de regressão visual por snapshot ou comparação estrutural do PDF.
 - Rodar benchmark com lote mínimo de 100, 1.000 e 10.000 boletos em HML.
+- Comparar ReportLab, WeasyPrint e Playwright usando o mesmo `BoletoViewModel`.
 - Documentar fontes, logos e assets permitidos por tema.
-- Validar acessibilidade básica do HTML de pré-visualização.
+- Validar acessibilidade básica apenas nas pré-visualizações HTML.
 
 ### Conclusão
 
-A melhor estratégia é **não escolher PDF fixo como modelo principal**. O PyCobrança deve tratar o boleto como um documento HTML/CSS versionado, testável e tematizável, renderizado para PDF por um backend padrão. Para iniciar, o backend padrão deve ser WeasyPrint; Playwright fica como alternativa de maior fidelidade visual e ReportLab como fallback para controle absoluto ou alto volume comprovado por benchmark.
+A melhor estratégia para o PyCobrança é **ReportLab como renderizador padrão**, com backends opcionais HTML+WeasyPrint e HTML+Playwright para cenários em que o ganho visual justifique maior custo operacional. Essa decisão preserva velocidade, controle e estabilidade para boletos e lotes, sem bloquear evolução visual futura via interface plugável de backends.
 
 ## Arquitetura para processamento em lote e background
 
