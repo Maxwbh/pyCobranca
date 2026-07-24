@@ -63,8 +63,8 @@ peças soltas, oferece uma API consistente, testada banco a banco e pronta para 
   digitável com DVs e regras de carteira/nosso número por banco).
 - 📄 **PDF em Python puro** via ReportLab — dois modelos visuais (*clássico* e *moderno*), **carnê**
   (3 parcelas por A4) e **tema** (marca da empresa, cor, marca d'água, rodapé).
-- 🖼️ **Logo no cabeçalho** (opt-in): use o seu próprio arquivo (`banco.logo`) ou os **logos de 12
-  bancos já empacotados** (`logo_do_banco`), com a proporção preservada.
+- 🖼️ **Logo no cabeçalho** (opt-in): use o seu próprio arquivo (`banco.logo`) ou os **logos de 17
+  bancos já empacotados** (`logo_do_banco`), em alta resolução com transparência.
 - 🧾 **Remessa CNAB** 400 (12 bancos) e 240 (7 bancos), com agrupamento por convênio/carteira.
 - 📥 **Retorno CNAB** 400/240 com parsing por banco e tradução dos códigos de ocorrência.
 - 🟢 **PIX / Bolepix**: BR Code (EMV) copia-e-cola com CRC16, QR Code embutido no PDF e **segmento
@@ -211,30 +211,31 @@ Funcionalidade por banco (✅ = disponível/validado):
 |:----:|-------|:------:|:--------:|:--------:|:-------:|:---:|:----:|
 | 001 | Banco do Brasil | ✅ | ✅ | ✅ |  | ✅ | ✅ |
 | 004 | Banco do Nordeste | ✅ | ✅ |  | ✅ |  | ✅ |
-| 021 | Banestes | ✅ |  |  |  |  |  |
+| 021 | Banestes | ✅ |  |  |  |  | ✅ |
 | 033 | Santander | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 041 | Banrisul | ✅ | ✅ |  | ✅ |  | ✅ |
-| 070 | BRB | ✅ | ✅¹ |  | ✅ |  |  |
+| 070 | BRB | ✅ | ✅¹ |  | ✅ |  | ✅ |
 | 085 | Ailos | ✅ |  | ✅ | ✅ |  | ✅ |
-| 097 | CrediSIS | ✅ | ✅ |  | ✅ |  |  |
+| 097 | CrediSIS | ✅ | ✅ |  | ✅ |  | ✅ |
 | 104 | Caixa | ✅ |  | ✅ | ✅ | ✅ | ✅ |
 | 136 | Unicred | ✅ | ✅ | ✅ | ✅ |  | ✅ |
 | 237 | Bradesco | ✅ | ✅ |  | ✅ | ✅ | ✅ |
 | 336 | C6 Bank | ✅ | ✅ |  |  | ✅ | ✅ |
 | 341 | Itaú | ✅ | ✅ |  | ✅ | ✅ | ✅ |
-| 399 | HSBC | ✅ |  |  | ✅ |  |  |
-| 422 | Safra | ✅ |  |  |  |  |  |
+| 399 | HSBC | ✅ |  |  | ✅ |  | ✅ |
+| 422 | Safra | ✅ |  |  |  |  | ✅ |
 | 745 | Citibank | ✅ | ✅ |  |  |  |  |
 | 748 | Sicredi | ✅ |  | ✅ | ✅ |  | ✅ |
 | 756 | Sicoob | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Σ 18** | | **18** | **12** | **7** | **13** | **7** | **12** |
+| **Σ 18** | | **18** | **12** | **7** | **13** | **7** | **17** |
 
 - **Boleto** — código de barras (44 pos.), linha digitável e PDF.
 - **Rem. 400 / Rem. 240** — remessa CNAB validada **byte a byte** contra vetores de referência.
 - **Retorno** — parser validado contra arquivo `.RET` **real**; o leitor auto-detecta 240/400 pelo
   cabeçalho e também processa layouts compatíveis dos demais bancos.
 - **PIX** — Bolepix (BR Code + QR no PDF + segmento PIX na remessa).
-- **Logo** — logo empacotado via `logo_do_banco("NNN")` (marca do banco; ver
+- **Logo** — logo empacotado via `logo_do_banco("NNN")`, em alta resolução com transparência
+  (17 dos 18 bancos; marca do banco, uso nominativo — origem e licença por arquivo em
   [`render/logos/NOTICE.md`](pycobranca/render/logos/NOTICE.md)).
 - ¹ BRB usa formato de remessa **DCB proprietário**.
 

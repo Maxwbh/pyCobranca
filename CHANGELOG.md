@@ -6,6 +6,11 @@ Todas as mudanças relevantes deste projeto são documentadas aqui. O formato se
 
 ## [Não lançado]
 
+## [1.0.0] - 2026-07-24
+
+Primeira versão pública — cobrança bancária brasileira em Python 3.14+ puro
+(boleto, CNAB 240/400 e PIX/Bolepix), com 18 bancos e um único `pip install`.
+
 ### Adicionado
 
 - **Logo opt-in no boleto** (`banco.logo`): o cabeçalho do recibo, da ficha e de ambos os lados do
@@ -13,10 +18,13 @@ Todas as mudanças relevantes deste projeto são documentadas aqui. O formato se
   ou `ImageReader` — desenhado no lugar do nome do banco, com a proporção preservada. Sem logo, a
   saída permanece **byte a byte idêntica** ao comportamento anterior.
 - **Logos de bancos empacotados** (`pycobranca/render/logos/`, `logo_do_banco`/`bancos_com_logo`):
-  conveniência com os logos de 12 bancos (BB, Bradesco, Itaú, Santander, Caixa, C6, Sicredi,
-  Sicoob, Banco do Nordeste, Banrisul, Ailos, Unicred), nomeados pelo código FEBRABAN. As marcas
-  são de propriedade dos respectivos bancos (uso nominativo, para identificar o emissor);
-  atribuição e origem (laravel-boleto, MIT) em `logos/NOTICE.md`. Validação visual de todos os 12
+  conveniência com os logos de 17 dos 18 bancos (falta apenas Citibank), nomeados pelo código
+  FEBRABAN, em alta resolução com transparência. Origem por arquivo: **Wikimedia Commons /
+  Domínio Público** (BB, Banco do Nordeste, Banestes, Santander, Banrisul, Unicred, Itaú 2023,
+  Sicredi); **laravel-boleto / MIT** (Ailos, Caixa, C6, HSBC, Sicoob); e a coleção **Bancos-em-SVG**
+  (BRB, CrediSIS, Bradesco, Safra — repositório sem licença declarada, arquivos fornecidos pelo
+  mantenedor). Detalhes e licença por arquivo em `logos/NOTICE.md`. As marcas são de propriedade dos respectivos bancos (uso nominativo, para
+  identificar o emissor); origem e licença por arquivo em `logos/NOTICE.md`. Validação visual dos
   logos renderizados no cabeçalho.
 - **Validação externa do boleto** (`tests/test_validacao_externa.py`): um verificador FEBRABAN
   **independente do núcleo** confere os 18 bancos como faria um sistema externo ao receber o
