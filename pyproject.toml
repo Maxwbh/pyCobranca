@@ -73,6 +73,7 @@ packages = [
     "pycobranca.contracts",
     "pycobranca.pix",
     "pycobranca.render",
+    "pycobranca.ofx",
 ]
 
 [tool.setuptools.package-data]

@@ -101,7 +101,7 @@ class RemessaSicoob400(RemessaCnab400Base):
             + "00"
             + "00"
             + pagamento.formata_valor_mora(6)
-            + pagamento.formata_valor_multa(6)
+            + pagamento.formata_percentual_multa(6)
             + self.distribuicao_boleto
             + pagamento.formata_data_desconto()
             + pagamento.formata_valor_desconto()

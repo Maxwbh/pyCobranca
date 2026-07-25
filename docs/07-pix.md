@@ -58,7 +58,7 @@ matriz = qr_matrix(copia_cola)  # matriz 0/1 (consumida pelo ReportLab)
 svg = qr_svg(copia_cola)  # SVG para pré-visualização
 ```
 
-No boleto, o QR Code (Bolepix) é posicionado na **Ficha de Compensação**, no modelo moderno — veja o exemplo visual em [`exemplos/boleto-demo.html`](exemplos/boleto-demo.html).
+No boleto, o QR Code (Bolepix) é posicionado na **Ficha de Compensação**, no modelo moderno — veja o exemplo visual em [`boleto-pix.png`](images/screenshots/boleto-pix.png) (saída real do ReportLab).
 
 Ao emitir um boleto de banco com PIX habilitado, o Bolepix é montado automaticamente:
 

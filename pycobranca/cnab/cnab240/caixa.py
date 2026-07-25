@@ -83,7 +83,8 @@ class RemessaCaixa240(RemessaCnab240Base):
     def data_multa(self, pagamento: Pagamento) -> str:
         if pagamento.codigo_multa == "0":
             return "0" * 8
-        return (pagamento.data_vencimento + timedelta(days=1)).strftime("%d%m%Y")
+        data = pagamento.data_multa or (pagamento.data_vencimento + timedelta(days=1))
+        return data.strftime("%d%m%Y")
 
     def codigo_baixa(self, pagamento: Pagamento) -> str:
         return "1" if str(pagamento.codigo_protesto) == "3" else "2"
@@ -94,4 +95,5 @@ class RemessaCaixa240(RemessaCnab240Base):
     def data_mora(self, pagamento: Pagamento) -> str:
         if pagamento.tipo_mora not in ("1", "2"):
             return "0" * 8
-        return (pagamento.data_vencimento + timedelta(days=1)).strftime("%d%m%Y")
+        data = pagamento.data_mora or (pagamento.data_vencimento + timedelta(days=1))
+        return data.strftime("%d%m%Y")

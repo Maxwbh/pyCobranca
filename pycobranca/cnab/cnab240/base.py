@@ -131,12 +131,34 @@ class RemessaCnab240Base:
     def data_multa(self, pagamento: Pagamento) -> str:
         if pagamento.codigo_multa == "0":
             return "0" * 8
-        return pagamento.data_vencimento.strftime("%d%m%Y")
+        data = pagamento.data_multa or pagamento.data_vencimento
+        return data.strftime("%d%m%Y")
 
     def data_mora(self, pagamento: Pagamento) -> str:
         if pagamento.tipo_mora not in ("1", "2"):
             return "0" * 8
-        return pagamento.data_vencimento.strftime("%d%m%Y")
+        data = pagamento.data_mora or pagamento.data_vencimento
+        return data.strftime("%d%m%Y")
+
+    def valor_mora_segmento(self, pagamento: Pagamento, tamanho: int = 15) -> str:
+        """Juros de mora do segmento P: percentual quando ``tipo_mora == "2"``
+        (Taxa Mensal, FEBRABAN); valor ao dia caso contrário."""
+        if pagamento.tipo_mora == "2":
+            return pagamento.formata_percentual_mora(tamanho)
+        return pagamento.formata_valor_mora(tamanho)
+
+    def descontos_adicionais(self, pagamento: Pagamento) -> str:
+        """Slots de 2º e 3º desconto do segmento R (código[1] + data[8] + valor[15]
+        cada). Com os defaults (sem 2º/3º desconto) resulta em zeros — idêntico ao
+        preenchimento fixo anterior."""
+        return (
+            pagamento.cod_segundo_desconto
+            + pagamento.formata_data_segundo_desconto("%d%m%Y")
+            + pagamento.formata_valor_segundo_desconto(15)
+            + pagamento.cod_terceiro_desconto
+            + pagamento.formata_data_terceiro_desconto("%d%m%Y")
+            + pagamento.formata_valor_terceiro_desconto(15)
+        )
 
     def codigo_desconto(self, pagamento: Pagamento) -> str:
         return pagamento.cod_desconto
@@ -224,7 +246,7 @@ class RemessaCnab240Base:
             + pagamento.data_emissao.strftime("%d%m%Y")
             + pagamento.tipo_mora
             + self.data_mora(pagamento)
-            + pagamento.formata_valor_mora(15)
+            + self.valor_mora_segmento(pagamento)
             + self.codigo_desconto(pagamento)
             + pagamento.formata_data_desconto("%d%m%Y")
             + pagamento.formata_valor_desconto(15)
@@ -276,12 +298,7 @@ class RemessaCnab240Base:
             + "R"
             + " "
             + pagamento.identificacao_ocorrencia
-            + "0"
-            + "0" * 8
-            + "0" * 15
-            + "0"
-            + "0" * 8
-            + "0" * 15
+            + self.descontos_adicionais(pagamento)
             + pagamento.codigo_multa
             + self.data_multa(pagamento)
             + pagamento.formata_percentual_multa(15)

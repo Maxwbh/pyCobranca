@@ -1,6 +1,5 @@
 {
-  "$comment": "Contrato de dados da Cobranca API (github.com/Maxwbh/cobranca-api). Extraido do docs/openapi.yaml (OpenAPI 3.0, Boleto CNAB API v1.5.0). Fragmento curado com os schemas consumidos pela engine PyCobranca; mantido em sincronia manual com o OpenAPI upstream.",
-  "fonte": "cobranca-api docs/openapi.yaml @ v1.5.0",
+  "$comment": "Contrato de dados REST (OpenAPI 3.0) da PyCobranca: os schemas JSON que a engine serializa (boleto, remessa, retorno, encargos, extrato OFX) para consumo por um servico HTTP.",
   "openapi": "3.0",
   "schemas": {
     "BoletoData": {
@@ -70,7 +69,47 @@
         "bairro_sacado": {"type": "string"},
         "cidade_sacado": {"type": "string"},
         "uf_sacado": {"type": "string"},
-        "cep_sacado": {"type": "string"}
+        "cep_sacado": {"type": "string"},
+        "encargos": {"$ref": "Encargos"}
+      }
+    },
+    "Encargos": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "mora": {"$ref": "Mora"},
+        "multa": {"$ref": "Multa"},
+        "descontos": {"type": "array", "items": {"$ref": "Desconto"}},
+        "iof": {"type": "number"},
+        "abatimento": {"type": "number"}
+      }
+    },
+    "Mora": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "tipo": {"type": "string", "enum": ["1", "2", "3"]},
+        "valor": {"type": "number"},
+        "percentual": {"type": "number"},
+        "data": {"type": "string"}
+      }
+    },
+    "Multa": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "codigo": {"type": "string"},
+        "percentual": {"type": "number"},
+        "data": {"type": "string"}
+      }
+    },
+    "Desconto": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "codigo": {"type": "string"},
+        "valor": {"type": "number"},
+        "data": {"type": "string"}
       }
     },
     "RetornoItem": {
@@ -86,6 +125,33 @@
         "valor_tarifa": {"type": "number"},
         "codigo_ocorrencia": {"type": "string"},
         "motivo_ocorrencia": {"type": "string"}
+      }
+    },
+    "ExtratoOFX": {
+      "type": "object",
+      "required": ["banco", "conta", "transacoes"],
+      "properties": {
+        "banco": {"type": "object"},
+        "conta": {"type": "object"},
+        "periodo": {"type": "object"},
+        "saldo": {"type": "object"},
+        "transacoes": {"type": "array", "items": {"$ref": "TransacaoOFX"}},
+        "resumo": {"type": "object"}
+      }
+    },
+    "TransacaoOFX": {
+      "type": "object",
+      "required": ["tipo", "valor"],
+      "properties": {
+        "fitid": {"type": "string"},
+        "tipo": {"type": "string", "enum": ["CREDIT", "DEBIT"]},
+        "data": {"type": "string"},
+        "valor": {"type": "number"},
+        "memo": {"type": "string"},
+        "name": {"type": "string"},
+        "checknum": {"type": "string"},
+        "refnum": {"type": "string"},
+        "nosso_numero_extraido": {"type": "string"}
       }
     }
   }

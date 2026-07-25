@@ -65,8 +65,11 @@ peças soltas, oferece uma API consistente, testada banco a banco e pronta para 
   (3 parcelas por A4) e **tema** (marca da empresa, cor, marca d'água, rodapé).
 - 🖼️ **Logo no cabeçalho** (opt-in): use o seu próprio arquivo (`banco.logo`) ou os **logos de 17
   bancos já empacotados** (`logo_do_banco`), em alta resolução com transparência.
-- 🧾 **Remessa CNAB** 400 (12 bancos) e 240 (7 bancos), com agrupamento por convênio/carteira.
+- 🧾 **Remessa CNAB** 400 (12 bancos) e 240 (7 bancos), com agrupamento por convênio/carteira e
+  **juros, multa e desconto** (1º/2º/3º, IOF e abatimento).
 - 📥 **Retorno CNAB** 400/240 com parsing por banco e tradução dos códigos de ocorrência.
+- 🧮 **Extrato OFX** (v1/v2) com extração de nosso número e **conciliação** contra os boletos
+  emitidos — fecha o ciclo emissão → retorno → extrato.
 - 🟢 **PIX / Bolepix**: BR Code (EMV) copia-e-cola com CRC16, QR Code embutido no PDF e **segmento
   PIX na remessa** (registro tipo 8 no CNAB 400; segmento Y-03 no CNAB 240).
 - 🔌 **Pronto para API REST** (OpenAPI 3.0): serializadores JSON dos artefatos para consumo HTTP.
@@ -79,10 +82,10 @@ PDFs gerados pela própria PyCobrança (dados fictícios, saída real do backend
 
 <div align="center">
 
-| Boleto tradicional | Boleto com PIX (Bolepix) |
+| Boleto (modelo moderno) | Boleto com PIX (Bolepix) |
 |:---:|:---:|
-| <img src="docs/images/screenshots/boleto-tradicional.png" alt="Boleto tradicional gerado pela PyCobrança" width="330"> | <img src="docs/images/screenshots/boleto-pix.png" alt="Boleto híbrido com QR Code PIX" width="330"> |
-| Recibo + ficha de compensação, código de barras nativo | QR Code Bolepix embutido, célula PIX |
+| <img src="docs/images/screenshots/boleto-moderno.png" alt="Boleto no modelo moderno gerado pela PyCobrança" width="330"> | <img src="docs/images/screenshots/boleto-pix.png" alt="Boleto híbrido com QR Code PIX" width="330"> |
+| Recibo do Pagador + ficha, código de barras nativo | QR Code Bolepix embutido, célula PIX teal |
 | **Boleto com logo do banco** | **Carnê (3 por A4)** |
 | <img src="docs/images/screenshots/boleto-logo.png" alt="Boleto com o logo do banco no cabeçalho (recibo e ficha)" width="330"> | <img src="docs/images/screenshots/carne.png" alt="Carnê com 3 parcelas por página A4" width="330"> |
 | Logo no cabeçalho do recibo e da ficha (`logo_do_banco`) | Canhoto à esquerda, uma A4 a cada 3 parcelas |
@@ -171,6 +174,90 @@ remessa = RemessaItau400(
 open("CB.REM", "w", newline="").write(remessa.gera_arquivo())
 ```
 
+### Juros, multa e desconto na remessa
+
+Cada encargo é opcional e informado direto no `Pagamento`. Com os defaults, o boleto sai sem
+encargos (o caixa preenche na hora do recebimento); ao informá-los, eles entram na remessa nas
+posições do padrão FEBRABAN.
+
+```python
+from datetime import date
+from pycobranca.cnab import Pagamento
+
+Pagamento(
+    nosso_numero="12345678",
+    valor=199.90,
+    data_vencimento=date(2026, 8, 15),
+    # ... dados do sacado ...
+    # Juros de mora: por dia (tipo_mora="1") ou taxa mensal % (tipo_mora="2")
+    tipo_mora="1",
+    valor_mora=1.53,  # R$ 1,53 ao dia
+    # tipo_mora="2", percentual_mora=1.00,        # 1% ao mês
+    # Multa por atraso (percentual)
+    codigo_multa="2",
+    percentual_multa=2.00,  # 2%
+    data_multa=date(2026, 8, 16),  # opcional; padrão = vencimento
+    # Descontos (até 3) — código, valor e data por faixa
+    cod_desconto="1",
+    valor_desconto=10.00,
+    data_desconto=date(2026, 8, 1),
+    cod_segundo_desconto="1",
+    valor_segundo_desconto=5.00,
+    data_segundo_desconto=date(2026, 8, 10),
+    valor_abatimento=0.0,
+    valor_iof=0.0,
+)
+```
+
+| Encargo | Código/tipo | Valor | Data |
+|---|---|---|---|
+| **Multa** | `codigo_multa` (`0` isento · `1` valor · `2` %) | `percentual_multa` (%) | `data_multa` |
+| **Juros/Mora** | `tipo_mora` (`1` valor/dia · `2` taxa mensal % · `3` isento) | `valor_mora` · `percentual_mora` | `data_mora` |
+| **Desconto 1º/2º/3º** | `cod_desconto` / `cod_segundo_desconto` / `cod_terceiro_desconto` | `valor_desconto` / `valor_segundo_desconto` / `valor_terceiro_desconto` | `data_desconto` / `data_segundo_desconto` / `data_terceiro_desconto` |
+| **IOF** · **Abatimento** | — | `valor_iof` · `valor_abatimento` | — |
+
+**Suporte por banco.** O `Pagamento` sempre aceita os campos; eles entram no arquivo onde o layout
+tem posição.
+
+**CNAB 240** — suporte **completo e uniforme** (segmentos P/R):
+
+| Banco (CNAB 240) | Mora (valor/%) | Multa | Desc. 1º | Desc. 2º | Desc. 3º | IOF | Abat. |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Banco do Brasil (001) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Caixa (104) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Santander (033) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Sicoob (756) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Sicredi (748) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Unicred (136) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Ailos (085) | ✅ | ✅⁴ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**CNAB 400** — varia por layout do banco:
+
+| Banco (CNAB 400) | Mora | Multa | Desc. 1º | Desc. 2º | IOF | Abat. |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|
+| Santander (033) | ✅ | ✅ | ✅ | 📅² | ✅ | ✅ |
+| Bradesco (237) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Sicoob (756) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Banrisul (041) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Banco do Nordeste (004) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| C6 (336) | ✅ | ✅ | ✅ | — | — | ✅ |
+| Unicred (136) | ✅ | ✅ | ✅ | — | — | ✅ |
+| CrediSIS (097) | ✅ | ✅ | ✅³ | — | — | — |
+| Itaú (341) | ✅ | 📝¹ | ✅ | — | ✅ | ✅ |
+| Banco do Brasil (001) | ✅ | 📝¹ | ✅ | — | ✅ | ✅ |
+| Citibank (745) | ✅ | — | ✅ | ✅ | ✅ | ✅ |
+| BRB/Brasília (070) | ✅ | — | ✅ | — | — | ✅ |
+
+<sub>✅ campo posicional na remessa · — sem campo no layout · **Desc. 3º**: apenas CNAB 240.
+📝¹ Itaú/BB (400): multa vai por **instrução** (código), não como percentual posicional.
+📅² Santander (400): 2º desconto só a **data**. ³ CrediSIS: 1º desconto **sem** campo de data.
+⁴ Ailos (240): segmento R (multa + 2º/3º desconto) emitido só quando há multa.
+Banestes (021), HSBC (399) e Safra (422) só emitem boleto (sem remessa CNAB).</sub>
+
+> Detalhes por layout (posições 240/400, valor × percentual por banco) em
+> [`docs/06-cnab.md`](docs/06-cnab.md); via API REST, o objeto `encargos` em
+> [`docs/04-api-rest.md`](docs/04-api-rest.md).
+
 ### Ler um retorno CNAB
 
 ```python
@@ -180,6 +267,30 @@ retorno = Retorno.ler("CB.RET")  # layout (240/400) e banco detectados pelo arqu
 for r in retorno.registros:
     print(r.nosso_numero, r.codigo_ocorrencia, retorno.descricao_ocorrencia(r), r.valor_recebido)
 ```
+
+### Ler um extrato OFX e conciliar
+
+Lê o extrato bancário (OFX v1/v2), extrai o **nosso número** do memo de cada transação e **concilia**
+contra os boletos emitidos — fechando o ciclo emissão → retorno → extrato.
+
+```python
+from pycobranca.ofx import Extrato, concilia
+
+extrato = Extrato.ler("extrato.ofx")  # OFX v1 (SGML) ou v2 (XML), encoding Latin-1/UTF-8
+print(extrato.org, extrato.saldo_valor)
+for t in extrato.creditos:
+    print(t.data, t.valor, t.nosso_numero_extraido, t.memo)
+
+# Conciliação contra os nossos números emitidos
+resultado = concilia(extrato, ["12345678", "87654321"])
+print(len(resultado.conciliadas), "casadas ·", resultado.pendentes, "pendentes")
+```
+
+<div align="center">
+
+<img src="docs/images/pycobranca-ciclo.svg" alt="Ciclo de cobrança: emissão → remessa CNAB → retorno CNAB → extrato OFX, conciliados pelo nosso número" width="820">
+
+</div>
 
 ### Boleto híbrido com PIX (Bolepix)
 
@@ -313,6 +424,7 @@ Entregue e em evolução:
 | [Visão Geral](docs/00-visao-geral.md) · [Arquitetura](docs/01-arquitetura.md) | Objetivo, escopo e camadas |
 | [Bancos Suportados](docs/05-bancos-suportados.md) · [por banco](docs/bancos/README.md) | Matriz, carteiras e especificação |
 | [CNAB](docs/06-cnab.md) | Remessa e retorno 240/400 |
+| [OFX](docs/13-ofx.md) | Extrato bancário e conciliação |
 | [PIX / Bolepix](docs/07-pix.md) | QR Code e segmento PIX no CNAB |
 | [API REST](docs/04-api-rest.md) | Contrato de dados e consumo via HTTP |
 | [Renderização](docs/11-renderizacao.md) | Backend de PDF (ReportLab) |

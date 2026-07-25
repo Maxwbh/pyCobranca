@@ -159,7 +159,7 @@ class RemessaSantander240(RemessaCnab240Base):
             + pagamento.data_emissao.strftime("%d%m%Y")
             + pagamento.tipo_mora
             + self.data_mora(pagamento)
-            + pagamento.formata_valor_mora(15)
+            + self.valor_mora_segmento(pagamento)
             + self.codigo_desconto(pagamento)
             + pagamento.formata_data_desconto("%d%m%Y")
             + pagamento.formata_valor_desconto(15)
