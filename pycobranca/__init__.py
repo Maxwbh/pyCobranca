@@ -11,35 +11,34 @@ __all__ = ["__version__", "banco_info", "BANCOS", "Bancos", "BancoBase"]
 __version__ = "1.0.0"
 
 
+def _bancos() -> dict[str, str]:
+    """Mapa ``código FEBRABAN -> nome`` de **todos** os bancos registrados.
+
+    Derivado do registro (``pycobranca.bancos.REGISTRO``) — fonte única de
+    verdade, sempre em sincronia com os bancos efetivamente suportados.
+    """
+    from .bancos import REGISTRO
+
+    return {codigo: cls.nome for codigo, cls in sorted(REGISTRO.items())}
+
+
 def __getattr__(nome: str):
-    # import tardio para manter o import do pacote leve
+    # imports tardios para manter o import do pacote leve
     if nome in ("Bancos", "BancoBase"):
         from . import bancos
 
         return getattr(bancos, nome)
+    if nome == "BANCOS":
+        return _bancos()
     raise AttributeError(f"module {__name__!r} has no attribute {nome!r}")
-
-
-#: Registro inicial de metadados de bancos (código FEBRABAN -> nome).
-#: A implementação completa (classes ``BancoBase``) chega na Fase 1.
-BANCOS: dict[str, str] = {
-    "001": "Banco do Brasil",
-    "033": "Santander",
-    "041": "Banrisul",
-    "070": "BRB",
-    "104": "Caixa Econômica Federal",
-    "237": "Bradesco",
-    "341": "Itaú",
-    "748": "Sicredi",
-    "756": "Sicoob",
-}
 
 
 def banco_info(codigo: str) -> str:
     """Retorna o nome do banco a partir do código FEBRABAN.
 
     Args:
-        codigo: Código FEBRABAN de 3 dígitos (ex.: ``"341"``).
+        codigo: Código FEBRABAN de 3 dígitos (ex.: ``"341"``); zeros à esquerda
+            são preenchidos automaticamente (``"1"`` -> ``"001"``).
 
     Returns:
         Nome do banco correspondente.
@@ -47,7 +46,9 @@ def banco_info(codigo: str) -> str:
     Raises:
         KeyError: Se o código não estiver registrado.
     """
+    from .bancos import REGISTRO
+
     codigo = str(codigo).zfill(3)
-    if codigo not in BANCOS:
+    if codigo not in REGISTRO:
         raise KeyError(f"Banco não registrado: {codigo!r}")
-    return BANCOS[codigo]
+    return REGISTRO[codigo].nome
