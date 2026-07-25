@@ -6,6 +6,43 @@ Todas as mudanças relevantes deste projeto são documentadas aqui. O formato se
 
 ## [Não lançado]
 
+### Adicionado
+
+- **Leitura de extrato OFX + conciliação** (`pycobranca.ofx`): parser em Python puro de OFX
+  **v1 (SGML)** e **v2 (XML)** — `Extrato.ler()` estrutura banco, conta, período, saldo e
+  transações, com normalização de encoding Latin‑1→UTF‑8. Extrai o **nosso número** do memo por
+  banco (Sicoob, Itaú, BB, Bradesco, Caixa, genérico) e oferece `concilia()` para casar as
+  transações do extrato com os boletos emitidos (fechando emissão → retorno CNAB → OFX).
+  `to_dict()` devolve uma estrutura JSON-friendly (schemas `ExtratoOFX`/`TransacaoOFX`) pronta para
+  consumo via REST — sem dependência de HTTP no pacote.
+- **Encargos completos na remessa CNAB.** `Pagamento` ganhou `percentual_mora` (juros por **taxa
+  mensal**, `tipo_mora="2"`, conforme FEBRABAN) e o **3º desconto** (`cod_terceiro_desconto`/
+  `data_terceiro_desconto`/`valor_terceiro_desconto`). No **CNAB 240**, o segmento P passa a emitir
+  juros **percentual** quando `tipo_mora="2"`, e o segmento R passa a preencher o **2º e o 3º
+  desconto** a partir do `Pagamento` (antes eram zerados fixos).
+- **Encargos na API/contrato REST.** O schema `Pagamento` ganhou o objeto `encargos`
+  (`mora`/`multa`/`descontos`/`iof`/`abatimento`), com os schemas `Encargos`, `Mora`, `Multa` e
+  `Desconto`; `pagamento_para_api` serializa os encargos quando presentes (payload inalterado quando
+  não há encargo).
+- **Testes de encargos** (`tests/test_cnab_encargos.py`): juros/multa/desconto com valores reais,
+  conferidos **posição a posição** (240 P/R e Sicoob 400) e no contrato — cobertura que os vetores
+  byte a byte (todos zerados) não exercitavam.
+- **Validação por sistema independente** (`tests/test_cnab_encargos_externo.py`): um decodificador
+  FEBRABAN lê a remessa por posições absolutas do padrão e **reconstrói** os encargos (round-trip
+  encode→arquivo→decode), cruzado em três bancos 240 (BB, Caixa, Santander) e no Sicoob 400, mais o
+  aceite pelo validador estrutural independente.
+- Documentação de encargos em `docs/06-cnab.md` (matriz valor×percentual e datas por layout) e
+  `docs/04-api-rest.md`.
+
+### Corrigido
+
+- **CNAB 240 — datas de multa/mora efetivas.** As datas passam a usar os campos
+  `Pagamento.data_multa`/`data_mora` quando informados (antes eram sempre derivadas do vencimento);
+  na ausência, mantêm o fallback do padrão (vencimento, ou vencimento+1 na Caixa/Sicredi/Unicred).
+- **Clareza da multa.** `formata_valor_multa` agora é um alias explícito de `formata_percentual_multa`
+  (no padrão FEBRABAN a multa é sempre percentual; não há valor monetário de multa). O Sicoob 400
+  passou a usar `formata_percentual_multa` — saída byte a byte inalterada.
+
 ## [1.0.0] - 2026-07-24
 
 Primeira versão pública — cobrança bancária brasileira em Python 3.14+ puro

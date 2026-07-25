@@ -102,9 +102,78 @@ def boleto_para_api(banco) -> dict[str, Any]:
     return {"bank": SLUG_POR_CODIGO.get(banco.codigo, banco.codigo), "data": _sem_nulos(data)}
 
 
+def _desconto_para_api(codigo, valor, data) -> dict[str, Any] | None:
+    """Um desconto (código/valor/data) — ``None`` quando inativo (código ``0``
+    e valor zero)."""
+    ativo = str(codigo or "0") != "0" or bool(_num(valor))
+    if not ativo:
+        return None
+    item = _sem_nulos(
+        {"codigo": codigo or None, "valor": _num(valor) or None, "data": _data_iso(data)}
+    )
+    return item or None
+
+
+def _encargos_para_api(pagamento) -> dict[str, Any] | None:
+    """Serializa juros/mora, multa, descontos (1º/2º/3º), IOF e abatimento para o
+    schema ``Encargos``. Retorna ``None`` quando nenhum encargo está ativo (assim
+    o campo some do payload e pagamentos sem encargo ficam idênticos ao anterior)."""
+    enc: dict[str, Any] = {}
+
+    if (
+        str(pagamento.tipo_mora) != "3"
+        or _num(pagamento.valor_mora)
+        or _num(pagamento.percentual_mora)
+    ):
+        enc["mora"] = _sem_nulos(
+            {
+                "tipo": pagamento.tipo_mora,
+                "valor": _num(pagamento.valor_mora) or None,
+                "percentual": _num(pagamento.percentual_mora) or None,
+                "data": _data_iso(pagamento.data_mora),
+            }
+        )
+
+    if str(pagamento.codigo_multa) != "0" or _num(pagamento.percentual_multa):
+        enc["multa"] = _sem_nulos(
+            {
+                "codigo": pagamento.codigo_multa,
+                "percentual": _num(pagamento.percentual_multa) or None,
+                "data": _data_iso(pagamento.data_multa),
+            }
+        )
+
+    descontos = [
+        d
+        for d in (
+            _desconto_para_api(
+                pagamento.cod_desconto, pagamento.valor_desconto, pagamento.data_desconto
+            ),
+            _desconto_para_api(
+                pagamento.cod_segundo_desconto,
+                pagamento.valor_segundo_desconto,
+                pagamento.data_segundo_desconto,
+            ),
+            _desconto_para_api(
+                pagamento.cod_terceiro_desconto,
+                pagamento.valor_terceiro_desconto,
+                pagamento.data_terceiro_desconto,
+            ),
+        )
+        if d
+    ]
+    if descontos:
+        enc["descontos"] = descontos
+    if _num(pagamento.valor_iof):
+        enc["iof"] = _num(pagamento.valor_iof)
+    if _num(pagamento.valor_abatimento):
+        enc["abatimento"] = _num(pagamento.valor_abatimento)
+    return enc or None
+
+
 def pagamento_para_api(pagamento) -> dict[str, Any]:
     """Serializa um :class:`~pycobranca.cnab.pagamento.Pagamento` para o schema
-    ``Pagamento`` da remessa."""
+    ``Pagamento`` da remessa (inclui ``encargos`` quando houver)."""
     dados = {
         "nosso_numero": pagamento.nosso_numero,
         "numero_documento": pagamento.documento_ou_numero or None,
@@ -117,6 +186,7 @@ def pagamento_para_api(pagamento) -> dict[str, Any]:
         "cidade_sacado": pagamento.cidade_sacado or None,
         "uf_sacado": pagamento.uf_sacado or None,
         "cep_sacado": pagamento.cep_sacado or None,
+        "encargos": _encargos_para_api(pagamento),
     }
     return _sem_nulos(dados)
 
@@ -214,6 +284,8 @@ def valida_contrato(dados: dict, schema_nome: str) -> None:
         regra = propriedades.get(chave)
         if regra is None:
             continue  # additionalProperties permitido
+        if valor is None:
+            continue  # campo opcional nulo (ex.: OFX preserva null por paridade)
         tipo = regra.get("type")
         if tipo == "array":
             if not isinstance(valor, list):

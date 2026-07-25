@@ -109,4 +109,5 @@ class RemessaSicredi240(RemessaCnab240Base):
     def data_mora(self, pagamento: Pagamento) -> str:
         if pagamento.tipo_mora not in ("1", "2"):
             return "0" * 8
-        return (pagamento.data_vencimento + timedelta(days=1)).strftime("%d%m%Y")
+        data = pagamento.data_mora or (pagamento.data_vencimento + timedelta(days=1))
+        return data.strftime("%d%m%Y")

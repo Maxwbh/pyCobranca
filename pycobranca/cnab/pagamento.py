@@ -45,12 +45,20 @@ class Pagamento:
     data_multa: date | None = None
     tipo_mora: str = "3"
     valor_mora: float = 0.0
+    #: Percentual de mora (taxa mensal) — usado quando ``tipo_mora == "2"``
+    #: (FEBRABAN "Taxa Mensal"). ``valor_mora`` continua sendo o valor ao dia
+    #: para ``tipo_mora == "1"``.
+    percentual_mora: float = 0.0
     data_mora: date | None = None
     cod_desconto: str = "0"
     data_desconto: date | None = None
     valor_desconto: float = 0.0
+    cod_segundo_desconto: str = "0"
     data_segundo_desconto: date | None = None
     valor_segundo_desconto: float = 0.0
+    cod_terceiro_desconto: str = "0"
+    data_terceiro_desconto: date | None = None
+    valor_terceiro_desconto: float = 0.0
     valor_iof: float = 0.0
     valor_abatimento: float = 0.0
     codigo_protesto: str = "3"
@@ -103,11 +111,17 @@ class Pagamento:
     def formata_valor_mora(self, tamanho: int = 13) -> str:
         return format_valor(self.valor_mora, tamanho)
 
+    def formata_percentual_mora(self, tamanho: int = 13) -> str:
+        return format_valor(self.percentual_mora, tamanho)
+
     def formata_valor_desconto(self, tamanho: int = 13) -> str:
         return format_valor(self.valor_desconto, tamanho)
 
     def formata_valor_segundo_desconto(self, tamanho: int = 13) -> str:
         return format_valor(self.valor_segundo_desconto, tamanho)
+
+    def formata_valor_terceiro_desconto(self, tamanho: int = 13) -> str:
+        return format_valor(self.valor_terceiro_desconto, tamanho)
 
     def formata_valor_iof(self, tamanho: int = 13) -> str:
         return format_valor(self.valor_iof, tamanho)
@@ -119,7 +133,11 @@ class Pagamento:
         return format_valor(self.percentual_multa, tamanho)
 
     def formata_valor_multa(self, tamanho: int = 6) -> str:
-        return format_valor(self.percentual_multa, tamanho)
+        """Compat.: no padrão FEBRABAN a multa do título é sempre **percentual**
+        (não há valor monetário de multa), então isto é um alias de
+        :meth:`formata_percentual_multa`. Prefira ``formata_percentual_multa``.
+        """
+        return self.formata_percentual_multa(tamanho)
 
     # ---- datas (strftime ou zeros) ----
     @staticmethod
@@ -136,6 +154,11 @@ class Pagamento:
     def formata_data_segundo_desconto(self, formato: str = "%d%m%y") -> str:
         if self.data_segundo_desconto:
             return self.data_segundo_desconto.strftime(formato)
+        return self._zeros_data(formato)
+
+    def formata_data_terceiro_desconto(self, formato: str = "%d%m%y") -> str:
+        if self.data_terceiro_desconto:
+            return self.data_terceiro_desconto.strftime(formato)
         return self._zeros_data(formato)
 
     def formata_data_multa(self, formato: str = "%d%m%y") -> str:

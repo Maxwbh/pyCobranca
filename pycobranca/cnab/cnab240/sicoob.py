@@ -122,12 +122,7 @@ class RemessaSicoob240(RemessaCnab240Base):
             + "R"
             + " "
             + "01"
-            + "0"
-            + "0" * 8
-            + "0" * 15
-            + "0"
-            + "0" * 8
-            + "0" * 15
+            + self.descontos_adicionais(pagamento)
             + pagamento.codigo_multa
             + self.data_multa(pagamento)
             + pagamento.formata_percentual_multa(15)

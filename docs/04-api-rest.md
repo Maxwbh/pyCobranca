@@ -90,6 +90,40 @@ valida_contrato(payload["data"], "BoletoData")  # levanta ErroDeContrato se dive
 # payload == {"bank": "itau", "data": {...}}
 ```
 
+### Encargos na remessa (`Pagamento`)
+
+Quando o `Pagamento` tem juros/mora, multa, desconto (1º/2º/3º), IOF ou abatimento, o schema
+`Pagamento` ganha um objeto **`encargos`** (`{"mora", "multa", "descontos", "iof", "abatimento"}`),
+emitido **apenas quando há encargo** — pagamentos sem encargo ficam com o payload inalterado.
+
+```python
+from datetime import date
+from pycobranca.cnab import Pagamento
+from pycobranca.contracts import pagamento_para_api, valida_contrato
+
+pag = Pagamento(
+    nosso_numero="12345678",
+    data_vencimento=date(2026, 8, 15),
+    valor=199.90,
+    tipo_mora="2",
+    percentual_mora=3.17,  # juros: taxa mensal (%)
+    codigo_multa="2",
+    percentual_multa=2.00,  # multa: 2%
+    cod_desconto="1",
+    valor_desconto=10.0,
+    data_desconto=date(2026, 8, 1),
+)
+dados = pagamento_para_api(pag)
+valida_contrato(dados, "Pagamento")
+# dados["encargos"] == {
+#   "mora": {"tipo": "2", "percentual": 3.17},
+#   "multa": {"codigo": "2", "percentual": 2.0},
+#   "descontos": [{"codigo": "1", "valor": 10.0, "data": "2026-08-01"}],
+# }
+```
+
+Schemas: `Encargos`, `Mora`, `Multa` e `Desconto` (em `contrato_rest.json`).
+
 ### Retorno curado (`RetornoItem`)
 
 O `RegistroRetorno` da engine expõe os campos **crus** do arquivo (fidelidade total). Para a visão
@@ -113,7 +147,7 @@ itens = [retorno_item_para_api(r, layout=retorno.layout) for r in retorno.regist
 ```python
 from pycobranca.clients.rest import CobrancaClient
 
-client = CobrancaApiClient(base_url="https://sua-instancia/api")
+client = CobrancaClient(base_url="https://sua-instancia/api")
 
 # Gerar boleto remotamente
 pdf_bytes = client.boleto(

@@ -109,6 +109,75 @@ conteudo = remessa.gerar()  # -> str (arquivo)
 remessa.salvar("CB240723.REM")
 ```
 
+## Encargos (juros/mora, multa, desconto, IOF, abatimento)
+
+Cada encargo do `Pagamento` é um **trio** *código/tipo → valor → data* (a data é opcional):
+
+| Encargo | Código/tipo | Valor | Data |
+|---|---|---|---|
+| **Multa** | `codigo_multa` (`0`=isento, `1`=valor fixo, `2`=percentual) | `percentual_multa` (%) | `data_multa` |
+| **Juros/Mora** | `tipo_mora` (`1`=valor/dia, `2`=taxa mensal %, `3`=isento) | `valor_mora` (R$, tipo 1) · `percentual_mora` (%, tipo 2) | `data_mora` |
+| **Desconto** 1º/2º/3º | `cod_desconto` / `cod_segundo_desconto` / `cod_terceiro_desconto` | `valor_desconto` / `valor_segundo_desconto` / `valor_terceiro_desconto` | `data_desconto` / `data_segundo_desconto` / `data_terceiro_desconto` |
+| **IOF** | — | `valor_iof` | — |
+| **Abatimento** | — | `valor_abatimento` | — |
+
+Todos os campos são **opcionais** e têm default neutro (`"0"`/`0.0`/`None`); sem informá-los, o
+arquivo sai idêntico ao anterior (encargos zerados).
+
+**Semântica por layout:**
+
+- **CNAB 240** — segmento **P**: `tipo_mora` + data de mora + valor/percentual de mora (percentual
+  quando `tipo_mora == "2"`, conforme FEBRABAN "Taxa Mensal") + 1º desconto + IOF + abatimento.
+  Segmento **R**: 2º e 3º desconto + multa (código + data + percentual). As **datas de mora e multa**
+  usam o campo informado; na ausência, caem para o **vencimento** (Caixa e Sicredi/Unicred usam
+  **vencimento + 1 dia**), como prevê o padrão FEBRABAN.
+- **CNAB 400** — a multa é sempre **percentual** (`percentual_multa`); a mora é **valor ao dia**
+  (`valor_mora`). Larguras variam por banco (ex.: Sicoob 6, Banrisul 12, Brasília/DCB 14). Só o
+  **C6** usa `data_mora` no detalhe; os demais 400 não carregam data de mora.
+
+> Observação: no padrão FEBRABAN **não existe "valor de multa"** monetário — a multa é sempre
+> percentual. O método `Pagamento.formata_valor_multa` é mantido apenas por compatibilidade e é um
+> alias de `formata_percentual_multa`.
+
+### Suporte por banco
+
+O `Pagamento` sempre aceita os campos; eles entram no arquivo onde o layout tem posição.
+
+**CNAB 240** — suporte **completo e uniforme** (segmentos P/R):
+
+| Banco (CNAB 240) | Mora (valor/%) | Multa | Desc. 1º | Desc. 2º | Desc. 3º | IOF | Abat. |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Banco do Brasil (001) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Caixa (104) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Santander (033) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Sicoob (756) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Sicredi (748) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Unicred (136) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Ailos (085) | ✅ | ✅⁴ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**CNAB 400** — varia por layout do banco:
+
+| Banco (CNAB 400) | Mora | Multa | Desc. 1º | Desc. 2º | IOF | Abat. |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|
+| Santander (033) | ✅ | ✅ | ✅ | 📅² | ✅ | ✅ |
+| Bradesco (237) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Sicoob (756) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Banrisul (041) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Banco do Nordeste (004) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| C6 (336) | ✅ | ✅ | ✅ | — | — | ✅ |
+| Unicred (136) | ✅ | ✅ | ✅ | — | — | ✅ |
+| CrediSIS (097) | ✅ | ✅ | ✅³ | — | — | — |
+| Itaú (341) | ✅ | 📝¹ | ✅ | — | ✅ | ✅ |
+| Banco do Brasil (001) | ✅ | 📝¹ | ✅ | — | ✅ | ✅ |
+| Citibank (745) | ✅ | — | ✅ | ✅ | ✅ | ✅ |
+| BRB/Brasília (070) | ✅ | — | ✅ | — | — | ✅ |
+
+Legenda: ✅ campo posicional na remessa · — sem campo no layout · **Desc. 3º** apenas no CNAB 240.
+📝¹ Itaú/BB (400): multa vai por **instrução** (código), não como percentual posicional.
+📅² Santander (400): 2º desconto só a **data**. ³ CrediSIS: 1º desconto **sem** campo de data.
+⁴ Ailos (240): segmento R (multa + 2º/3º desconto) emitido só quando há multa.
+Banestes (021), HSBC (399) e Safra (422) só emitem boleto (sem remessa CNAB).
+
 ## Retorno — API
 
 ```python
