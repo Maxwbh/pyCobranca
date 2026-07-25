@@ -1,0 +1,172 @@
+# 11 — Renderização (Estratégia e Tabela de Decisão)
+
+A renderização do boleto é tratada por **backends plugáveis** atrás de uma interface única. O
+domínio (cálculo de linha digitável, código de barras, PIX, valores) **nunca** depende do backend;
+o backend apenas recebe dados já validados e produz o PDF. Isso permite trocar/coexistir motores
+de renderização sem tocar nas regras bancárias.
+
+## Modelos avaliados
+
+| Modelo | Como funciona | Dependências |
+|--------|---------------|-------------|
+| **ReportLab** | Desenho programático em Python puro, posicionamento absoluto (pt a pt). | Nenhuma dependência de sistema (Python puro). |
+| **HTML/CSS + WeasyPrint** | Template Jinja2 → HTML/CSS `print` → PDF. | Bibliotecas nativas (Pango, cairo, GDK-PixBuf). |
+| **HTML/CSS + Playwright** | Template Jinja2 → HTML → Chromium headless imprime PDF. | Navegador Chromium no ambiente. |
+
+## Tabela de decisão
+
+Notas de **1 (pior) a 5 (melhor)** nos quatro critérios pedidos. A linha *Dependências de sistema*
+não é um dos quatro critérios, mas é a **restrição operacional decisiva** (quanto maior a nota,
+menos dependências) — detalhada mais abaixo.
+
+| Critério | ReportLab | HTML/CSS + WeasyPrint | HTML/CSS + Playwright |
+|----------|:---------:|:---------------------:|:---------------------:|
+| **Simples de Implementar** | 3 — API de baixo nível, verbosa, mas com farto histórico em geração de boletos. | 4 — HTML/CSS + Jinja2 é familiar e produtivo. | 2 — exige orquestrar navegador headless e seu ciclo de vida. |
+| **Melhorias Visuais** | 2 — posicionamento absoluto; tema e logo já suportados, mas ajustes finos de layout custam caro. | 4 — CSS torna temas, cores e fontes simples. | 5 — CSS moderno completo, máxima fidelidade de navegador. |
+| **Fácil de Manutenção** | 2 — mudança visual mexe em coordenadas; frágil a ajustes. | 4 — layout declarativo, fácil de evoluir. | 4 — layout declarativo, porém com peso operacional do Chromium. |
+| **Velocidade de Renderizar** | 5 — Python puro, sem navegador; baixo uso de CPU/memória, ideal para alto volume. | 3 — mais lento que ReportLab; suporta subconjunto de CSS. | 2 — navegador é pesado; maior latência e consumo de memória. |
+| **Média dos 4 critérios** | **3,00** | **3,75** | **3,25** |
+| *Dependências de sistema* | *5 — nenhuma* | *2 — libs nativas* | *1 — Chromium* |
+
+### Leitura por perfil de uso (média ponderada)
+
+Nenhum modelo domina os quatro critérios — a escolha depende do perfil do deployment. Abaixo,
+duas ponderações típicas (soma dos pesos = 100%).
+
+**Perfil A — boleto padrão em produção** (alto volume, serverless/Docker leve, layout regulado):
+pesos Velocidade 30%, Manutenção 25%, Visual 20%, Implementar 15%, Dependências 10%.
+
+| Modelo | Cálculo | Total |
+|--------|---------|:-----:|
+| **ReportLab** | 5·0,30 + 2·0,25 + 2·0,20 + 3·0,15 + 5·0,10 | **3,35** |
+| WeasyPrint | 3·0,30 + 4·0,25 + 4·0,20 + 4·0,15 + 2·0,10 | 3,50 |
+| Playwright | 2·0,30 + 4·0,25 + 5·0,20 + 2·0,15 + 1·0,10 | 3,00 |
+
+**Perfil B — boleto white-label** (marca/temas frequentes, prévia web, volume moderado):
+pesos Visual 30%, Manutenção 25%, Implementar 20%, Velocidade 15%, Dependências 10%.
+
+| Modelo | Cálculo | Total |
+|--------|---------|:-----:|
+| ReportLab | 2·0,30 + 2·0,25 + 3·0,20 + 5·0,15 + 5·0,10 | 2,95 |
+| **WeasyPrint** | 4·0,30 + 4·0,25 + 4·0,20 + 3·0,15 + 2·0,10 | **3,65** |
+| Playwright | 5·0,30 + 4·0,25 + 2·0,20 + 2·0,15 + 1·0,10 | 3,30 |
+
+## A restrição decisiva: dependências de sistema
+
+Para rodar em ambientes constrangidos (ex.: 512 MB no Render) e manter a imagem Docker leve, o
+gerador de PDF precisa ser **puro Python, sem bibliotecas de sistema**. Isso aponta para o
+**ReportLab (zero dependências de sistema)** — e **não** WeasyPrint, que traz Pango/cairo.
+
+Essa é a **contrapartida** do WeasyPrint: ele traz Pango/cairo. Não muda o padrão do projeto (a
+prioridade é visual + manutenção — ver "Decisão do projeto" abaixo), mas é o motivo pelo qual o
+**ReportLab permanece como alternativa** de alto volume/serverless, a um passo de config quando o
+ambiente for muito constrangido.
+
+## Decisão do projeto — REVISADA com paridade visual comprovada + benchmark
+
+A decisão inicial (WeasyPrint padrão) apoiava-se na vantagem visual/manutenção do HTML/CSS.
+Dois fatos supervenientes mudaram o veredito:
+
+1. **Paridade visual comprovada.** O backend ReportLab (`modelo="moderno"`) foi validado
+   **lado a lado contra imagens de referência** e reproduz o layout por completo — chips,
+   célula PIX teal, paleta cinza, carnê e **tema** (faixa de marca, marca d'água, rodapé).
+   A vantagem visual do WeasyPrint deixou de existir para os layouts do projeto.
+2. **Benchmark em lote (100–200 boletos, mesmos contextos, mesma máquina):**
+
+| Lote | ReportLab | WeasyPrint | Fator |
+|:----:|-----------|------------|:-----:|
+| 100 | **1,2 s** (11,9 ms/boleto) | 132,1 s (1.321 ms/boleto) | **~111×** |
+| 200 | **2,1 s** (10,7 ms/boleto) | 265,2 s (1.326 ms/boleto) | **~124×** |
+| Tamanho do PDF | **7,8 KB** | 23,7 KB | 3× |
+
+Para emissão em lote (100–200 no fluxo assíncrono do
+[doc 12](12-processamento-lote.md)), o WeasyPrint levaria **~4,4 minutos** num lote de 200 —
+enquanto o ReportLab entrega em **~2 segundos**, viabilizando até resposta síncrona.
+
+> **Padrão promovido a 1º: `ReportLabBackend` (`modelo="moderno"`).** Visual idêntico à
+> referência, ~120× mais rápido, PDFs 3× menores e zero dependências de sistema.
+
+### Backend único (decisão final)
+
+> **Render somente pelo ReportLab** (decisão de projeto): a via HTML/CSS + WeasyPrint foi
+> **removida do escopo** — os templates Jinja2 saíram do pacote. A análise comparativa acima
+> permanece como registro histórico da decisão. Se um dia for necessário white-label além dos
+> modelos atuais, um backend HTML poderá ser reavaliado em projeto separado.
+
+## Implementação (backend ReportLab)
+
+O backend único vive em `pycobranca/render/reportlab.py` e é alimentado pelo domínio via
+`BancoBase.contexto_render()`:
+
+```python
+from datetime import date
+
+from pycobranca.bancos import Bancos
+from pycobranca.render import render_boleto_pdf, render_carne_pdf
+
+Banco = Bancos.find("341")
+boleto = Banco(
+    valor="127.50",
+    cedente="Empresa Exemplo LTDA",
+    cedente_documento="11.222.333/0001-81",
+    agencia="0057",
+    conta="12345",
+    carteira="109",
+    nosso_numero="12345678",
+    data_vencimento=date(2026, 8, 15),
+    sacado="Cliente Final da Silva",
+    sacado_documento="529.982.247-25",
+)
+
+pdf = render_boleto_pdf(boleto.contexto_render(), modelo="moderno")
+```
+
+- `modelo="moderno"` (padrão recomendado): recibo com chips, célula PIX e TEMA.
+- `modelo="classico"`: layout tradicional.
+- `render_carne_pdf({"parcelas": [...]})`: carnê 3×A4.
+- Código de barras desenhado vetorialmente a partir dos 44 dígitos (`sequencia_i2of5`);
+  QR do Bolepix via `pix.qrcode_matrix` (matriz de módulos 0/1).
+- Requisitos de homologação (branch `hml`): leitura do código de barras/QR no PDF gerado,
+  regressão visual contra as imagens de referência e benchmark de lote (100/1.000/10.000).
+
+### Logo opt-in no cabeçalho
+
+O cabeçalho aceita um **logo opcional**, fornecido pelo chamador. Quando presente, ele é
+desenhado no lugar do nome do banco em texto (recibo, ficha e ambos os lados do carnê),
+preservando a proporção. É um **mecanismo**: a biblioteca desenha o asset entregue e **não
+embute marcas registradas** de bancos — a origem e a licença do arquivo são responsabilidade
+de quem emite.
+
+```python
+# via domínio: o logo flui para banco.logo no contexto
+logo = Path("marca_empresa.png").read_bytes()  # bytes de PNG/JPEG…
+boleto = Banco(..., logo=logo)  # …ou um caminho de arquivo (str)
+pdf = render_boleto_pdf(boleto.contexto_render(), modelo="moderno")
+
+# ou direto no contexto de render
+ctx = boleto.contexto_render()
+ctx["banco"]["logo"] = "marca_empresa.png"
+pdf = render_boleto_pdf(ctx)
+```
+
+Fontes aceitas: `bytes` de PNG/JPEG, caminho de arquivo (`str`/`os.PathLike`) ou um
+`reportlab.lib.utils.ImageReader`. Sem logo (`None`), o cabeçalho mostra o nome do banco —
+comportamento padrão inalterado (saída byte a byte idêntica).
+
+#### Logos de bancos empacotados
+
+Como conveniência, a biblioteca inclui logos de 12 bancos (nomeados pelo código FEBRABAN) em
+`pycobranca/render/logos/`, expostos por `logo_do_banco`:
+
+```python
+from pycobranca.render import logo_do_banco, bancos_com_logo
+
+bancos_com_logo()  # ('001', '004', '033', '041', '085', '104', '136', '237', '336', '341', '748', '756')
+ctx["banco"]["logo"] = logo_do_banco("237")  # bytes do PNG, ou None se não houver
+```
+
+> **Marcas registradas.** Os logos pertencem aos respectivos bancos e servem apenas para
+> identificar o emissor — uso nominativo. Atribuição e origem em
+> [`logos/NOTICE.md`](../pycobranca/render/logos/NOTICE.md). Use um logo somente quando tiver o
+> direito de exibir a marca (cobrança legítima pela instituição). Para marca própria/white-label,
+> forneça o seu arquivo em `banco.logo`.
