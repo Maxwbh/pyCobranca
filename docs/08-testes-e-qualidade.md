@@ -11,8 +11,8 @@ mudança é validada de ponta a ponta antes de ser promovida.
 ### Fluxo de branches
 
 ```
-feature/*  ──►  claude/pycobranca-modernizacao-*  ──►  hml  ──►  main
-   (dev)              (integração)                  (homolog.)   (estável)
+feature/*  ──►  integracao/*  ──►  hml  ──►  main
+   (dev)          (integração)     (homolog.)   (estável)
 ```
 
 - **`feature/*`** — desenvolvimento de uma unidade de trabalho.
