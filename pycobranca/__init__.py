@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __all__ = ["__version__", "banco_info", "BANCOS", "Bancos", "BancoBase"]
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 
 def _bancos() -> dict[str, str]:

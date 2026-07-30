@@ -6,7 +6,7 @@
 
 **Boletos, CNAB 240/400 e PIX para 18 bancos — com uma única biblioteca, em Python puro.**
 
-[![Versão](https://img.shields.io/badge/versão-1.0.1-2ea44f)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/versão-1.0.2-2ea44f)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](LICENSE)
 [![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](pyproject.toml)
