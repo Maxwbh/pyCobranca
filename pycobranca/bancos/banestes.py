@@ -19,6 +19,10 @@ class Banestes(BancoBase):
     digito_banco: ClassVar[str] = "3"
     carteiras: ClassVar[tuple[str, ...]] = ("11", "13")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "conta": (1, 10),
+        "nosso_numero": (1, 8),
+    }
 
     @property
     def dv_nosso_numero(self) -> str:

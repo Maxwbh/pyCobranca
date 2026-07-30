@@ -4,10 +4,60 @@
 Fontes e portal (validador CNAB Sicoob) em [`fontes-oficiais.md`](fontes-oficiais.md) — os PDFs
 não são redistribuídos, apenas citados.
 
-**Implementação (boleto):** [`pycobranca/bancos/sicoob.py`](../../pycobranca/bancos/sicoob.py) ·
-DV do nosso número com fatores fixos 3-1-9-7 (esquerda→direita).
+**Implementação:** [`pycobranca/bancos/sicoob.py`](../../pycobranca/bancos/sicoob.py) ·
+Dígito do banco: **0** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("756")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
+
+## Resumo
+
+DV do nosso número com fatores fixos 3-1-9-7 (da esquerda para a direita).
+
+## Campo livre (posições 20–44 do código de barras)
+
+| Posições | Tam. | Conteúdo |
+|:--------:|:----:|----------|
+| 1     | 1 | Carteira |
+| 2–5   | 4 | Agência |
+| 6–7   | 2 | Variação (`01` se ausente) |
+| 8–14  | 7 | Convênio (ou número do contrato na carteira 9) |
+| 15–21 | 7 | Nosso número |
+| 22    | 1 | DV do nosso número (módulo 11, fatores 3-1-9-7) |
+| 23–25 | 3 | Quantidade de parcelas (`001` se ausente) |
+
+## Dígitos verificadores
+
+- **DV do nosso número** — módulo 11 sobre `agência(4) + identificador(10) + nosso número(7)`,
+  fatores fixos `3, 1, 9, 7` aplicados da **esquerda para a direita**, `DV = 11 - (soma % 11)`;
+  resultados **10 e 11 viram 0**.
+
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Agência | 1–4 dígitos |
+| Convênio | até 7 dígitos (opcional) |
+| Número do contrato | até 7 dígitos (opcional) |
+| Nosso número | 1–7 dígitos |
+| Carteira | conjunto: 1, 3, 9, 09 |
+
+## Formatos de exibição
+
+- Nosso número: `nosso_numero(7)DV` → `12345673`
+- Agência/conta: `agência / conta` (formato base de `BancoBase`)
+
+## Exemplo (saída da engine)
+
+Entrada: agência `1234`, convênio `1234567`, variação `01`, nosso número `1234567`, carteira
+`1`, R$ 127,50, vencimento 15/08/2026.
+
+```
+Campo livre:      1123401123456712345673001
+Código de barras: 75692153900000127501123401123456712345673001
+Linha digitável:  75691.12340 01123.456715 23456.730011 2 15390000012750
+```
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

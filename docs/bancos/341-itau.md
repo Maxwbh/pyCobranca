@@ -10,6 +10,10 @@ Dígito do banco: **7** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("341")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
 
+## Resumo
+
+DACs por módulo 10 (um para agência/conta/carteira/nosso número e outro para agência/conta).
+
 ## Campo livre (posições 20–44 do código de barras)
 
 | Posições | Tam. | Conteúdo |
@@ -32,6 +36,17 @@ Dígito do banco: **7** · PIX: ✅
 `104, 109, 112, 115, 175, 177, 188` (cobrança direta; carteiras escriturais 198/106/… têm campo
 livre próprio — fora do escopo atual).
 
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Agência | 1–4 dígitos |
+| Conta | 1–5 dígitos |
+| Nosso número | 1–8 dígitos |
+| Carteira | conjunto: 104, 109, 112, 115, 175, 177, 188 |
+
 ## Formatos de exibição
 
 - Nosso número: `carteira/nosso_numero-DAC` → `109/12345678-0`
@@ -47,7 +62,6 @@ Campo livre:     1091234567800057123457000
 Código de barras: 34195153900000127501091234567800057123457000
 Linha digitável:  34191.09123 34567.800056 71234.570001 5 15390000012750
 ```
-
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

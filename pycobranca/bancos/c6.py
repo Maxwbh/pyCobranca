@@ -17,6 +17,10 @@ class C6(BancoBase):
     digito_banco: ClassVar[str] = "7"
     carteiras: ClassVar[tuple[str, ...]] = ("10", "20")
     suporta_pix: ClassVar[bool] = True
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "convenio": (1, 12),
+        "nosso_numero": (1, 10),
+    }
 
     @property
     def dv_nosso_numero(self) -> str:

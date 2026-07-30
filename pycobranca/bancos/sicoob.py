@@ -17,6 +17,14 @@ class Sicoob(BancoBase):
     digito_banco: ClassVar[str] = "0"
     carteiras: ClassVar[tuple[str, ...]] = ("1", "3", "9", "09")
     suporta_pix: ClassVar[bool] = True
+    # convênio/nº do contrato têm mín. 0 porque o identificador usa um OU outro
+    # (nº do contrato na carteira 9; convênio nas demais).
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "convenio": (0, 7),
+        "numero_contrato": (0, 7),
+        "nosso_numero": (1, 7),
+    }
 
     @property
     def _identificador(self) -> str:

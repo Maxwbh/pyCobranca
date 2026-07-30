@@ -10,6 +10,10 @@ Dígito do banco: **2** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("237")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
 
+## Resumo
+
+DV do nosso número por módulo 11 base 7 (resto 1 → 'P', resto 0 → '0').
+
 ## Campo livre (25 posições)
 
 | Posições | Tam. | Conteúdo |
@@ -34,6 +38,17 @@ Sobre `carteira(2) + nosso número(11)`, pesos cíclicos 2..7 da direita para a 
 
 `03, 06, 09, 19, 21, 22, 25, 26`.
 
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Agência | 1–4 dígitos |
+| Conta | 1–7 dígitos |
+| Nosso número | 1–11 dígitos |
+| Carteira | conjunto: 03, 06, 09, 19, 21, 22, 25, 26 |
+
 ## Formatos de exibição
 
 - Nosso número: `carteira/nosso_numero-DV` → `06/00000000002-9`.
@@ -49,7 +64,6 @@ Código de barras: 23799153900000127501234060000000000200567890
 Linha digitável:  23791.23405 60000.000004 02005.678905 9 15390000012750
 DV nosso número:  "0600000000002" → soma 46 → resto 2 → DV 9
 ```
-
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

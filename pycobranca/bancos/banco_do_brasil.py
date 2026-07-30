@@ -28,6 +28,12 @@ class BancoDoBrasil(BancoBase):
     digito_banco: ClassVar[str] = "9"
     carteiras: ClassVar[tuple[str, ...]] = ("11", "12", "15", "16", "17", "18", "31", "51")
     suporta_pix: ClassVar[bool] = True
+    # agência/conta só entram no campo livre dos convênios 4 e 6 (mín. 0); o
+    # convênio e o nosso número dependem do tamanho do convênio (ver validar).
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (0, 4),
+        "conta": (0, 8),
+    }
 
     @property
     def _convenio(self) -> str:
@@ -60,6 +66,6 @@ class BancoDoBrasil(BancoBase):
         else:
             maximo = _SEQUENCIAL_POR_CONVENIO[len(self._convenio)]
             if len(so_digitos(self.nosso_numero)) > maximo:
-                erros.append(f"nosso número deve ter até {maximo} dígitos para este convênio")
+                erros.append(f"nosso número deve ter no máximo {maximo} dígitos para este convênio")
         if erros:
-            raise BoletoInvalido("; ".join(erros))
+            raise BoletoInvalido(erros)

@@ -10,7 +10,12 @@ Dígito do banco: **7** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("033")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
 
-## Campo livre (25 posições)
+## Resumo
+
+Campo livre com IOS e código do cedente; DV do nosso número por módulo 11 (pesos 2..9,
+resultado > 9 vira 0).
+
+## Campo livre (posições 20–44 do código de barras)
 
 | Posições | Tam. | Conteúdo |
 |:--------:|:----:|----------|
@@ -21,16 +26,29 @@ Dígito do banco: **7** · PIX: ✅
 | 22    | 1  | `0` (IOS — seguros) |
 | 23–25 | 3  | Carteira |
 
-## DV do nosso número — módulo 11 (pesos 2..9)
+## Dígitos verificadores
 
-`DV = 11 - (soma % 11)`; resultados **maiores que 9 viram 0**. Zeros à esquerda não alteram o
-DV (o cálculo sobre 7 dígitos chega ao mesmo resultado).
+- **DV do nosso número** — módulo 11 (pesos 2..9): `DV = 11 - (soma % 11)`; resultados
+  **maiores que 9 viram 0**. Zeros à esquerda não alteram o DV (o cálculo sobre 7 dígitos chega
+  ao mesmo resultado).
 
 ## Carteiras suportadas
 
 `101` (rápida com registro), `102` (sem registro), `121`.
 
-## Formatos de exibição — divergência documentada
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Código do cedente | 1–7 dígitos (`convenio` ou, na falta, `conta`) |
+| Nosso número | 1–12 dígitos |
+| Carteira | conjunto: 101, 102, 121 |
+
+## Formatos de exibição
+
+- Nosso número: `nnnnnnnnnnnn-DV` → `000001234567-9`
 
 O layout oficial do Santander define o nosso número impresso com **13 posições (12 dígitos +
 DV)**: `000001234567-9`. O vetor de referência omite os zeros à esquerda (`1234567-9`) — diferença
@@ -47,7 +65,6 @@ Campo livre:      9330012300000123456790101
 Código de barras: 03396153900000127509330012300000123456790101
 Linha digitável:  03399.33004 12300.000127 34567.901011 6 15390000012750
 ```
-
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

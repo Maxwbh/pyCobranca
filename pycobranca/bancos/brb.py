@@ -18,6 +18,12 @@ class BRB(BancoBase):
     digito_banco: ClassVar[str] = "1"
     carteiras: ClassVar[tuple[str, ...]] = ("1", "2")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "incremento": (1, 3),
+        "agencia": (1, 3),
+        "conta": (1, 7),
+        "nosso_numero": (1, 6),
+    }
 
     def _campo_livre_base(self) -> str:
         if not self.incremento:

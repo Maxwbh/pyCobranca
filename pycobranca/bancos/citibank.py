@@ -17,6 +17,12 @@ class Citibank(BancoBase):
     digito_banco: ClassVar[str] = "5"
     carteiras: ClassVar[tuple[str, ...]] = ("3",)
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "portfolio": (0, 3),
+        "convenio": (1, 10),
+        "nosso_numero": (1, 11),
+    }
 
     @property
     def dv_nosso_numero(self):

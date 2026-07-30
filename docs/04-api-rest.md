@@ -124,6 +124,37 @@ valida_contrato(dados, "Pagamento")
 
 Schemas: `Encargos`, `Mora`, `Multa` e `Desconto` (em `contrato_rest.json`).
 
+### Fatura (`BoletoData.itens` / `BoletoData.fatura`)
+
+O mesmo schema `BoletoData` carrega o corpo da **fatura** — não há schema novo de requisição:
+
+- **`itens`** — array de **`ItemFatura`** (`descricao`, `quantidade`, `valor_unitario`, `valor`):
+  a tabela pronta.
+- **`fatura`** — **`FaturaCorpo`** (`titulo` + `blocos`), onde cada **`BlocoFatura`** tem `tipo`
+  (`tabela`, `campos`, `texto`, `total`, `separador`, `espaco`) e os campos daquele bloco.
+
+```json
+{
+  "banco": "341", "valor": 127.50, "...": "...",
+  "fatura": {
+    "titulo": "FATURA DE CONSUMO",
+    "blocos": [
+      {"tipo": "campos", "itens": [["Período", "01/08 a 31/08"]]},
+      {"tipo": "tabela", "colunas": ["Descrição", "Total"],
+       "linhas": [["Água", "63,00"]], "alinhamento": "lr"},
+      {"tipo": "texto", "conteudo": "Leitura em <b>18/08</b>."},
+      {"tipo": "total", "rotulo": "Total da fatura", "valor": 127.50}
+    ]
+  }
+}
+```
+
+O `tipo` do bloco é validado por `enum`, então um serviço HTTP rejeita bloco desconhecido antes de
+chamar a renderização. Detalhes de layout em [11 — Renderização](11-renderizacao.md).
+
+> O terceiro nível da fatura (`fatura.desenhar`, um `callable` Python) **não faz parte do
+> contrato** — só existe no uso em processo, por não ser serializável.
+
 ### Retorno curado (`RetornoItem`)
 
 O `RegistroRetorno` da engine expõe os campos **crus** do arquivo (fidelidade total). Para a visão

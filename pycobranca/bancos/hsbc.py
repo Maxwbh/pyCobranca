@@ -24,6 +24,10 @@ class HSBC(BancoBase):
     digito_banco: ClassVar[str] = "9"
     carteiras: ClassVar[tuple[str, ...]] = ("CNR", "CSB")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "conta": (1, 7),
+        "nosso_numero": (1, 13),
+    }
 
     def nosso_numero_formatado(self) -> str:
         nn = so_digitos(self.nosso_numero).zfill(13)

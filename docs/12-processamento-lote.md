@@ -126,7 +126,7 @@ Fase de escala: Serviço REST  → fila → workers que importam PyCobrança
 Alto volume:    Serviço REST  → fila/eventos → generation-service → PyCobrança (engine interna)
 ```
 
-## Critérios de homologação para lotes (branch `hml`)
+## Critérios de aceite para lotes
 
 - Lote de 100 boletos com sucesso e **falhas parciais controladas**.
 - Lote de 200 boletos **sem timeout HTTP**.

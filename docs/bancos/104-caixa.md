@@ -9,6 +9,11 @@ Dígito do banco: **0** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("104")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
 
+## Resumo
+
+SIGCB: nosso número de 17 posições intercalado no campo livre; dois DVs (beneficiário e campo
+livre) por módulo 11 Caixa.
+
 ## Nosso número (17 posições)
 
 `modalidade(2) + sequencial(15)`, onde a modalidade combina **tipo de cobrança** (1º dígito:
@@ -32,6 +37,16 @@ Modalidades usuais: `14` e `24`. Na PyCobrança a modalidade é informada no cam
 
 Pesos 2..9; `DV = 11 - (soma % 11)`; **DV > 9 vira 0** (mapeamento `{10, 11} → 0` do manual).
 
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Convênio | 1–6 dígitos |
+| Nosso número | 1–15 dígitos |
+| Carteira | conjunto: 14, 24 |
+
 ## Formatos de exibição — corrigido na validação cruzada
 
 O manual SIGCB define o nosso número impresso com **17 posições + DV**:
@@ -50,7 +65,6 @@ Código de barras: 10491153900000127501234560000100040000001230
 Linha digitável:  10491.23456 60000.100044 00000.012302 1 15390000012750
 Nosso número:     14000000000000123-1
 ```
-
 
 ## Remessa CNAB 240 — implementada e validada byte a byte ✓
 

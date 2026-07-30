@@ -9,7 +9,11 @@ Dígito do banco: **9** · PIX: ✅
 
 **Logo empacotado:** disponível via `logo_do_banco("001")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
 
-## Campo livre — varia com o tamanho do convênio
+## Resumo
+
+Convênios 4/6/7; no convênio 7 o nosso número tem 17 dígitos (convênio + sequencial, sem DV).
+
+## Campo livre (posições 20–44 do código de barras)
 
 | Convênio | Layout do campo livre (25) | Sequencial |
 |:--------:|-----------------------------|:----------:|
@@ -20,9 +24,28 @@ Dígito do banco: **9** · PIX: ✅
 No convênio de 7 dígitos o **nosso número tem 17 posições** (convênio + sequencial), sem DV no
 campo livre.
 
+## Dígitos verificadores
+
+- **Nosso número:** no convênio de 7 dígitos (17 posições) **não há DV** embutido no campo livre;
+  nos convênios de 4/6 dígitos o sequencial também entra sem DV no campo livre.
+- O **DV geral do código de barras** (posição 5) é o módulo 11 padrão sobre as 43 posições —
+  calculado igual para todos os bancos.
+
 ## Carteiras suportadas
 
 `11, 12, 15, 16, 17, 18, 31, 51`.
+
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Convênio | 4, 6 ou 7 dígitos |
+| Nosso número | máximo conforme convênio: conv7→10, conv6→5, conv4→7 |
+| Agência | até 4 dígitos (só convênios 4 e 6) |
+| Conta | até 8 dígitos (só convênios 4 e 6) |
+| Carteira | conjunto: 11, 12, 15, 16, 17, 18, 31, 51 |
 
 ## Formatos de exibição
 
@@ -38,7 +61,6 @@ Campo livre:      0000001234567000000012318
 Código de barras: 00199153900000127500000001234567000000012318
 Linha digitável:  00190.00009 01234.567004 00000.123182 9 15390000012750
 ```
-
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

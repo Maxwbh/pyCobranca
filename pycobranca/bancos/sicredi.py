@@ -20,6 +20,12 @@ class Sicredi(BancoBase):
     digito_banco: ClassVar[str] = "X"
     carteiras: ClassVar[tuple[str, ...]] = ("1", "3")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "posto": (0, 2),
+        "convenio": (1, 5),
+        "nosso_numero": (1, 5),
+    }
 
     @property
     def _nosso_numero_com_byte(self) -> str:

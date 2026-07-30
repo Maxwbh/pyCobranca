@@ -1,9 +1,13 @@
 # Documentação por Banco
 
 Cada banco tem sua pasta/arquivo com a
-**especificação implementada** (campo livre posição a posição, dígitos verificadores, carteiras e
-formato de exibição), a **referência ao manual oficial** do banco e o **exemplo validado** na
-validação por vetores de referência.
+**especificação implementada** (campo livre posição a posição, dígitos verificadores, carteiras,
+**regras de validação de campos** e formato de exibição), a **referência ao manual oficial** do
+banco e o **exemplo validado** na validação por vetores de referência.
+
+> **Validação e erros:** as regras de tamanho/conjunto por campo e o **contrato de erros**
+> (`BoletoInvalido.erros`) estão consolidados em
+> [`../14-validacao-campos.md`](../14-validacao-campos.md).
 
 > Os PDFs/manuais oficiais de cada banco devem ser armazenados na pasta do respectivo banco
 > (ex.: `docs/bancos/104-caixa/`). Os `.md` abaixo referenciam
@@ -14,6 +18,7 @@ validação por vetores de referência.
 |-------|-----------|------------------------------|
 | 001 — Banco do Brasil | [001-banco-do-brasil.md](001-banco-do-brasil.md) | "Especificações Técnicas — Bloqueto de Cobrança" (BB) |
 | 004 — Banco do Nordeste | [004-banco-do-nordeste.md](004-banco-do-nordeste.md) | "Layout de Cobrança CNAB 400 — Banco do Nordeste" |
+| 021 — Banestes | [021-banestes.md](021-banestes.md) | "Layout de Cobrança Banestes" |
 | 033 — Santander | [033-santander.md](033-santander.md) | "Layout de Cobrança — Santander" (ficha de compensação/CNAB) |
 | 041 — Banrisul | [041-banrisul.md](041-banrisul.md) | "Layout de Cobrança CNAB 400 — Banrisul" |
 | 070 — BRB (Banco de Brasília) | [070-brb.md](070-brb.md) | "Layout de Remessa DCB — BRB" |
@@ -24,6 +29,8 @@ validação por vetores de referência.
 | 237 — Bradesco | [237-bradesco.md](237-bradesco.md) | "Manual Técnico Cobrança Bradesco" (carteiras/nosso número) |
 | 336 — C6 Bank | [336-c6.md](336-c6.md) | "Cobrança Bancária Padrão CNAB 400 Posições — C6" |
 | 341 — Itaú | [341-itau.md](341-itau.md) | "Manual Técnico de Cobrança Itaú" (DAC/campo livre) |
+| 399 — HSBC (legado) | [399-hsbc.md](399-hsbc.md) | "Layout de Cobrança HSBC" (carteiras CNR/CSB) |
+| 422 — Safra | [422-safra.md](422-safra.md) | "Layout de Cobrança Safra" |
 | 745 — Citibank | [745-citibank.md](745-citibank.md) | "Layout de Cobrança CNAB 400 — Citibank" |
 | 748 — Sicredi | [748-sicredi.md](748-sicredi.md) | "Manual de Cobrança CNAB 240 — Sicredi" |
 | 756 — Sicoob | [756-sicoob.md](756-sicoob.md) | "Manual de Cobrança Sicoob (CNAB 400/240)" |

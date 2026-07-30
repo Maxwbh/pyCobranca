@@ -1,157 +1,474 @@
 {
-  "$comment": "Contrato de dados REST (OpenAPI 3.0) da PyCobranca: os schemas JSON que a engine serializa (boleto, remessa, retorno, encargos, extrato OFX) para consumo por um servico HTTP.",
+  "$comment": "Contrato de dados REST (OpenAPI 3.0) da PyCobranca: os schemas JSON que a engine serializa (boleto, fatura, remessa, retorno, encargos, extrato OFX) para consumo por um servico HTTP.",
   "openapi": "3.0",
   "schemas": {
     "BoletoData": {
       "type": "object",
       "required": [
-        "agencia", "conta_corrente", "nosso_numero", "valor",
-        "cedente", "documento_cedente", "sacado", "sacado_documento"
+        "agencia",
+        "conta_corrente",
+        "nosso_numero",
+        "valor",
+        "cedente",
+        "documento_cedente",
+        "sacado",
+        "sacado_documento"
       ],
       "properties": {
-        "agencia": {"type": "string"},
-        "conta_corrente": {"type": "string"},
-        "nosso_numero": {"type": "string"},
-        "valor": {"type": "number"},
-        "cedente": {"type": "string"},
-        "documento_cedente": {"type": "string"},
-        "sacado": {"type": "string"},
-        "sacado_documento": {"type": "string"},
-        "convenio": {"type": "string"},
-        "carteira": {"type": "string"},
-        "data_vencimento": {"type": "string"},
-        "numero_documento": {"type": "string"},
-        "sacado_endereco": {"type": "string"},
-        "instrucao1": {"type": "string"},
-        "instrucao2": {"type": "string"},
-        "emv": {"type": "string"},
-        "pix_label": {"type": "string"},
-        "chave_pix": {"type": "string"},
-        "tipo_chave_pix": {"type": "string", "enum": ["cpf", "cnpj", "email", "telefone", "aleatoria"]},
-        "txid": {"type": "string"},
-        "logo_empresa": {"type": "string"},
-        "cor_marca": {"type": "string"},
-        "marca_dagua": {"type": "string"},
-        "rodape_contato": {"type": "string"},
-        "fonte_ttf": {"type": "string"},
-        "parcela_atual": {"type": "integer"},
-        "total_parcelas": {"type": "integer"}
+        "agencia": {
+          "type": "string"
+        },
+        "conta_corrente": {
+          "type": "string"
+        },
+        "nosso_numero": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "cedente": {
+          "type": "string"
+        },
+        "documento_cedente": {
+          "type": "string"
+        },
+        "sacado": {
+          "type": "string"
+        },
+        "sacado_documento": {
+          "type": "string"
+        },
+        "convenio": {
+          "type": "string"
+        },
+        "carteira": {
+          "type": "string"
+        },
+        "data_vencimento": {
+          "type": "string"
+        },
+        "numero_documento": {
+          "type": "string"
+        },
+        "sacado_endereco": {
+          "type": "string"
+        },
+        "instrucao1": {
+          "type": "string"
+        },
+        "instrucao2": {
+          "type": "string"
+        },
+        "emv": {
+          "type": "string"
+        },
+        "pix_label": {
+          "type": "string"
+        },
+        "chave_pix": {
+          "type": "string"
+        },
+        "tipo_chave_pix": {
+          "type": "string",
+          "enum": [
+            "cpf",
+            "cnpj",
+            "email",
+            "telefone",
+            "aleatoria"
+          ]
+        },
+        "txid": {
+          "type": "string"
+        },
+        "logo_empresa": {
+          "type": "string"
+        },
+        "cor_marca": {
+          "type": "string"
+        },
+        "marca_dagua": {
+          "type": "string"
+        },
+        "rodape_contato": {
+          "type": "string"
+        },
+        "fonte_ttf": {
+          "type": "string"
+        },
+        "parcela_atual": {
+          "type": "integer"
+        },
+        "total_parcelas": {
+          "type": "integer"
+        },
+        "itens": {
+          "type": "array",
+          "items": {
+            "$ref": "ItemFatura"
+          }
+        },
+        "fatura": {
+          "$ref": "FaturaCorpo"
+        }
       }
     },
     "RemessaRequest": {
       "type": "object",
-      "required": ["empresa_mae", "documento_cedente", "agencia", "conta_corrente", "pagamentos"],
+      "required": [
+        "empresa_mae",
+        "documento_cedente",
+        "agencia",
+        "conta_corrente",
+        "pagamentos"
+      ],
       "properties": {
-        "empresa_mae": {"type": "string"},
-        "documento_cedente": {"type": "string"},
-        "agencia": {"type": "string"},
-        "conta_corrente": {"type": "string"},
-        "digito_conta": {"type": "string"},
-        "convenio": {"type": "string"},
-        "carteira": {"type": "string"},
-        "variacao_carteira": {"type": "string"},
-        "codigo_beneficiario": {"type": "string"},
-        "sequencial_remessa": {"type": "integer"},
-        "pagamentos": {"type": "array", "items": {"$ref": "Pagamento"}}
+        "empresa_mae": {
+          "type": "string"
+        },
+        "documento_cedente": {
+          "type": "string"
+        },
+        "agencia": {
+          "type": "string"
+        },
+        "conta_corrente": {
+          "type": "string"
+        },
+        "digito_conta": {
+          "type": "string"
+        },
+        "convenio": {
+          "type": "string"
+        },
+        "carteira": {
+          "type": "string"
+        },
+        "variacao_carteira": {
+          "type": "string"
+        },
+        "codigo_beneficiario": {
+          "type": "string"
+        },
+        "sequencial_remessa": {
+          "type": "integer"
+        },
+        "pagamentos": {
+          "type": "array",
+          "items": {
+            "$ref": "Pagamento"
+          }
+        }
       }
     },
     "Pagamento": {
       "type": "object",
-      "required": ["nosso_numero", "data_vencimento", "valor"],
+      "required": [
+        "nosso_numero",
+        "data_vencimento",
+        "valor"
+      ],
       "properties": {
-        "nosso_numero": {"type": "string"},
-        "numero_documento": {"type": "string"},
-        "data_vencimento": {"type": "string"},
-        "valor": {"type": "number"},
-        "nome_sacado": {"type": "string"},
-        "documento_sacado": {"type": "string"},
-        "endereco_sacado": {"type": "string"},
-        "bairro_sacado": {"type": "string"},
-        "cidade_sacado": {"type": "string"},
-        "uf_sacado": {"type": "string"},
-        "cep_sacado": {"type": "string"},
-        "encargos": {"$ref": "Encargos"}
+        "nosso_numero": {
+          "type": "string"
+        },
+        "numero_documento": {
+          "type": "string"
+        },
+        "data_vencimento": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "nome_sacado": {
+          "type": "string"
+        },
+        "documento_sacado": {
+          "type": "string"
+        },
+        "endereco_sacado": {
+          "type": "string"
+        },
+        "bairro_sacado": {
+          "type": "string"
+        },
+        "cidade_sacado": {
+          "type": "string"
+        },
+        "uf_sacado": {
+          "type": "string"
+        },
+        "cep_sacado": {
+          "type": "string"
+        },
+        "encargos": {
+          "$ref": "Encargos"
+        }
       }
     },
     "Encargos": {
       "type": "object",
       "required": [],
       "properties": {
-        "mora": {"$ref": "Mora"},
-        "multa": {"$ref": "Multa"},
-        "descontos": {"type": "array", "items": {"$ref": "Desconto"}},
-        "iof": {"type": "number"},
-        "abatimento": {"type": "number"}
+        "mora": {
+          "$ref": "Mora"
+        },
+        "multa": {
+          "$ref": "Multa"
+        },
+        "descontos": {
+          "type": "array",
+          "items": {
+            "$ref": "Desconto"
+          }
+        },
+        "iof": {
+          "type": "number"
+        },
+        "abatimento": {
+          "type": "number"
+        }
       }
     },
     "Mora": {
       "type": "object",
       "required": [],
       "properties": {
-        "tipo": {"type": "string", "enum": ["1", "2", "3"]},
-        "valor": {"type": "number"},
-        "percentual": {"type": "number"},
-        "data": {"type": "string"}
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "valor": {
+          "type": "number"
+        },
+        "percentual": {
+          "type": "number"
+        },
+        "data": {
+          "type": "string"
+        }
       }
     },
     "Multa": {
       "type": "object",
       "required": [],
       "properties": {
-        "codigo": {"type": "string"},
-        "percentual": {"type": "number"},
-        "data": {"type": "string"}
+        "codigo": {
+          "type": "string"
+        },
+        "percentual": {
+          "type": "number"
+        },
+        "data": {
+          "type": "string"
+        }
       }
     },
     "Desconto": {
       "type": "object",
       "required": [],
       "properties": {
-        "codigo": {"type": "string"},
-        "valor": {"type": "number"},
-        "data": {"type": "string"}
+        "codigo": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "data": {
+          "type": "string"
+        }
       }
     },
     "RetornoItem": {
       "type": "object",
       "required": [],
       "properties": {
-        "nosso_numero": {"type": "string"},
-        "numero_documento": {"type": "string"},
-        "data_credito": {"type": "string"},
-        "data_ocorrencia": {"type": "string"},
-        "valor_titulo": {"type": "number"},
-        "valor_pago": {"type": "number"},
-        "valor_tarifa": {"type": "number"},
-        "codigo_ocorrencia": {"type": "string"},
-        "motivo_ocorrencia": {"type": "string"}
+        "nosso_numero": {
+          "type": "string"
+        },
+        "numero_documento": {
+          "type": "string"
+        },
+        "data_credito": {
+          "type": "string"
+        },
+        "data_ocorrencia": {
+          "type": "string"
+        },
+        "valor_titulo": {
+          "type": "number"
+        },
+        "valor_pago": {
+          "type": "number"
+        },
+        "valor_tarifa": {
+          "type": "number"
+        },
+        "codigo_ocorrencia": {
+          "type": "string"
+        },
+        "motivo_ocorrencia": {
+          "type": "string"
+        }
       }
     },
     "ExtratoOFX": {
       "type": "object",
-      "required": ["banco", "conta", "transacoes"],
+      "required": [
+        "banco",
+        "conta",
+        "transacoes"
+      ],
       "properties": {
-        "banco": {"type": "object"},
-        "conta": {"type": "object"},
-        "periodo": {"type": "object"},
-        "saldo": {"type": "object"},
-        "transacoes": {"type": "array", "items": {"$ref": "TransacaoOFX"}},
-        "resumo": {"type": "object"}
+        "banco": {
+          "type": "object"
+        },
+        "conta": {
+          "type": "object"
+        },
+        "periodo": {
+          "type": "object"
+        },
+        "saldo": {
+          "type": "object"
+        },
+        "transacoes": {
+          "type": "array",
+          "items": {
+            "$ref": "TransacaoOFX"
+          }
+        },
+        "resumo": {
+          "type": "object"
+        }
       }
     },
     "TransacaoOFX": {
       "type": "object",
-      "required": ["tipo", "valor"],
+      "required": [
+        "tipo",
+        "valor"
+      ],
       "properties": {
-        "fitid": {"type": "string"},
-        "tipo": {"type": "string", "enum": ["CREDIT", "DEBIT"]},
-        "data": {"type": "string"},
-        "valor": {"type": "number"},
-        "memo": {"type": "string"},
-        "name": {"type": "string"},
-        "checknum": {"type": "string"},
-        "refnum": {"type": "string"},
-        "nosso_numero_extraido": {"type": "string"}
+        "fitid": {
+          "type": "string"
+        },
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "CREDIT",
+            "DEBIT"
+          ]
+        },
+        "data": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "checknum": {
+          "type": "string"
+        },
+        "refnum": {
+          "type": "string"
+        },
+        "nosso_numero_extraido": {
+          "type": "string"
+        }
+      }
+    },
+    "ItemFatura": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "quantidade": {
+          "type": "number"
+        },
+        "valor_unitario": {
+          "type": "number"
+        },
+        "valor": {
+          "type": "number"
+        }
+      }
+    },
+    "FaturaCorpo": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "titulo": {
+          "type": "string"
+        },
+        "blocos": {
+          "type": "array",
+          "items": {
+            "$ref": "BlocoFatura"
+          }
+        }
+      }
+    },
+    "BlocoFatura": {
+      "type": "object",
+      "required": [
+        "tipo"
+      ],
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "tabela",
+            "campos",
+            "texto",
+            "total",
+            "separador",
+            "espaco"
+          ]
+        },
+        "colunas": {
+          "type": "array"
+        },
+        "linhas": {
+          "type": "array"
+        },
+        "larguras": {
+          "type": "array"
+        },
+        "alinhamento": {
+          "type": "string"
+        },
+        "itens": {
+          "type": "array"
+        },
+        "conteudo": {
+          "type": "string"
+        },
+        "tamanho": {
+          "type": "number"
+        },
+        "rotulo": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "number"
+        },
+        "altura": {
+          "type": "number"
+        }
       }
     }
   }

@@ -1,20 +1,19 @@
 # 02 — Roadmap de Modernização
 
 O roadmap está organizado em fases incrementais. Cada fase tem um **marco verificável** e
-**critérios de aceite** que alimentam a CI e a homologação na branch `hml`.
+**critérios de aceite** verificados pela CI.
 
 ## Fase 0 — Fundação (este entregável)
 
-**Objetivo:** estabelecer documentação, esqueleto de projeto, CI e ambiente de homologação.
+**Objetivo:** estabelecer documentação, esqueleto de projeto e CI.
 
 - [x] Documentação de arquitetura e plano (`docs/`).
 - [x] Empacotamento moderno (`pyproject.toml`).
 - [x] Esqueleto do pacote `pycobranca` com versionamento.
 - [x] CI de validação (`ci.yml`) em matriz de versões Python.
-- [x] Pipeline de homologação (`hml.yml`) atrelado à branch `hml`.
 - [x] Convenções de contribuição e changelog.
 
-**Critério de aceite:** CI verde; branch `hml` criada e validada.
+**Critério de aceite:** CI verde.
 
 ## Fase 1 — Núcleo e emissão de boleto
 
@@ -113,8 +112,8 @@ e 3 em 240) byte a byte idênticos aos vetores de referência, além do QR no PD
   reproduzível**, **nenhum banco novo foi adicionado nesta versão** (evitando enviar lógica não
   verificada). Novos bancos entram sob demanda, com manual oficial + exemplo numérico validável.
 - [ ] Ampliação contínua da suíte de testes.
-- [ ] Publicação no PyPI (requer credenciais; empacotamento/metadados a finalizar no momento da
-  publicação — ex.: `Development Status :: 5 - Production/Stable`).
+- [x] **Publicação no PyPI** — `pycobranca 1.0.0` publicado (sdist + wheel); instalação por
+  `pip install pycobranca`.
 
 **Critério de aceite:** matriz de bancos de [05 — Bancos](05-bancos-suportados.md) completa nos
 itens marcados como prioritários; release 1.0. **Status: 1.0.0 marcado**; cobertura de bancos

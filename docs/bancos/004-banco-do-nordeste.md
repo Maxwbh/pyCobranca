@@ -4,10 +4,58 @@
 Fontes e portal em [`fontes-oficiais.md`](fontes-oficiais.md) — os PDFs não são redistribuídos,
 apenas citados.
 
-**Implementação (boleto):** [`pycobranca/bancos/banco_nordeste.py`](../../pycobranca/bancos/banco_nordeste.py) ·
-DV do nosso número: módulo 11 (fatores 2..8).
+**Implementação:** [`pycobranca/bancos/banco_nordeste.py`](../../pycobranca/bancos/banco_nordeste.py) ·
+Dígito do banco: **3** · PIX: —
 
 **Logo empacotado:** disponível via `logo_do_banco("004")` — a marca é do banco (uso nominativo); ver [`render/logos/NOTICE.md`](../../pycobranca/render/logos/NOTICE.md).
+
+## Resumo
+
+DV do nosso número por módulo 11 (fatores 2..8).
+
+## Campo livre (posições 20–44 do código de barras)
+
+| Posições | Tam. | Conteúdo |
+|:--------:|:----:|----------|
+| 1–4   | 4 | Agência |
+| 5–11  | 7 | Conta |
+| 12    | 1 | Dígito da conta |
+| 13–19 | 7 | Nosso número |
+| 20    | 1 | DV do nosso número (módulo 11) |
+| 21–22 | 2 | Carteira |
+| 23–25 | 3 | `000` |
+
+## Dígitos verificadores
+
+- **DV do nosso número** — módulo 11 sobre o nosso número com 7 posições, fatores `2..8`
+  (cíclicos, direita→esquerda), `DV = 11 - (soma % 11)`; resultados **10 e 11 viram 0**.
+
+## Validação de campos (geração do boleto)
+
+Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é preenchido com zero à esquerda. Violações vêm em `BoletoInvalido.erros` (lista) — ver o [contrato de erros e a matriz completa](../14-validacao-campos.md).
+
+| Campo | Regra |
+|-------|-------|
+| Agência | 1–4 dígitos |
+| Conta | 1–7 dígitos |
+| Nosso número | 1–7 dígitos |
+| Carteira | conjunto: 21, 31, 41, 51 |
+
+## Formatos de exibição
+
+- Nosso número: `nosso número(7)-DV` → `0000123-6`
+- Agência/conta: `agência(4)/conta(7)-dígito` → `0123/0012345-6`
+
+## Exemplo (saída da engine)
+
+Entrada: agência `0123`, conta `0012345`, dígito da conta `6`, carteira `21`, nosso número
+`1234567`, R$ 127,50, vencimento 15/08/2026.
+
+```
+Campo livre:      0123001234561234567921000
+Código de barras: 00494153900000127500123001234561234567921000
+Linha digitável:  00490.12305 01234.561239 45679.210000 4 15390000012750
+```
 
 ## Remessa CNAB 400 — implementada e validada byte a byte ✓
 

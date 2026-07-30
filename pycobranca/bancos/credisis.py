@@ -18,6 +18,11 @@ class CrediSIS(BancoBase):
     digito_banco: ClassVar[str] = "3"
     carteiras: ClassVar[tuple[str, ...]] = ("18",)
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "convenio": (1, 6),
+        "nosso_numero": (1, 6),
+    }
 
     @property
     def dv_documento_cedente(self):

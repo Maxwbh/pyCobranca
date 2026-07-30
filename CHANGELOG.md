@@ -2,6 +2,34 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+
+- **Validação de campos por banco** (tamanho mín./máx. e conjunto de carteiras) na geração do boleto
+  e **coerência de encargos** (mora/multa/desconto, `valor > 0`, UF/CEP) na remessa CNAB.
+- **Validação de leitura**: `Extrato.ler` (OFX) levanta `OFXInvalido` para arquivo que não é OFX;
+  `Retorno.ler` (CNAB) levanta `RetornoInvalido` para arquivo vazio/sem header — em vez de devolver
+  resultado vazio silencioso.
+- **Contrato de erros estruturado**: `BoletoInvalido` passa a carregar `.erros` (lista, um item por
+  problema) além da mensagem única — pronto para uma camada REST tratar cada violação. Ver
+  [`docs/14-validacao-campos.md`](docs/14-validacao-campos.md).
+- **Docs por banco padronizados** num template único (18 bancos; inclui Banestes, HSBC e Safra) com
+  seção de validação por banco. Novos guias: criação de banco (`docs/15-novo-banco.md`) e
+  arquitetura/diretórios (`docs/16-arquitetura-diretorios.md`).
+- **Fatura** (`render_fatura_pdf`): corpo livre + boleto na mesma página, em 3 níveis — `itens`
+  (tabela pronta), `fatura.blocos` (corpo declarativo: tabela, campos, texto, total, separador,
+  espaço) e `fatura.desenhar` (callable com liberdade total). Serve a várias modalidades sem
+  engine de HTML; os níveis 1 e 2 entram no contrato REST existente (`ItemFatura`, `FaturaCorpo`,
+  `BlocoFatura` em `BoletoData`).
+
+### Alterado
+
+- **`pycobranca.render` reorganizado**: o módulo único de 1183 linhas virou `comum` (primitivas),
+  `tela` (canvas + cursor), `dados` (preenchimento), `blocos` (comuns) e `modelos/` — o catálogo dos
+  documentos (boleto clássico, boleto moderno, carnê, fatura). Saída dos PDFs inalterada; a API
+  pública mantém os mesmos nomes e ganha `render_fatura_pdf` e `desenha_boleto`.
+
 ## [1.0.0] - 2026-07-24
 
 Primeira versão pública — cobrança bancária brasileira em Python 3.14+ puro, com **18 bancos** e um único `pip install`.

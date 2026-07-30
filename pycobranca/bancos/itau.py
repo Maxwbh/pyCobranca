@@ -19,7 +19,6 @@ from typing import ClassVar
 
 from ..core.documentos import so_digitos
 from ..core.dv import modulo10
-from ..exceptions import BoletoInvalido
 from .base import BancoBase
 
 __all__ = ["Itau"]
@@ -31,6 +30,11 @@ class Itau(BancoBase):
     digito_banco: ClassVar[str] = "7"
     carteiras: ClassVar[tuple[str, ...]] = ("104", "109", "112", "115", "175", "177", "188")
     suporta_pix: ClassVar[bool] = True
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "conta": (1, 5),
+        "nosso_numero": (1, 8),
+    }
 
     @property
     def _agencia4(self) -> str:
@@ -65,15 +69,3 @@ class Itau(BancoBase):
 
     def agencia_conta_formatado(self) -> str:
         return f"{self._agencia4} / {self._conta5}-{self.dac_conta}"
-
-    def validar(self) -> None:
-        super().validar()
-        erros: list[str] = []
-        if len(so_digitos(self.agencia)) > 4:
-            erros.append("agência deve ter até 4 dígitos")
-        if len(so_digitos(self.conta)) > 5:
-            erros.append("conta deve ter até 5 dígitos")
-        if len(self._nosso_numero8) != 8:
-            erros.append("nosso número deve ter até 8 dígitos")
-        if erros:
-            raise BoletoInvalido("; ".join(erros))

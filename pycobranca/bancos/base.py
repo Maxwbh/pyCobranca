@@ -25,6 +25,18 @@ __all__ = ["BancoBase", "REGISTRO"]
 #: código FEBRABAN -> classe do banco (preenchido pelo auto-registro)
 REGISTRO: dict[str, type[BancoBase]] = {}
 
+#: rótulos amigáveis para as mensagens de erro de tamanho de campo
+_ROTULOS_CAMPOS: dict[str, str] = {
+    "agencia": "agência",
+    "conta": "conta",
+    "convenio": "convênio",
+    "nosso_numero": "nosso número",
+    "posto": "posto",
+    "portfolio": "portfolio",
+    "incremento": "incremento",
+    "numero_contrato": "número do contrato",
+}
+
 
 @dataclass
 class BancoBase:
@@ -39,6 +51,11 @@ class BancoBase:
     digito_banco: ClassVar[str] = ""
     carteiras: ClassVar[tuple[str, ...]] = ()
     suporta_pix: ClassVar[bool] = False
+    #: regras de tamanho por campo numérico: ``nome_do_campo -> (mínimo, máximo)``
+    #: em dígitos (após remover a máscara). O máximo trava o formato do campo
+    #: livre; o mínimo pega campo vazio/curto. As carteiras válidas ficam em
+    #: :attr:`carteiras` (conjunto validado à parte).
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {}
 
     # ---- campos do título ----
     valor: Decimal | str | float = "0"
@@ -134,7 +151,15 @@ class BancoBase:
         if not self.cedente:
             erros.append("cedente é obrigatório")
         if self.carteiras and self.carteira not in self.carteiras:
-            erros.append(f"carteira {self.carteira!r} não suportada (use uma de {self.carteiras})")
+            validas = ", ".join(self.carteiras)
+            erros.append(f"carteira {self.carteira!r} não suportada (use uma de: {validas})")
+        for campo, (minimo, maximo) in self.regras_campos.items():
+            rotulo = _ROTULOS_CAMPOS.get(campo, campo)
+            digitos = so_digitos(getattr(self, campo) or "")
+            if len(digitos) < minimo:
+                erros.append(f"{rotulo} deve ter no mínimo {minimo} dígito(s)")
+            elif len(digitos) > maximo:
+                erros.append(f"{rotulo} deve ter no máximo {maximo} dígitos")
         doc = so_digitos(self.cedente_documento)
         if doc and not (validar_cpf(doc) or validar_cnpj(doc)):
             erros.append("cedente_documento inválido (CPF/CNPJ)")
@@ -142,7 +167,7 @@ class BancoBase:
         if doc and not (validar_cpf(doc) or validar_cnpj(doc)):
             erros.append("sacado_documento inválido (CPF/CNPJ)")
         if erros:
-            raise BoletoInvalido("; ".join(erros))
+            raise BoletoInvalido(erros)
 
     # ---- serialização / integração com render ----
     def to_dict(self) -> dict[str, Any]:

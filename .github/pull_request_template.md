@@ -18,9 +18,8 @@
 - [ ] `ruff check .` e `ruff format --check .` sem erros.
 - [ ] Cobertura dentro da meta da fase.
 - [ ] Documentação atualizada (`docs/` e/ou matriz de bancos).
-- [ ] Homologação prevista na branch `hml`.
 - [ ] Sem segredos ou dados sensíveis no diff.
 
-## Notas de homologação
+## Notas de validação
 
-<!-- Como validar na branch `hml`. -->
+<!-- Como validar esta mudança. -->

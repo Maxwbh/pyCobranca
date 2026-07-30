@@ -72,19 +72,73 @@ class Pagamento:
             self.data_emissao = date.today()
 
     def validar(self) -> None:
-        obrigatorios = (
+        """Regras de geração da remessa CNAB (campos e coerência de encargos).
+
+        Levanta :class:`BoletoInvalido` com a lista **estruturada** de erros
+        (``.erros``) — pronta para uma camada REST mapear cada item.
+        """
+        erros: list[str] = []
+        for campo in (
             "nosso_numero",
-            "valor",
             "documento_sacado",
             "nome_sacado",
             "endereco_sacado",
             "cep_sacado",
-        )
-        faltando = [c for c in obrigatorios if not getattr(self, c)]
+        ):
+            if not getattr(self, campo):
+                erros.append(f"campo obrigatório ausente: {campo}")
         if self.data_vencimento is None:
-            faltando.append("data_vencimento")
-        if faltando:
-            raise BoletoInvalido(f"pagamento incompleto: {', '.join(faltando)}")
+            erros.append("campo obrigatório ausente: data_vencimento")
+        if not self.valor or float(self.valor) <= 0:
+            erros.append("valor deve ser positivo")
+        for campo in (
+            "valor_mora",
+            "percentual_mora",
+            "percentual_multa",
+            "valor_desconto",
+            "valor_segundo_desconto",
+            "valor_terceiro_desconto",
+            "valor_iof",
+            "valor_abatimento",
+        ):
+            if float(getattr(self, campo) or 0) < 0:
+                erros.append(f"{campo} não pode ser negativo")
+        # coerência de juros/mora
+        if self.tipo_mora == "1" and float(self.valor_mora or 0) <= 0:
+            erros.append('tipo_mora="1" (valor ao dia) exige valor_mora > 0')
+        if self.tipo_mora == "2" and float(self.percentual_mora or 0) <= 0:
+            erros.append('tipo_mora="2" (taxa mensal) exige percentual_mora > 0')
+        # coerência de multa (FEBRABAN: multa é sempre percentual)
+        if self.codigo_multa in ("1", "2") and float(self.percentual_multa or 0) <= 0:
+            erros.append("codigo_multa != 0 exige percentual_multa > 0")
+        # coerência de desconto (1º/2º/3º)
+        for cod, valor, data, rotulo in (
+            (self.cod_desconto, self.valor_desconto, self.data_desconto, "1º desconto"),
+            (
+                self.cod_segundo_desconto,
+                self.valor_segundo_desconto,
+                self.data_segundo_desconto,
+                "2º desconto",
+            ),
+            (
+                self.cod_terceiro_desconto,
+                self.valor_terceiro_desconto,
+                self.data_terceiro_desconto,
+                "3º desconto",
+            ),
+        ):
+            if cod and cod != "0":
+                if float(valor or 0) <= 0:
+                    erros.append(f"{rotulo} indicado (cód. != 0) exige valor > 0")
+                if data is None:
+                    erros.append(f"{rotulo} indicado (cód. != 0) exige data")
+        # sacado
+        if self.uf_sacado and len(str(self.uf_sacado).strip()) != 2:
+            erros.append("uf_sacado deve ter 2 letras")
+        if self.cep_sacado and len(so_digitos(self.cep_sacado)) > 8:
+            erros.append("cep_sacado deve ter no máximo 8 dígitos")
+        if erros:
+            raise BoletoInvalido(erros)
 
     @property
     def documento_ou_numero(self) -> str:
