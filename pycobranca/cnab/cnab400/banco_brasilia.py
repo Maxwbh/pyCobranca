@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo10, modulo11_flex
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
@@ -83,7 +83,7 @@ class RemessaBancoBrasilia400(RemessaCnab400Base):
             "01"
             + self._agencia()
             + self._conta()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + self._format_size(pagamento.nome_sacado, 35)
             + self._format_size(pagamento.endereco_sacado, 35)
             + self._format_size(pagamento.cidade_sacado, 15)

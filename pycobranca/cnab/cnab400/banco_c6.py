@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
@@ -85,7 +85,7 @@ class RemessaBancoC6_400(RemessaCnab400Base):
         return (
             "1"
             + "02"
-            + so_digitos(self.documento_cedente).rjust(14, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(14, "0")
             + self._codigo_beneficiario()
             + " " * 8
             + str(pagamento.documento_ou_numero).ljust(25)[:25]
@@ -112,7 +112,7 @@ class RemessaBancoC6_400(RemessaCnab400Base):
             + " " * 7
             + pagamento.formata_valor_abatimento()
             + pagamento.identificacao_sacado()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + self._format_size(pagamento.nome_sacado, 40)
             + self._format_size(pagamento.endereco_sacado, 40)
             + self._format_size(pagamento.bairro_sacado, 12)

@@ -35,7 +35,10 @@ portal do banco ou via canal de homologação:
 
 - Banestes (021)
 - Banco de Brasília / BRB (070) — layout DCB obtido via canal de homologação
-- CrediSIS (097)
+- CrediSIS (097) — *Padronização Boletos de Pagamento*, Cooperativa Central de Crédito Noroeste
+  Brasileiro Ltda., v1.0 (maio/2017): define a composição do nosso número
+  `097XAAAACCCCCCSSSSSS` (com `X` = módulo 11 do CPF/CNPJ do beneficiário). **Anterior à
+  IN RFB 2.229/2024** — não cobre CNPJ alfanumérico.
 - Citibank (745) — layout Citibank de cobrança 400 posições
 - Safra (422)
 

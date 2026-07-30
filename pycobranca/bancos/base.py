@@ -17,7 +17,7 @@ from typing import Any, ClassVar
 from ..boleto.codigo_barras import montar_codigo_barras
 from ..boleto.linha_digitavel import linha_digitavel as _linha_digitavel
 from ..core.datas import fator_vencimento
-from ..core.documentos import so_digitos, validar_cnpj, validar_cpf
+from ..core.documentos import so_alfanumerico, so_digitos, validar_cnpj, validar_cpf
 from ..exceptions import BoletoInvalido
 
 __all__ = ["BancoBase", "REGISTRO"]
@@ -160,10 +160,11 @@ class BancoBase:
                 erros.append(f"{rotulo} deve ter no mínimo {minimo} dígito(s)")
             elif len(digitos) > maximo:
                 erros.append(f"{rotulo} deve ter no máximo {maximo} dígitos")
-        doc = so_digitos(self.cedente_documento)
+        # CPF é numérico; CNPJ pode ser alfanumérico (IN RFB 2.229/2024)
+        doc = so_alfanumerico(self.cedente_documento)
         if doc and not (validar_cpf(doc) or validar_cnpj(doc)):
             erros.append("cedente_documento inválido (CPF/CNPJ)")
-        doc = so_digitos(self.sacado_documento)
+        doc = so_alfanumerico(self.sacado_documento)
         if doc and not (validar_cpf(doc) or validar_cnpj(doc)):
             erros.append("sacado_documento inválido (CPF/CNPJ)")
         if erros:

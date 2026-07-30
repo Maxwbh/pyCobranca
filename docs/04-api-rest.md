@@ -124,6 +124,23 @@ valida_contrato(dados, "Pagamento")
 
 Schemas: `Encargos`, `Mora`, `Multa` e `Desconto` (em `contrato_rest.json`).
 
+### Documentos: CPF e **CNPJ alfanumérico**
+
+Os campos `documento_cedente`, `sacado_documento` (`BoletoData`) e `documento_sacado` (`Pagamento`)
+têm **`pattern`** no contrato, então um serviço HTTP rejeita formato inválido **antes** de chamar a
+engine. O padrão aceita:
+
+- **CPF** — 11 dígitos, com ou sem máscara (`529.982.247-25`);
+- **CNPJ** — 14 posições, com ou sem máscara, sendo as **12 primeiras alfanuméricas** e os
+  **2 DVs numéricos** (IN RFB 2.229/2024): `12ABC34501DE35` ou `12.ABC.345/01DE-35`.
+
+```json
+{"documento_cedente": "12ABC34501DE35", "sacado_documento": "529.982.247-25"}
+```
+
+O `pattern` valida apenas o **formato**; o **dígito verificador** é conferido pela engine
+(`validar_cnpj`) na emissão. Ver [14 — Validação de campos](14-validacao-campos.md).
+
 ### Fatura (`BoletoData.itens` / `BoletoData.fatura`)
 
 O mesmo schema `BoletoData` carrega o corpo da **fatura** — não há schema novo de requisição:

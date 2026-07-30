@@ -72,6 +72,8 @@ peças soltas, oferece uma API consistente, testada banco a banco e pronta para 
   emitidos — fecha o ciclo emissão → retorno → extrato.
 - 🟢 **PIX / Bolepix**: BR Code (EMV) copia-e-cola com CRC16, QR Code embutido no PDF e **segmento
   PIX na remessa** (registro tipo 8 no CNAB 400; segmento Y-03 no CNAB 240).
+- 🆕 **CNPJ alfanumérico** (IN RFB 2.229/2024): validação, formatação e gravação no CNAB já
+  preparadas para as 12 primeiras posições com letras — o CPF segue numérico.
 - 🔌 **Pronto para API REST** (OpenAPI 3.0): serializadores JSON dos artefatos para consumo HTTP.
 - ⚡ **Instalação única**: boleto, CNAB, PIX, PDF e QR num só `pip install` — tudo Python puro,
   sem bibliotecas de sistema (nada de cairo, Pango ou wkhtmltopdf).
@@ -291,6 +293,29 @@ print(len(resultado.conciliadas), "casadas ·", resultado.pendentes, "pendentes"
 <img src="docs/images/pycobranca-ciclo.svg" alt="Ciclo de cobrança: emissão → remessa CNAB → retorno CNAB → extrato OFX, conciliados pelo nosso número" width="820">
 
 </div>
+
+### CNPJ alfanumérico
+
+O **CNPJ alfanumérico** (IN RFB 2.229/2024, com as **primeiras emissões a partir de 31/07/2026**) é
+aceito em todos os pontos — validação do boleto, gravação na remessa CNAB e contrato REST. As 14
+posições continuam: as **12 primeiras podem ter letras `A`–`Z`** e os **2 DVs seguem numéricos**
+(módulo 11 com o valor de cada caractere igual a `ord(c) - 48`). Os CNPJ numéricos existentes
+**não mudam** e os dois formatos coexistem; o **CPF continua exclusivamente numérico**.
+
+```python
+from pycobranca.core.documentos import validar_cnpj, formatar_cnpj
+
+validar_cnpj("12ABC34501DE35")  # True (aceita máscara e minúsculas)
+formatar_cnpj("12ABC34501DE35")  # '12.ABC.345/01DE-35'
+
+# funciona direto no boleto e na remessa
+boleto = Banco(..., cedente_documento="12ABC34501DE35", sacado_documento="12.ABC.345/01DE-35")
+```
+
+Na remessa, o documento é gravado **sem perder as letras** e o **tipo de inscrição** (`01` CPF /
+`02` CNPJ) sai correto. No contrato REST, os campos de documento têm `pattern`, então um serviço
+HTTP rejeita formato inválido antes de chamar a engine. Detalhes e a limitação conhecida do
+CrediSIS em [validação de campos](docs/14-validacao-campos.md).
 
 ### Boleto híbrido com PIX (Bolepix)
 

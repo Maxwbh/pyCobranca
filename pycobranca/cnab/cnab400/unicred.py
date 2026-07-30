@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
@@ -98,7 +98,7 @@ class RemessaUnicred400(RemessaCnab400Base):
             + "00"
             + pagamento.formata_valor_abatimento(13)
             + pagamento.identificacao_sacado()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + self._format_size(pagamento.nome_sacado, 40)
             + self._format_size(pagamento.endereco_sacado, 40)
             + self._format_size(pagamento.bairro_sacado, 12)

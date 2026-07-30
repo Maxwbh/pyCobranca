@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
 from ..formatacao import format_size
 from ..pagamento import Pagamento
@@ -100,7 +100,7 @@ class RemessaBradesco400(RemessaCnab400Base):
             + pagamento.formata_valor_iof()
             + pagamento.formata_valor_abatimento()
             + pagamento.identificacao_sacado()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + format_size(pagamento.nome_sacado, 40)
             + self._endereco_sacado(pagamento)
             + " " * 12

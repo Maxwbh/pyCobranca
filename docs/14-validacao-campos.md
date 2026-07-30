@@ -91,8 +91,51 @@ o **máximo**. O **máximo** trava o formato do campo livre; o **mínimo** pega 
 | `valor` | `Decimal`/`str`/`float` | > 0 (em centavos) |
 | `data_vencimento` | `date` | obrigatória |
 | `cedente` | `str` | obrigatório |
-| `cedente_documento` / `sacado_documento` | `str` | se informado, CPF **ou** CNPJ válido |
+| `cedente_documento` / `sacado_documento` | `str` | se informado, CPF **ou** CNPJ válido (ver abaixo) |
 | `carteira` | `str` | deve pertencer ao conjunto `banco.carteiras` |
+
+### CPF e CNPJ (incluindo o **CNPJ alfanumérico**)
+
+O **CNPJ alfanumérico** (IN RFB 2.229/2024) é suportado: mantém as
+14 posições, mas as **12 primeiras podem conter letras** `A`–`Z`; os **2 DVs continuam numéricos**
+(padrão `[A-Z0-9]{12}[0-9]{2}`). O DV usa o mesmo módulo 11, com o valor de cada caractere igual a
+**`ord(c) - 48`** (`"0"`→0 … `"9"`→9, `"A"`→17 … `"Z"`→42) — para um CNPJ numérico o resultado é
+idêntico ao cálculo anterior. O **CPF continua exclusivamente numérico**.
+
+Segundo a Receita Federal, os sistemas entraram em produção em **27/07/2026** e as **primeiras
+emissões ocorrem a partir de 31/07/2026**; os CNPJ numéricos existentes **não mudam** e os dois
+formatos coexistem. A Receita **recomenda evitar as letras `I`, `O`, `Q` e `F`** por confusão visual
+com dígitos — é uma recomendação de emissão, não uma regra de validação, então a biblioteca as
+aceita.
+
+```python
+from pycobranca.core.documentos import validar_cnpj, formatar_cnpj, cnpj_e_alfanumerico
+
+validar_cnpj("12ABC34501DE35")  # True (aceita máscara e minúsculas)
+formatar_cnpj("12ABC34501DE35")  # '12.ABC.345/01DE-35'
+cnpj_e_alfanumerico("12ABC34501DE35")  # True
+```
+
+Na **remessa CNAB**, o documento é gravado sem perder as letras e o **tipo de inscrição**
+(`01` = CPF, `02` = CNPJ) passa a ser decidido pelo tamanho do documento normalizado — antes as
+letras eram descartadas e um CNPJ alfanumérico era gravado como CPF.
+
+#### Limitação conhecida — CrediSIS (097)
+
+O campo livre do CrediSIS embute um DV calculado sobre o **documento do beneficiário**. O manual
+oficial (*Padronização Boletos de Pagamento*, Cooperativa Central de Crédito Noroeste Brasileiro,
+**v1.0, maio/2017**) define:
+
+> Composição do Nosso Número: **097XAAAACCCCCCSSSSSS**, sendo:
+> `097` Fixo · **`X` Módulo 11 do CPF/CNPJ (Incluindo dígitos verificadores) do Beneficiário** ·
+> `AAAA` Código da Agência CrediSIS ao qual o Beneficiário possui Conta ·
+> `CCCCCC` Código de Convênio do Beneficiário no Sistema CrediSIS ·
+> `SSSSSS` Sequencial Único do Boleto
+
+O manual é **sete anos anterior** à IN RFB 2.229/2024 e **não define** como calcular esse módulo 11
+quando o documento contém letras. Por isso, com um CNPJ alfanumérico a emissão levanta
+`BoletoInvalido` em vez de gerar um código de barras que o banco rejeitaria. Assim que o CrediSIS
+publicar a regra (com exemplo numérico validável), o suporte entra seguindo o critério do projeto.
 
 > **Caracteres válidos:** todos os campos de conta/agência/convênio/nosso número são **numéricos**
 > (a máscara é descartada; um valor sem dígito nenhum falha no mínimo). A carteira do **HSBC** é

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
@@ -37,7 +37,7 @@ class RemessaBancoBrasil400(RemessaCnab400Base):
         return str(modulo11_flex(self._conta(), mapa={10: "X"}))
 
     def _tipo_empresa(self) -> str:
-        return "01" if len(so_digitos(self.documento_cedente)) <= 11 else "02"
+        return "01" if len(so_alfanumerico(self.documento_cedente)) <= 11 else "02"
 
     def info_conta(self) -> str:
         return f"{self._agencia()}{self._agencia_dv()}{self._conta()}{self._conta_dv()}" + "0" * 6
@@ -56,7 +56,7 @@ class RemessaBancoBrasil400(RemessaCnab400Base):
         return (
             "7"
             + self._tipo_empresa()
-            + so_digitos(self.documento_cedente).rjust(14, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(14, "0")
             + self._agencia()
             + self._agencia_dv()
             + self._conta()
@@ -93,7 +93,7 @@ class RemessaBancoBrasil400(RemessaCnab400Base):
             + pagamento.formata_valor_iof()
             + pagamento.formata_valor_abatimento()
             + pagamento.identificacao_sacado()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + self._format_size(pagamento.nome_sacado, 37)
             + " " * 3
             + self._format_size(pagamento.endereco_sacado, 40)

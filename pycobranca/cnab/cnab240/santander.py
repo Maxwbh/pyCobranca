@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
 from ..pagamento import Pagamento
 from .base import RemessaCnab240Base
@@ -115,7 +115,7 @@ class RemessaSantander240(RemessaCnab240Base):
             + "0"
             + " " * 8
             + self._tipo_empresa(self.documento_cedente)
-            + so_digitos(self.documento_cedente).rjust(15, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(15, "0")
             + self.codigo_convenio()
             + self.info_conta()
             + self._format_size(self.empresa_mae, 30)
@@ -186,7 +186,7 @@ class RemessaSantander240(RemessaCnab240Base):
             + " "
             + pagamento.identificacao_ocorrencia
             + pagamento.identificacao_sacado(False)
-            + so_digitos(pagamento.documento_sacado).rjust(15, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(15, "0")
             + self._format_size(pagamento.nome_sacado, 40)
             + self._format_size(pagamento.endereco_sacado, 40)
             + self._format_size(pagamento.bairro_sacado, 15)
@@ -195,7 +195,7 @@ class RemessaSantander240(RemessaCnab240Base):
             + self._format_size(pagamento.cidade_sacado, 15)
             + pagamento.uf_sacado
             + pagamento.identificacao_avalista(False)
-            + so_digitos(pagamento.documento_avalista).rjust(15, "0")
+            + so_alfanumerico(pagamento.documento_avalista).rjust(15, "0")
             + self._format_size(pagamento.nome_avalista, 40)
             + "0" * 12
             + " " * 19

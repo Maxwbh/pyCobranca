@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ...exceptions import BoletoInvalido
 from ..formatacao import format_valor, remover_acentos
 from ..pagamento import Pagamento, PagamentoPix
@@ -113,7 +113,7 @@ class RemessaCnab240Base:
         return format_size(texto, tamanho)
 
     def _tipo_empresa(self, documento: str) -> str:
-        return "1" if len(so_digitos(documento)) <= 11 else "2"
+        return "1" if len(so_alfanumerico(documento)) <= 11 else "2"
 
     def _agencia5(self) -> str:
         return so_digitos(self.agencia).rjust(5, "0")
@@ -179,7 +179,7 @@ class RemessaCnab240Base:
             + "0"
             + " " * 9
             + self._tipo_empresa(self.documento_cedente)
-            + so_digitos(self.documento_cedente).rjust(14, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(14, "0")
             + self.codigo_convenio()
             + self.info_conta()
             + self._format_size(self.empresa_mae, 30)
@@ -207,7 +207,7 @@ class RemessaCnab240Base:
             + self.versao_layout_lote()
             + " "
             + self._tipo_empresa(self.documento_cedente)
-            + so_digitos(self.documento_cedente).rjust(15, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(15, "0")
             + self.convenio_lote()
             + self.info_conta()
             + self._format_size(self.empresa_mae, 30)
@@ -273,7 +273,7 @@ class RemessaCnab240Base:
             + " "
             + pagamento.identificacao_ocorrencia
             + pagamento.identificacao_sacado(False)
-            + so_digitos(pagamento.documento_sacado).rjust(15, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(15, "0")
             + self._format_size(pagamento.nome_sacado, 40)
             + self._format_size(pagamento.endereco_sacado, 40)
             + self._format_size(pagamento.bairro_sacado, 15)
@@ -282,7 +282,7 @@ class RemessaCnab240Base:
             + self._format_size(pagamento.cidade_sacado, 15)
             + pagamento.uf_sacado
             + pagamento.identificacao_avalista(False)
-            + so_digitos(pagamento.documento_avalista).rjust(15, "0")
+            + so_alfanumerico(pagamento.documento_avalista).rjust(15, "0")
             + self._format_size(pagamento.nome_avalista, 40)
             + "0" * 3
             + " " * 20
