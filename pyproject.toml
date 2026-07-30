@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "pycobranca"
 description = "Plataforma de cobrança bancária brasileira em Python: boletos, CNAB 240/400 e PIX/Bolepix."
 readme = "README.md"
 requires-python = ">=3.14"
-license = { text = "BSD-3-Clause" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 authors = [{ name = "M&S DO BRASIL LTDA", email = "maxwbh@gmail.com" }]
 maintainers = [{ name = "maxwbh", email = "maxwbh@gmail.com" }]
 keywords = [
@@ -31,7 +32,6 @@ keywords = [
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
     "Natural Language :: Portuguese (Brazilian)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.14",
@@ -74,12 +74,13 @@ packages = [
     "pycobranca.pix",
     "pycobranca.render",
     "pycobranca.render.modelos",
+    "pycobranca.render.logos",  # diretório de dados (logos dos bancos)
     "pycobranca.ofx",
 ]
 
 [tool.setuptools.package-data]
 "pycobranca.contracts" = ["*.json"]
-"pycobranca.render" = ["logos/*.png", "logos/NOTICE.md"]
+"pycobranca.render.logos" = ["*.png", "NOTICE.md"]
 
 [tool.setuptools.dynamic]
 version = { attr = "pycobranca.__version__" }
