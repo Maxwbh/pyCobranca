@@ -1,0 +1,59 @@
+name: Guarda de fluxo
+
+# Impõe a política de branches do projeto nos pull requests:
+#   - PR para `main` só é permitido a partir de `hml` (promoção via hml).
+#   - PR para `hml` deve ter exatamente 1 commit (commit único).
+#   - Nenhum commit do PR pode conter atribuição a IA/Claude.
+# A imposição efetiva do merge depende também da branch protection da `main`
+# (squash-only + restrição de origem) configurada nas Settings do repositório.
+
+on:
+  pull_request:
+    branches: ["main", "hml"]
+
+jobs:
+  guarda:
+    name: Guarda de fluxo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Origem e contagem de commits
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          COMMITS: ${{ github.event.pull_request.commits }}
+        run: |
+          echo "PR: $HEAD -> $BASE ($COMMITS commit(s))"
+          erros=0
+
+          # 1) Só `hml` pode abrir PR para `main`.
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "hml" ]; then
+            echo "::error::PR para 'main' só é permitido a partir de 'hml' (recebido de '$HEAD'). Promova a mudança pela 'hml'."
+            erros=1
+          fi
+
+          # 2) PR para `hml` deve ter commit único.
+          if [ "$BASE" = "hml" ] && [ "$COMMITS" -ne 1 ]; then
+            echo "::error::PR para 'hml' deve ter exatamente 1 commit (recebido: $COMMITS). Faça squash da branch."
+            erros=1
+          fi
+
+          exit "$erros"
+
+      - name: Sem atribuição a IA nos commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Procura trailers/marcas de atribuição a IA nos commits exclusivos do PR.
+          padrao='co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with .*claude|claude\.ai/code|claude-session'
+          if git log "$BASE_SHA..$HEAD_SHA" --format='%B' | grep -iEq "$padrao"; then
+            echo "::error::Commits do PR contêm atribuição a IA/Claude (Co-Authored-By/Claude-Session/etc.). Reescreva as mensagens sem essas marcas."
+            git log "$BASE_SHA..$HEAD_SHA" --format='%h %s' | sed 's/^/  /'
+            exit 1
+          fi
+          echo "OK — sem atribuição a IA nos commits do PR."
