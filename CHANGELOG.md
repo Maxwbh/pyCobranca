@@ -45,6 +45,12 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Alterado
 
+- **Compatibilidade ampliada: `requires-python` de `>=3.14` para `>=3.12`.** O código não usa
+  nenhum recurso acima de 3.10, e o limite anterior impedia a instalação em 3.12 e 3.13 — hoje as
+  versões mais usadas — sem ganho técnico. O piso 3.12 acompanha o alvo de migração recomendado
+  (suporte até out/2028). A CI passou a rodar a suíte em **matriz (3.12, 3.13 e 3.14)**, com
+  lint/formatação em job próprio.
+
 - **`pycobranca.render` reorganizado**: o módulo único de 1183 linhas virou `comum` (primitivas),
   `tela` (canvas + cursor), `dados` (preenchimento), `blocos` (comuns) e `modelos/` — o catálogo dos
   documentos (boleto clássico, boleto moderno, carnê, fatura). Saída dos PDFs inalterada; a API

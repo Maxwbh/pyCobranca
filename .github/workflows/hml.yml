@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,9 +39,12 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Lint (ruff check)
+        # ruff é independente da versão do runtime: basta uma execução
+        if: matrix.python-version == '3.14'
         run: ruff check .
 
       - name: Formatação (ruff format)
+        if: matrix.python-version == '3.14'
         run: ruff format --check .
 
       - name: Suíte completa + cobertura

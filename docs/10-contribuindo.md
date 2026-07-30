@@ -22,7 +22,7 @@ pytest
 
 ## Padrões de código
 
-- **Python 3.14** (última versão estável) com type hints.
+- **Python 3.12+** com type hints; a CI roda a suíte em 3.12, 3.13 e 3.14.
 - **ruff** para lint e formatação (`ruff check .`, `ruff format .`).
 - **Decimal** para valores monetários (nunca `float`).
 - Nomes de domínio em português (`sacado`, `cedente`, `nosso_numero`) para alinhamento com o
