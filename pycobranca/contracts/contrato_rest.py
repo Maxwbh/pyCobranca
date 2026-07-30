@@ -13,6 +13,7 @@ um ``openapi.yaml`` de referência (v1.5.0).
 from __future__ import annotations
 
 import json
+import re
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -302,3 +303,8 @@ def valida_contrato(dados: dict, schema_nome: str) -> None:
             )
         if "enum" in regra and valor not in regra["enum"]:
             raise ErroDeContrato(f"{schema_nome}.{chave}: valor {valor!r} fora do enum")
+        padrao = regra.get("pattern")
+        if padrao and isinstance(valor, str) and not re.fullmatch(padrao, valor):
+            raise ErroDeContrato(
+                f"{schema_nome}.{chave}: valor {valor!r} não casa com o padrão {padrao!r}"
+            )

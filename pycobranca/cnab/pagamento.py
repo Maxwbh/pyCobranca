@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
-from ..core.documentos import so_digitos
+from ..core.documentos import so_alfanumerico, so_digitos
 from ..exceptions import BoletoInvalido
 from .formatacao import format_valor
 
@@ -149,13 +149,13 @@ class Pagamento:
         return doc.rjust(tamanho, caracter)[:tamanho]
 
     def identificacao_sacado(self, zero: bool = True) -> str:
-        tipo = "1" if len(so_digitos(self.documento_sacado)) <= 11 else "2"
+        tipo = "1" if len(so_alfanumerico(self.documento_sacado)) <= 11 else "2"
         return tipo.rjust(2, "0") if zero else tipo
 
     def identificacao_avalista(self, zero: bool = True) -> str:
         if not self.documento_avalista:
             return "0"
-        tipo = "1" if len(so_digitos(self.documento_avalista)) <= 11 else "2"
+        tipo = "1" if len(so_alfanumerico(self.documento_avalista)) <= 11 else "2"
         return tipo.rjust(2, "0") if zero else tipo
 
     # ---- valores (%.2f sem ponto, à direita com zeros) ----

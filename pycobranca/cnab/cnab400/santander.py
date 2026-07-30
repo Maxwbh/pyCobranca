@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...core.documentos import so_digitos
+from ...core.documentos import so_alfanumerico, so_digitos
 from ..formatacao import format_valor
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
@@ -27,7 +27,7 @@ class RemessaSantander400(RemessaCnab400Base):
         return str(self.codigo_transmissao).strip().rjust(20, "0")
 
     def _tipo_empresa(self) -> str:
-        return "01" if len(so_digitos(self.documento_cedente)) <= 11 else "02"
+        return "01" if len(so_alfanumerico(self.documento_cedente)) <= 11 else "02"
 
     def info_conta(self) -> str:
         return self._codigo_transmissao()
@@ -66,7 +66,7 @@ class RemessaSantander400(RemessaCnab400Base):
         return (
             "1"
             + self._tipo_empresa()
-            + so_digitos(self.documento_cedente).rjust(14, "0")
+            + so_alfanumerico(self.documento_cedente).rjust(14, "0")
             + self._codigo_transmissao()
             + str(pagamento.documento_ou_numero).ljust(25)
             + so_digitos(pagamento.nosso_numero).rjust(8, "0")
@@ -96,7 +96,7 @@ class RemessaSantander400(RemessaCnab400Base):
             + pagamento.formata_valor_iof()
             + pagamento.formata_valor_abatimento()
             + pagamento.identificacao_sacado()
-            + so_digitos(pagamento.documento_sacado).rjust(14, "0")
+            + so_alfanumerico(pagamento.documento_sacado).rjust(14, "0")
             + self._format_size(pagamento.nome_sacado, 40)
             + self._format_size(pagamento.endereco_sacado, 40)
             + self._format_size(pagamento.bairro_sacado, 12)

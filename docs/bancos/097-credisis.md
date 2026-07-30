@@ -11,6 +11,16 @@ DV do documento do cedente no campo livre.
 
 Campo livre com o DV do documento do cedente.
 
+O manual oficial (*Padronização Boletos de Pagamento*, Cooperativa Central de Crédito Noroeste
+Brasileiro, **v1.0, maio/2017**) define a composição do nosso número como
+**`097XAAAACCCCCCSSSSSS`**, onde **`X` é o "Módulo 11 do CPF/CNPJ (Incluindo dígitos verificadores)
+do Beneficiário"**, `AAAA` a agência, `CCCCCC` o convênio e `SSSSSS` o sequencial do boleto.
+
+> **CNPJ alfanumérico não suportado neste banco.** O manual é anterior à IN RFB 2.229/2024 e não
+> define o cálculo do módulo 11 com letras no documento. A emissão com CNPJ alfanumérico levanta
+> `BoletoInvalido` — ver [validação de campos](../14-validacao-campos.md). Nos demais bancos o CNPJ
+> alfanumérico é aceito normalmente.
+
 ## Campo livre (posições 20–44 do código de barras)
 
 | Posições | Tam. | Conteúdo |

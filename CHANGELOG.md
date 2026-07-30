@@ -6,6 +6,14 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Adicionado
 
+- **CNPJ alfanumérico** (IN RFB 2.229/2024; primeiras emissões a partir de **31/07/2026**):
+  `validar_cnpj` aceita as 12
+  primeiras posições com letras `A`–`Z` (DVs seguem numéricos, calculados com `ord(c) - 48`), e
+  `formatar_cnpj` preserva as letras. Novos helpers `so_alfanumerico`, `cnpj_e_alfanumerico`,
+  `dv_cnpj` e `formatar_documento`. O CPF continua exclusivamente numérico. No contrato REST, os
+  campos de documento ganharam `pattern` (e o validador passou a suportá-lo), permitindo que um
+  serviço HTTP rejeite formato inválido antes de chamar a engine.
+
 - **Validação de campos por banco** (tamanho mín./máx. e conjunto de carteiras) na geração do boleto
   e **coerência de encargos** (mora/multa/desconto, `valor > 0`, UF/CEP) na remessa CNAB.
 - **Validação de leitura**: `Extrato.ler` (OFX) levanta `OFXInvalido` para arquivo que não é OFX;
@@ -22,6 +30,12 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   espaço) e `fatura.desenhar` (callable com liberdade total). Serve a várias modalidades sem
   engine de HTML; os níveis 1 e 2 entram no contrato REST existente (`ItemFatura`, `FaturaCorpo`,
   `BlocoFatura` em `BoletoData`).
+
+### Corrigido
+
+- **Tipo de inscrição na remessa CNAB com CNPJ alfanumérico**: as letras eram descartadas e o
+  documento acabava marcado como **CPF** (`01`) e truncado nos registros. Agora o documento é
+  gravado íntegro e o tipo (`01`/`02`) sai correto.
 
 ### Alterado
 
