@@ -33,6 +33,12 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Corrigido
 
+- **Empacotamento**: `license` migrado para expressão SPDX (PEP 639) com `license-files`,
+  eliminando o aviso de depreciação do setuptools; o classifier de licença saiu (agora o
+  metadado é `License-Expression`). Exige `setuptools>=77` no build. O diretório de logos
+  passou a ser declarado em `packages`, removendo o aviso de pacote ausente — os arquivos
+  já eram distribuídos e seguem no wheel.
+
 - **Tipo de inscrição na remessa CNAB com CNPJ alfanumérico**: as letras eram descartadas e o
   documento acabava marcado como **CPF** (`01`) e truncado nos registros. Agora o documento é
   gravado íntegro e o tipo (`01`/`02`) sai correto.
