@@ -7,7 +7,7 @@
 **Boletos, CNAB 240/400 e PIX para 18 bancos — com uma única biblioteca, em Python puro.**
 
 [![Versão](https://img.shields.io/badge/versão-1.0.1-2ea44f)](CHANGELOG.md)
-[![Python](https://img.shields.io/badge/python-3.14+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](LICENSE)
 [![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](pyproject.toml)
 [![PIX](https://img.shields.io/badge/PIX-Bolepix-32BCAD)](docs/07-pix.md)
@@ -104,7 +104,7 @@ Uma única instalação entrega o que um sistema de cobrança precisa — códig
 digitável, remessa/retorno **CNAB**, **PIX** (copia-e-cola e QR) e **PDF**. Sem extras a decorar e
 **sem bibliotecas de sistema**: ReportLab e qrcode são Python puro, resolvidos pelo próprio `pip`.
 
-Requer **Python 3.14+**.
+Requer **Python 3.12+** (testado em 3.12, 3.13 e 3.14).
 
 ## 🚀 Início rápido
 
@@ -397,7 +397,7 @@ Detalhes de carteiras, quirks e fixtures por banco na
 | CNAB 240/400 (remessa e retorno) | ✅ | ❌ | ✅ |
 | PIX / Bolepix | ✅ | ❌ | ✅ |
 | PDF do boleto | ✅ | ✅ | ✅ |
-| Linguagem | Python 3.14+ | Python (legado) | Ruby |
+| Linguagem | Python 3.12+ | Python (legado) | Ruby |
 | Instalação única (um `pip install`) | ✅ | ✅ | — |
 | Contrato para API REST | ✅ | ❌ | ❌ |
 | Situação | 🟢 Desenvolvimento ativo | Manutenção | Manutenção |

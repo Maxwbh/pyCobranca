@@ -6,7 +6,7 @@ como enviar sua mudança.
 
 ## Ambiente de desenvolvimento
 
-Requer **Python 3.14+**.
+Requer **Python 3.12+**.
 
 ```bash
 git clone https://github.com/Maxwbh/pycobranca.git

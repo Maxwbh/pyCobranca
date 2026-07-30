@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pycobranca"
 description = "Plataforma de cobrança bancária brasileira em Python: boletos, CNAB 240/400 e PIX/Bolepix."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 authors = [{ name = "M&S DO BRASIL LTDA", email = "maxwbh@gmail.com" }]
@@ -34,6 +34,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: Portuguese (Brazilian)",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial",
 ]
@@ -100,7 +102,7 @@ branch = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "W"]
