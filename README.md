@@ -412,18 +412,22 @@ Entregue e em evolução:
 - ✅ Renderização em PDF (boleto, carnê e tema)
 - ✅ Serialização REST dos artefatos (OpenAPI 3.0)
 - ✅ Validação FEBRABAN independente do boleto
-- 🚧 DDA (Débito Direto Autorizado)
-- 🚧 Open Finance
-- 🚧 Integração direta com APIs bancárias
+- ✅ Leitura de extrato OFX e conciliação com os boletos emitidos
+- ✅ Encargos completos na remessa (juros, multa, desconto 1º/2º/3º, IOF, abatimento)
+- ✅ Fatura (demonstrativo de itens + boleto) com corpo livre
 - 🚧 Novos bancos (mediante manual oficial com exemplo validável)
+- 🚧 Novos modelos de documento (o catálogo em `render/modelos/` aceita extensões)
 
 ## 📚 Documentação
 
 | Documento | Conteúdo |
 |-----------|----------|
 | [Visão Geral](docs/00-visao-geral.md) · [Arquitetura](docs/01-arquitetura.md) | Objetivo, escopo e camadas |
+| [Arquitetura e diretórios](docs/16-arquitetura-diretorios.md) | Árvore do pacote, subsistemas e fluxos |
 | [Bancos Suportados](docs/05-bancos-suportados.md) · [por banco](docs/bancos/README.md) | Matriz, carteiras e especificação |
+| [Adicionar um novo banco](docs/15-novo-banco.md) | Campo livre, DVs, remessa, testes e documentação |
 | [CNAB](docs/06-cnab.md) | Remessa e retorno 240/400 |
+| [Validação de campos](docs/14-validacao-campos.md) | Tamanhos, conjuntos e contrato de erros |
 | [OFX](docs/13-ofx.md) | Extrato bancário e conciliação |
 | [PIX / Bolepix](docs/07-pix.md) | QR Code e segmento PIX no CNAB |
 | [API REST](docs/04-api-rest.md) | Contrato de dados e consumo via HTTP |

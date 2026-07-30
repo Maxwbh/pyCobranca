@@ -17,6 +17,11 @@ class Banrisul(BancoBase):
     digito_banco: ClassVar[str] = "8"
     carteiras: ClassVar[tuple[str, ...]] = ("1", "2")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "convenio": (1, 7),
+        "nosso_numero": (1, 8),
+    }
 
     def campo_livre(self) -> str:
         base = (

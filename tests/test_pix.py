@@ -119,6 +119,8 @@ def test_boleto_sem_chave_nao_habilita_pix() -> None:
     boleto = Itau(
         valor="10",
         cedente="X",
+        agencia="1234",
+        conta="56789",
         carteira="109",
         nosso_numero="1",
         data_vencimento=date(2026, 8, 15),

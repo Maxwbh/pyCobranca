@@ -5,12 +5,10 @@ código e como adicionar novos bancos e layouts.
 
 ## Fluxo de trabalho
 
-1. Crie uma branch a partir da branch de integração ou de `hml`.
+1. Crie uma branch a partir da branch base do repositório.
 2. Faça mudanças pequenas e coesas, com testes.
 3. Rode a validação local (lint + testes) antes de abrir o PR.
-4. Abra um Pull Request; a CI deve estar verde.
-5. A homologação ocorre na branch **`hml`** (ver [08 — Testes](08-testes-e-qualidade.md)).
-6. Após homologado, o conjunto é promovido para `main`.
+4. Abra um Pull Request; a CI deve estar verde (ver [08 — Testes](08-testes-e-qualidade.md)).
 
 ## Ambiente de desenvolvimento
 

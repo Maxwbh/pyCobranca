@@ -25,6 +25,9 @@ class Santander(BancoBase):
     digito_banco: ClassVar[str] = "7"
     carteiras: ClassVar[tuple[str, ...]] = ("101", "102", "121")
     suporta_pix: ClassVar[bool] = True
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "nosso_numero": (1, 12),
+    }
 
     @property
     def _cedente7(self) -> str:
@@ -49,10 +52,8 @@ class Santander(BancoBase):
 
     def validar(self) -> None:
         super().validar()
-        erros: list[str] = []
-        if len(so_digitos(self.convenio or self.conta)) > 7:
-            erros.append("código do cedente (convênio) deve ter até 7 dígitos")
-        if len(so_digitos(self.nosso_numero)) > 12:
-            erros.append("nosso número deve ter até 12 dígitos")
-        if erros:
-            raise BoletoInvalido("; ".join(erros))
+        cedente = so_digitos(self.convenio or self.conta)
+        if len(cedente) < 1:
+            raise BoletoInvalido("código do cedente (convênio/conta) é obrigatório")
+        if len(cedente) > 7:
+            raise BoletoInvalido("código do cedente (convênio/conta) deve ter no máximo 7 dígitos")

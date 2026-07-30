@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ...exceptions import RetornoInvalido
 from .base import RegistroRetorno
 from .cnab240 import banco_do_arquivo_240, parse_cnab240
 from .cnab400 import banco_do_arquivo_400, parse_cnab400
@@ -47,6 +48,8 @@ class Retorno:
     @classmethod
     def ler_linhas(cls, linhas: list[str], layout: str | None = None) -> Retorno:
         primeira = next((linha for linha in linhas if linha.strip()), "")
+        if not primeira:
+            raise RetornoInvalido("arquivo de retorno vazio (nenhuma linha com conteúdo)")
         if layout is None:
             layout = "240" if len(primeira) <= 245 else "400"
         if layout == "240":
@@ -55,6 +58,11 @@ class Retorno:
         else:
             codigo_banco = banco_do_arquivo_400(primeira)
             registros = parse_cnab400(linhas, codigo_banco)
+        if not (codigo_banco or "").strip().isdigit():
+            raise RetornoInvalido(
+                "não foi possível identificar o banco no header do retorno "
+                "(arquivo não parece um retorno CNAB válido)"
+            )
         return cls(layout=layout, codigo_banco=codigo_banco, registros=registros)
 
     def to_dict(self, compact: bool = True) -> list[dict]:

@@ -37,6 +37,11 @@ for t in extrato.transacoes:
 `Extrato.ler(..., somente_creditos=True)` mantém apenas os recebimentos. As propriedades
 `extrato.creditos` e `extrato.debitos` filtram sem reparsear.
 
+> **Validação:** se o conteúdo não tiver marcação de OFX (`<OFX>`/`OFXHEADER`), `ler`/`parse`
+> levantam `OFXInvalido` em vez de devolver um extrato vazio — assim o consumidor distingue
+> **arquivo inválido** de **extrato válido sem transações**. Ver
+> [contrato de erros](14-validacao-campos.md).
+
 ### Serialização
 
 `extrato.to_dict()` devolve uma estrutura **JSON-friendly** (banco, conta, período, saldo,

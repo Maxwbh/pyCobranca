@@ -27,8 +27,9 @@ financeiros.
 
 ## Escopo
 
-- Emissão de boletos em PDF (linha digitável, código de barras, layout).
+- Emissão de boletos em PDF (linha digitável, código de barras, layout), carnê e fatura.
 - CNAB 240 e 400 — remessa (geração) e retorno (parsing → JSON).
+- Leitura de extrato OFX e conciliação com os boletos emitidos.
 - PIX/Bolepix: QR Code no boleto e segmento PIX no CNAB.
 - Registro programático de bancos (`Bancos.todos`, `.find`, `.com_pix`).
 - Validação de campos por banco.
@@ -37,7 +38,6 @@ financeiros.
 
 ## Não-objetivos
 
-- Integrações diretas com APIs proprietárias de bancos — o foco é boleto registrado/CNAB e Bolepix.
 - Suporte a formatos de impressão exóticos (PostScript nativo).
 
 ## Público-alvo
@@ -52,13 +52,12 @@ financeiros.
 |-------|-----------|
 | Divergência nas regras bancárias por banco/carteira. | Testes com vetores de referência por banco/layout (linha digitável, código de barras, remessa byte a byte) e um validador FEBRABAN independente. |
 | Dependências pesadas para renderização de PDF. | Renderização em Python puro (ReportLab), sem libs nativas — ver [11 — Renderização](11-renderizacao.md). |
-| Diferenças entre os ambientes `hml` e produção. | Configuração por ambiente, contratos OpenAPI versionados e dados de homologação segregados. |
+| Divergência entre ambientes de validação e produção. | Contratos OpenAPI versionados e fixtures de referência congeladas. |
 | Falta de dados reais para retorno/CNAB. | Fixtures anonimizadas e cenários mínimos por banco. |
 | Lotes grandes causando timeout/estouro de memória. | Processamento assíncrono por job — ver [12 — Processamento em Lote](12-processamento-lote.md). |
 
 ## Definição de pronto (nível projeto)
 
 - Conformidade FEBRABAN testada por banco (código de barras, linha digitável, remessa e retorno).
-- CI verde em todas as versões Python suportadas.
-- Branch `hml` validada como ambiente de homologação (ver [08 — Testes](08-testes-e-qualidade.md)).
+- CI verde em todas as versões Python suportadas (ver [08 — Testes](08-testes-e-qualidade.md)).
 - Contrato de dados exercitado contra a especificação OpenAPI.

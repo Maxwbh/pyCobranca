@@ -2,7 +2,7 @@
 
 Os arquivos em ``pycobranca/render/logos/NNN.png`` (nomeados pelo código FEBRABAN)
 alimentam a capacidade **opt-in** de logo do cabeçalho (ver ``banco.logo`` em
-:mod:`pycobranca.render.reportlab`). São um atalho — o boleto continua aceitando
+:mod:`pycobranca.render`). São um atalho — o boleto continua aceitando
 qualquer logo fornecido pelo chamador.
 
 **Marcas registradas.** As imagens são de propriedade dos respectivos bancos e

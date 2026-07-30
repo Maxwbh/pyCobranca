@@ -25,7 +25,6 @@ from typing import ClassVar
 
 from ..core.documentos import so_digitos
 from ..core.dv import modulo11_resto
-from ..exceptions import BoletoInvalido
 from .base import BancoBase
 
 __all__ = ["Caixa"]
@@ -42,6 +41,10 @@ class Caixa(BancoBase):
     digito_banco: ClassVar[str] = "0"
     carteiras: ClassVar[tuple[str, ...]] = ("14", "24")  # modalidade SIGCB
     suporta_pix: ClassVar[bool] = True
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "convenio": (1, 6),  # código do beneficiário
+        "nosso_numero": (1, 15),
+    }
 
     @property
     def _beneficiario6(self) -> str:
@@ -74,13 +77,3 @@ class Caixa(BancoBase):
 
     def agencia_conta_formatado(self) -> str:
         return f"{so_digitos(self.agencia).zfill(4)} / {self._beneficiario6}-{self.dv_beneficiario}"
-
-    def validar(self) -> None:
-        super().validar()
-        erros: list[str] = []
-        if len(so_digitos(self.convenio)) > 6:
-            erros.append("código do beneficiário (convênio) deve ter até 6 dígitos")
-        if len(so_digitos(self.nosso_numero)) > 15:
-            erros.append("nosso número deve ter até 15 dígitos")
-        if erros:
-            raise BoletoInvalido("; ".join(erros))

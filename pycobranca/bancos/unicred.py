@@ -17,6 +17,11 @@ class Unicred(BancoBase):
     digito_banco: ClassVar[str] = "8"
     carteiras: ClassVar[tuple[str, ...]] = ("21",)
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "conta": (1, 9),
+        "nosso_numero": (1, 10),
+    }
 
     @property
     def dv_nosso_numero(self):

@@ -95,8 +95,19 @@ enquanto o ReportLab entrega em **~2 segundos**, viabilizando até resposta sín
 
 ## Implementação (backend ReportLab)
 
-O backend único vive em `pycobranca/render/reportlab.py` e é alimentado pelo domínio via
-`BancoBase.contexto_render()`:
+O backend único vive no pacote [`pycobranca/render/`](../pycobranca/render/) e é alimentado pelo
+domínio via `BancoBase.contexto_render()`. O pacote é dividido por responsabilidade:
+
+| Módulo | Papel |
+|--------|-------|
+| `comum.py` | constantes, paleta e primitivas (canvas, texto, código de barras, QR, logo) |
+| `tela.py` | a `Tela` — canvas + cursor + coordenadas, texto e a célula rotulada |
+| `dados.py` | `DadosBoleto`/`extrai_dados` — o **preenchimento dos dados** do boleto |
+| `blocos.py` | blocos comuns aos modelos (rótulo, demonstrativo, corte) |
+| `modelos/` | **catálogo dos documentos**: `boleto_classico`, `boleto_moderno`, `carne`, `fatura` |
+
+Para adicionar um documento novo, basta criar um módulo em `modelos/` — as camadas de baixo são
+compartilhadas (ver o contrato de modelo na docstring de `modelos/__init__.py`).
 
 ```python
 from datetime import date
@@ -124,10 +135,91 @@ pdf = render_boleto_pdf(boleto.contexto_render(), modelo="moderno")
 - `modelo="moderno"` (padrão recomendado): recibo com chips, célula PIX e TEMA.
 - `modelo="classico"`: layout tradicional.
 - `render_carne_pdf({"parcelas": [...]})`: carnê 3×A4.
+- `render_fatura_pdf(contexto)`: **fatura** — corpo livre + boleto na mesma página (ver abaixo).
+- `desenha_boleto(canvas, contexto, modelo)`: desenha o boleto num canvas existente, para compor o
+  boleto dentro de outro documento (é o que a fatura usa).
+
+## Fatura — corpo livre em 3 níveis
+
+A fatura desenha um **corpo** no topo e o **boleto** logo abaixo. O corpo tem três níveis de
+liberdade, do mais simples ao mais aberto — todos em Python puro, **sem engine de HTML**.
+
+> **Por que não HTML?** Renderizar HTML/CSS fielmente exige uma engine de layout (WeasyPrint carrega
+> Pango via FFI; wkhtmltopdf é um binário). Isso reintroduziria dependências de sistema e
+> contrariaria a decisão de escopo do projeto. Quem precisa de HTML/CSS completo usa os **dados**
+> (`contexto_render()`/`to_dict()`) e renderiza na engine que preferir — a engine segue leve.
+
+### Nível 1 — `itens` (tabela pronta)
+
+```python
+contexto["itens"] = [
+    {"descricao": "Mensalidade — agosto/2026", "quantidade": 1, "valor": 99.90},
+    {"descricao": "Serviço adicional", "quantidade": 2, "valor_unitario": 13.80},
+]
+```
+
+Quando só há `valor`, ele é o total da linha; com `valor_unitario`, o total é
+`quantidade × valor_unitario`. O total da fatura é somado automaticamente.
+
+### Nível 2 — `fatura.blocos` (corpo declarativo)
+
+Serve a qualquer modalidade (mensalidade, condomínio, consumo, escola, serviços):
+
+```python
+contexto["fatura"] = {
+    "titulo": "FATURA DE CONSUMO",
+    "blocos": [
+        {"tipo": "campos", "itens": [("Período", "01/08 a 31/08"), ("Contrato", "4471")]},
+        {
+            "tipo": "tabela",
+            "colunas": ["Descrição", "Qtd.", "Unitário", "Total"],
+            "larguras": [110, 18, 28, 34],
+            "alinhamento": "lrrr",
+            "linhas": [["Consumo de água (m³)", "18", "3,50", "63,00"]],
+        },
+        {"tipo": "texto", "conteudo": "Leitura em <b>18/08/2026</b>."},
+        {"tipo": "separador"},
+        {"tipo": "total", "rotulo": "Total da fatura", "valor": 127.50},
+    ],
+}
+```
+
+| Bloco | Campos |
+|-------|--------|
+| `campos` | `itens` (lista de `(rótulo, valor)`), `colunas` (por linha, padrão 3) |
+| `tabela` | `colunas`, `linhas`, `larguras` (mm), `alinhamento` (`l`/`r` por coluna) |
+| `texto` | `conteudo`, `tamanho` |
+| `total` | `rotulo`, `valor` |
+| `separador` | — |
+| `espaco` | `altura` (mm) |
+
+O bloco `texto` aceita a **marcação inline do ReportLab** (`<b>`, `<i>`, `<font color="#...">`,
+`<br/>`) — mini-HTML sem dependência nova.
+
+### Nível 3 — `fatura.desenhar` (liberdade total)
+
+```python
+def minha_arte(tela, info):
+    tela.texto(tela.x_(0), tela.y_() - 6 * tela.mm, "ARTE LIVRE", fonte="Helvetica-Bold", tam=16)
+    tela.avanca(12)
+
+
+contexto["fatura"] = {"desenhar": minha_arte}
+```
+
+O `callable` recebe a [`Tela`](../pycobranca/render/tela.py) e os dados preenchidos, desenha o que
+quiser, e o boleto é composto abaixo.
+
+**Precedência:** `desenhar` > `blocos` > `itens`. Sem nenhum dos três, a saída é o boleto puro.
+
+> **Contrato REST:** os níveis 1 e 2 são **serializáveis** — `BoletoData` ganhou `itens`
+> (`ItemFatura`) e `fatura` (`FaturaCorpo` com `BlocoFatura`) em
+> [`contrato_rest.json`](../pycobranca/contracts/contrato_rest.json), então um serviço HTTP pode
+> expô-los. O nível 3 é um `callable` Python — **não atravessa REST** por natureza.
 - Código de barras desenhado vetorialmente a partir dos 44 dígitos (`sequencia_i2of5`);
   QR do Bolepix via `pix.qrcode_matrix` (matriz de módulos 0/1).
-- Requisitos de homologação (branch `hml`): leitura do código de barras/QR no PDF gerado,
-  regressão visual contra as imagens de referência e benchmark de lote (100/1.000/10.000).
+- Requisitos de validação: leitura do código de barras/QR no PDF gerado, regressão visual contra as
+  imagens de referência e benchmark de lote (100/1.000/10.000).
 
 ### Logo opt-in no cabeçalho
 

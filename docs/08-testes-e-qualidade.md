@@ -1,33 +1,7 @@
 # 08 — Testes e Qualidade
 
-A qualidade da PyCobrança é sustentada por três pilares: **testes automatizados**, **lint/format
-consistentes** e um **ambiente de homologação** na branch `hml`.
-
-## Branch de homologação: `hml`
-
-A branch **`hml`** é o foco dos testes de homologação. Ela funciona como o ambiente onde uma
-mudança é validada de ponta a ponta antes de ser promovida.
-
-### Fluxo de branches
-
-```
-feature/*  ──►  integracao/*  ──►  hml  ──►  main
-   (dev)          (integração)     (homolog.)   (estável)
-```
-
-- **`feature/*`** — desenvolvimento de uma unidade de trabalho.
-- **branch de integração** — onde a modernização é montada e revisada por PR.
-- **`hml`** — homologação: recebe o conjunto validado e roda a suíte estendida (`hml.yml`).
-- **`main`** — linha estável; só recebe o que passou pela homologação.
-
-### O que roda em `hml`
-
-O pipeline [`hml.yml`](../.github/workflows/hml.yml) executa, além da CI padrão:
-
-- Suíte completa de testes em todas as versões Python suportadas.
-- Testes marcados como `hml`/`integration` (quando existirem).
-- Verificação de build do pacote (`python -m build`).
-- Relatório de cobertura.
+A qualidade da PyCobrança é sustentada por dois pilares: **testes automatizados** e
+**lint/format consistentes**, verificados na CI a cada mudança.
 
 ## Estratégia de testes
 
@@ -82,13 +56,13 @@ python -m build
 
 ## Metas de cobertura
 
-- **Fase 1:** cobertura ≥ 80% no núcleo (`core/`, `boleto/`).
-- **Fases 2–4:** cada banco/layout portado entra com testes; sem regressão de cobertura.
-- **Fase 6:** ampliação contínua da suíte de testes.
+- **Núcleo** (`core/`, `boleto/`): cobertura ≥ 80%.
+- Cada banco/layout portado entra com testes; sem regressão de cobertura.
+- Ampliação contínua da suíte.
 
-## Critérios de promoção para `main`
+## Critérios para aceitar uma mudança
 
-1. CI (`ci.yml`) verde em toda a matriz Python.
-2. Homologação (`hml.yml`) verde na branch `hml`.
-3. Cobertura dentro da meta da fase corrente.
+1. CI verde em toda a matriz Python.
+2. Testes cobrindo o comportamento novo (e as fixtures de referência intactas).
+3. Cobertura dentro da meta.
 4. Documentação atualizada para o recurso entregue.

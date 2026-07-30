@@ -12,7 +12,6 @@ from typing import ClassVar
 
 from ..core.documentos import so_digitos
 from ..core.dv import modulo11_resto
-from ..exceptions import BoletoInvalido
 from .base import BancoBase
 
 __all__ = ["Bradesco"]
@@ -24,6 +23,11 @@ class Bradesco(BancoBase):
     digito_banco: ClassVar[str] = "2"
     carteiras: ClassVar[tuple[str, ...]] = ("03", "06", "09", "19", "21", "22", "25", "26")
     suporta_pix: ClassVar[bool] = True
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "conta": (1, 7),
+        "nosso_numero": (1, 11),
+    }
 
     @property
     def _agencia4(self) -> str:
@@ -57,15 +61,3 @@ class Bradesco(BancoBase):
 
     def agencia_conta_formatado(self) -> str:
         return f"{self._agencia4} / {self._conta7}"
-
-    def validar(self) -> None:
-        super().validar()
-        erros: list[str] = []
-        if len(so_digitos(self.agencia)) > 4:
-            erros.append("agência deve ter até 4 dígitos")
-        if len(so_digitos(self.conta)) > 7:
-            erros.append("conta deve ter até 7 dígitos")
-        if len(so_digitos(self.nosso_numero)) > 11:
-            erros.append("nosso número deve ter até 11 dígitos")
-        if erros:
-            raise BoletoInvalido("; ".join(erros))

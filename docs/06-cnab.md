@@ -197,6 +197,10 @@ for registro in retorno.registros:
 dados = retorno.to_dict()  # list[dict], nulos removidos
 ```
 
+> **Validação:** `Retorno.ler` levanta `RetornoInvalido` para um arquivo vazio ou sem header de
+> banco reconhecível (em vez de devolver lista vazia). Ver
+> [contrato de erros](14-validacao-campos.md).
+
 Os valores são devolvidos como **strings cruas** do arquivo (ex.: `valor_recebido`
 `"0000000003790"` = R$ 37,90; datas no formato do banco), preservando fidelidade ao retorno; a
 interpretação numérica/monetária fica a cargo do consumidor (aplicação).

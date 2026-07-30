@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 
+from ..exceptions import OFXInvalido
 from .nosso_numero import extrair_nosso_numero
 
 __all__ = ["Transacao", "Extrato"]
@@ -127,7 +128,14 @@ class Extrato:
 
     @classmethod
     def parse(cls, conteudo: str, *, somente_creditos: bool = False) -> Extrato:
-        """Estrutura o conteúdo textual de um OFX."""
+        """Estrutura o conteúdo textual de um OFX.
+
+        Levanta :class:`OFXInvalido` se o conteúdo não tiver a marcação de um OFX
+        (``<OFX>`` ou o cabeçalho ``OFXHEADER``) — assim um consumidor distingue
+        um **arquivo inválido** de um **extrato válido sem transações**.
+        """
+        if "<OFX>" not in conteudo and "OFXHEADER" not in conteudo.upper():
+            raise OFXInvalido("conteúdo não parece um OFX (faltam <OFX>/OFXHEADER)")
         corpo = conteudo.split("<OFX>", 1)[-1]
 
         fi = _valores(_bloco(corpo, "FI"))

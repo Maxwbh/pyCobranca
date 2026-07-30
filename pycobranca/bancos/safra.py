@@ -18,6 +18,11 @@ class Safra(BancoBase):
     digito_banco: ClassVar[str] = "7"
     carteiras: ClassVar[tuple[str, ...]] = ("1", "2")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "agencia": (1, 4),
+        "conta": (1, 8),
+        "nosso_numero": (1, 8),
+    }
 
     @property
     def dv_nosso_numero(self):

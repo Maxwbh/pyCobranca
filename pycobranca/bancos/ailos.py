@@ -17,6 +17,11 @@ class Ailos(BancoBase):
     digito_banco: ClassVar[str] = "1"
     carteiras: ClassVar[tuple[str, ...]] = ("01", "1")
     suporta_pix: ClassVar[bool] = False
+    regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
+        "convenio": (1, 6),
+        "conta": (1, 7),
+        "nosso_numero": (1, 9),
+    }
 
     @property
     def dv_conta(self):
