@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycobranca"
+description = "Plataforma de cobrança bancária brasileira em Python: boletos, CNAB 240/400 e PIX/Bolepix."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "M&S DO BRASIL LTDA", email = "maxwbh@gmail.com" }]
+maintainers = [{ name = "maxwbh", email = "maxwbh@gmail.com" }]
+keywords = [
+    "boleto",
+    "boleto-bancario",
+    "cobranca",
+    "cnab",
+    "cnab240",
+    "cnab400",
+    "remessa",
+    "retorno",
+    "pix",
+    "bolepix",
+    "qrcode",
+    "linha-digitavel",
+    "codigo-de-barras",
+    "banco",
+    "brasil",
+    "febraban",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+]
+dynamic = ["version"]
+# Tudo o que uma cobrança precisa em uma única instalação — boleto, CNAB, PIX,
+# PDF e QR. Ambas são Python puro (sem dependências de sistema: nada de cairo,
+# Pango ou wkhtmltopdf).
+dependencies = [
+    "reportlab>=4.0",  # PDF do boleto/carnê
+    "qrcode>=7.4",     # imagem do QR do Bolepix
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff==0.16.0",
+    "build>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/Maxwbh/pycobranca"
+Mantenedor = "https://msbrasil.inf.br"
+Documentation = "https://github.com/Maxwbh/pycobranca/tree/main/docs"
+Repository = "https://github.com/Maxwbh/pycobranca"
+
+[tool.setuptools]
+packages = [
+    "pycobranca",
+    "pycobranca.core",
+    "pycobranca.boleto",
+    "pycobranca.bancos",
+    "pycobranca.cnab",
+    "pycobranca.cnab.cnab400",
+    "pycobranca.cnab.cnab240",
+    "pycobranca.cnab.retorno",
+    "pycobranca.contracts",
+    "pycobranca.pix",
+    "pycobranca.render",
+    "pycobranca.render.modelos",
+    "pycobranca.render.logos",  # diretório de dados (logos dos bancos)
+    "pycobranca.ofx",
+]
+
+[tool.setuptools.package-data]
+"pycobranca.contracts" = ["*.json"]
+"pycobranca.render.logos" = ["*.png", "NOTICE.md"]
+
+[tool.setuptools.dynamic]
+version = { attr = "pycobranca.__version__" }
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "hml: testes executados no pipeline de homologação",
+    "integration: testes de integração ponta-a-ponta",
+]
+
+[tool.coverage.run]
+source = ["pycobranca"]
+branch = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+
+[tool.ruff.format]
+quote-style = "double"
