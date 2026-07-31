@@ -60,6 +60,27 @@ jobs:
       - name: Testes (pytest)
         run: pytest --cov=pycobranca --cov-report=term-missing
 
+  exemplos:
+    name: Exemplos executáveis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar a biblioteca
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Executar os exemplos
+        run: python examples/executa_todos.py
+
   build:
     name: Build do pacote
     runs-on: ubuntu-latest

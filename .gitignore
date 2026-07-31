@@ -34,8 +34,16 @@ htmlcov/
 *.rem
 *.ret
 !docs/**/*.pdf
+!examples/dados/*.ret
 !tests/fixtures/*.rem
 !tests/fixtures/*.ret
 !tests/fixtures/retorno/*.RET
 !tests/fixtures/retorno/*.ret
 !tests/fixtures/retorno/externos/*.ret
+
+# Saída dos exemplos
+examples/saida/
+
+# Documentação (MkDocs): site gerado e cópia do CHANGELOG feita no build
+site/
+docs/changelog.md

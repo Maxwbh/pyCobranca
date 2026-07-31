@@ -30,7 +30,7 @@ keywords = [
     "febraban",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Natural Language :: Portuguese (Brazilian)",
     "Programming Language :: Python :: 3",
@@ -38,6 +38,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial",
+    "Typing :: Typed",
 ]
 dynamic = ["version"]
 # Tudo o que uma cobrança precisa em uma única instalação — boleto, CNAB, PIX,
@@ -55,12 +56,18 @@ dev = [
     "ruff==0.16.0",
     "build>=1.2",
 ]
+# Publicação da documentação (GitHub Pages) — não é necessária para usar a lib.
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.5,<10",
+]
 
 [project.urls]
-Homepage = "https://github.com/Maxwbh/pycobranca"
+Homepage = "https://github.com/Maxwbh/pyCobranca"
 Mantenedor = "https://msbrasil.inf.br"
-Documentation = "https://github.com/Maxwbh/pycobranca/tree/main/docs"
-Repository = "https://github.com/Maxwbh/pycobranca"
+Documentation = "https://maxwbh.github.io/pyCobranca/"
+Changelog = "https://maxwbh.github.io/pyCobranca/changelog/"
+Repository = "https://github.com/Maxwbh/pyCobranca"
 
 [tool.setuptools]
 packages = [
@@ -81,6 +88,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
+"pycobranca" = ["py.typed"]  # PEP 561 — expõe os type hints aos consumidores
 "pycobranca.contracts" = ["*.json"]
 "pycobranca.render.logos" = ["*.png", "NOTICE.md"]
 

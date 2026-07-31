@@ -13,6 +13,7 @@ A qualidade da PyCobrança é sustentada por dois pilares: **testes automatizado
 | PIX | payload EMV, CRC16, QR Code | `pytest` |
 | Contrato | artefatos vs. OpenAPI (contrato REST) | `pytest` |
 | Renderização | geração de PDF sem erro, presença de elementos | `pytest` |
+| Exemplos | os scripts de `examples/` rodam ponta a ponta | `examples/executa_todos.py` |
 
 ### Fixtures de referência
 
@@ -50,9 +51,20 @@ pytest --cov=pycobranca --cov-report=term-missing
 ruff check .
 ruff format --check .
 
+# exemplos executáveis (documentação que não envelhece)
+python examples/executa_todos.py
+
 # verificar build do pacote
 python -m build
 ```
+
+### Exemplos como teste de fumaça
+
+`examples/` reúne scripts curtos que exercitam a API pública — boleto, Bolepix, remessa 400/240,
+retorno, OFX, carnê, fatura, contrato REST e tratamento de erros. A CI executa todos a cada push
+(job **Exemplos executáveis**), instalando o pacote **sem** as dependências de desenvolvimento:
+quebra de API pública, dado de exemplo defasado ou arquivo faltando no wheel aparecem ali antes de
+chegar ao usuário.
 
 ## Metas de cobertura
 

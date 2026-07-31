@@ -13,16 +13,34 @@ código e como adicionar novos bancos e layouts.
 ## Ambiente de desenvolvimento
 
 ```bash
-git clone https://github.com/Maxwbh/pycobranca.git
-cd pycobranca
+git clone https://github.com/Maxwbh/pyCobranca.git
+cd pyCobranca
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 ```
 
+### Documentação (MkDocs)
+
+O site publicado em <https://maxwbh.github.io/pyCobranca/> é gerado do próprio `docs/`:
+
+```bash
+pip install -e ".[docs]"
+cp CHANGELOG.md docs/changelog.md   # o changelog vive na raiz e é copiado no build
+mkdocs serve                        # pré-visualização em http://127.0.0.1:8000
+mkdocs build --strict               # o mesmo que a CI roda (falha em link quebrado)
+```
+
+Os documentos são escritos para serem lidos **também no GitHub**, com links relativos
+(`../pycobranca/render/tela.py`). O hook `mkdocs_hooks.py` reescreve esses links no site — para a
+URL do arquivo no repositório quando apontam para fora de `docs/`, e para o caminho relativo
+correto quando apontam para outra página. Páginas novas entram na `nav` do `mkdocs.yml`.
+
 ## Padrões de código
 
 - **Python 3.12+** com type hints; a CI roda a suíte em 3.12, 3.13 e 3.14.
+- A biblioteca é **tipada** (PEP 561, `pycobranca/py.typed`): mantenha as anotações em dia — elas
+  chegam ao mypy/pyright de quem consome o pacote.
 - **ruff** para lint e formatação (`ruff check .`, `ruff format .`).
 - **Decimal** para valores monetários (nunca `float`).
 - Nomes de domínio em português (`sacado`, `cedente`, `nosso_numero`) para alinhamento com o
@@ -55,6 +73,7 @@ pytest
 
 - [ ] Testes adicionados/atualizados e passando.
 - [ ] `ruff check .` e `ruff format --check .` sem erros.
+- [ ] `python examples/executa_todos.py` verde (os exemplos acompanham a API).
 - [ ] Cobertura dentro da meta da fase.
 - [ ] Documentação atualizada (`docs/` e/ou matriz de bancos).
 - [ ] Sem segredos ou dados sensíveis no diff.
