@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Caixa Econômica Federal (104) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (14, 24). Remessa e retorno CNAB 240. Suporta PIX/Bolepix.
+---
+
 # Caixa Econômica Federal (104) — SIGCB
 
 **Manuais oficiais de referência:** *Manual de Boleto de Cobrança CAIXA — SIGCB* (2020) ·

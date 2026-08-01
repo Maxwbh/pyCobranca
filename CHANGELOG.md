@@ -2,6 +2,44 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Adicionado
+
+- **Página de compatibilidade e validação** ([`docs/17-compatibilidade.md`](docs/17-compatibilidade.md)):
+  torna pública a evidência que já existia na suíte — paridade com a BrCobrança nos 18 bancos,
+  verificador FEBRABAN independente do núcleo e as 26 fixtures de remessa comparadas byte a byte,
+  com o passo a passo para reproduzir. Resumo no README.
+- **Guia do CNPJ alfanumérico** ([`docs/18-cnpj-alfanumerico.md`](docs/18-cnpj-alfanumerico.md)):
+  página dedicada com o que muda, o cálculo do DV (`ord(c) - 48`), **onde os sistemas quebram** (a
+  limpeza que descarta letras e o tipo de inscrição que sai errado no CNAB) e um checklist de
+  auditoria. O conteúdo estava disperso em validação de campos e contrato REST.
+- **Meta `description` nas 18 páginas por banco**, gerada a partir dos dados reais do registro
+  (carteiras aceitas, layouts CNAB, suporte a PIX) — é o texto que aparece no resultado de busca.
+- **Posicionamento explícito como biblioteca embutível e neutra** (README e visão geral): roda no
+  processo do consumidor (sem rede, estado ou daemon), não impõe framework, entrega o contrato REST
+  como dado, e a licença BSD-3 permite embutir em produto comercial fechado. A biblioteca não
+  divulga nem depende de nenhum produto construído sobre ela — a dependência é sempre
+  `consumidor → biblioteca`.
+
+- **Arquivo [`NOTICE`](NOTICE)** com reconhecimento à **BrCobrança** (MIT, © 2009 Kivanio Barbosa)
+  e à **pyboleto** (BSD, © 2011 Eduardo Cereto Carvalho e contribuidores), em português e inglês.
+  Registra que a fonte normativa são os manuais FEBRABAN, dos bancos e do Banco Central, e que a
+  menção não implica endosso. A `LICENSE` segue intacta (BSD-3-Clause) — o crédito em arquivo
+  separado preserva a detecção automática da licença; `license-files` passa a incluir os dois, então
+  ambos viajam no wheel e no sdist. Resumo também no README.
+
+### Corrigido
+
+- **README com caminhos relativos quebrava na página do PyPI.** O README é a `long_description` do
+  pacote, e o PyPI não resolve caminhos relativos: as **8 imagens** (banner, GIF de demonstração,
+  diagrama de arquitetura e as 4 capturas de boleto) não apareciam e **25 links** apontavam para
+  lugar nenhum. Agora imagens usam `raw.githubusercontent.com`, páginas de documentação apontam
+  para o site publicado e arquivos do repositório para o `blob`/`tree` — funciona igual no GitHub,
+  no PyPI e em qualquer lugar que renderize o README. Efeito visível na próxima versão publicada.
+- **Visão geral afirmava Python 3.14 como alvo** — desatualizado desde a mudança do piso para 3.12
+  na 1.0.2. Agora reflete o piso real e a matriz da CI.
+
 ## [1.0.3] - 2026-08-01
 
 ### Adicionado

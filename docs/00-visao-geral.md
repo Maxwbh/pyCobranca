@@ -12,8 +12,8 @@ financeiros.
 
 ## Princípios de design
 
-1. **Python moderno primeiro.** Type hints, `pyproject.toml`, última versão estável do Python
-   (3.14) e dependências puras em Python.
+1. **Python moderno primeiro.** Type hints expostos ao consumidor (PEP 561), `pyproject.toml`,
+   piso em **Python 3.12** (suíte na matriz 3.12/3.13/3.14) e dependências puras em Python.
 2. **Conformidade FEBRABAN verificável.** Cada regra (DV, fator de vencimento, campo livre, layout
    CNAB) é coberta por testes com valores conhecidos.
 3. **Serialização JSON de primeira classe.** Todo objeto de domínio expõe `to_dict()` para consumo
@@ -24,6 +24,29 @@ financeiros.
    ou GhostScript.
 6. **API enxuta e direta.** Uma única forma de fazer cada coisa, alinhada ao domínio bancário
    brasileiro.
+
+## Uma biblioteca embutível
+
+A PyCobrança é uma **biblioteca**, e isso é uma escolha de projeto — não uma etapa a caminho de
+virar serviço. Na prática, para quem constrói em cima dela:
+
+- **Roda dentro do seu processo.** Sem rede, sem estado, sem daemon, sem sidecar. Um `pip install`
+  e as funções estão disponíveis; o que entra e o que sai é objeto Python.
+- **Você decide a moldura.** Transporte, persistência, filas, agendamento e autenticação continuam
+  seus. A biblioteca não escolhe framework web, ORM nem broker por você.
+- **O contrato REST vem como dado, não como servidor.** `pycobranca.contracts` entrega a
+  especificação OpenAPI 3.0, os serializadores e um validador leve —
+  [sem dependência HTTP](04-api-rest.md). Você expõe do seu jeito, em FastAPI, Flask, Django ou o
+  que preferir.
+- **Licença BSD-3-Clause.** Permite embutir em **produto comercial fechado**, sem obrigação de
+  abrir o seu código. Só é preciso manter o aviso de copyright.
+- **Neutra em relação a quem consome.** A biblioteca não divulga, não privilegia e não depende de
+  nenhum produto construído sobre ela. Se você criar um serviço, um SaaS ou uma API a partir da
+  PyCobrança, não vai encontrar um concorrente na página inicial dela.
+
+Essa neutralidade é deliberada: a direção da dependência é sempre `consumidor → biblioteca`, nunca
+o contrário. É o que permite que produtos diferentes — inclusive concorrentes entre si — usem a
+mesma engine sem conflito.
 
 ## Escopo
 
@@ -36,15 +59,13 @@ financeiros.
 - Contrato de dados serializável para API REST (OpenAPI 3.0).
 - CI de validação (lint + testes em matriz de versões Python).
 
-## Não-objetivos
-
-- Suporte a formatos de impressão exóticos (PostScript nativo).
-
 ## Público-alvo
 
 - Times Python que precisam emitir boletos, gerar/ler CNAB e produzir PIX.
 - Integradores que precisam de emissão e conciliação (retorno) em Python.
 - Produtos que querem uma engine de cobrança embutível, sem serviço externo.
+- **Quem constrói serviço em cima**: APIs REST, SaaS de cobrança, gateways internos e plataformas
+  multi-tenant — a licença BSD-3 e a neutralidade da biblioteca cobrem esse uso.
 
 ## Riscos e mitigação
 

@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Banrisul (041) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 2). Remessa e retorno CNAB 400.
+---
+
 # Banrisul (041)
 
 **Manuais oficiais de referência:** *Layout Cobrança CNAB 400 posições* · *Layout Cobrança

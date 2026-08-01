@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Santander (033) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (101, 102, 121). Remessa e retorno CNAB 400 e 240. Suporta PIX/Bolepix.
+---
+
 # Santander (033)
 
 **Manuais oficiais de referência:** *H7800 — Layout de Cobrança 353/400 posições* (v2.33,

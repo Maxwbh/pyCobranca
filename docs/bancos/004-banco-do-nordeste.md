@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Banco do Nordeste (004) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (21, 31, 41, 51). Remessa e retorno CNAB 400.
+---
+
 # Banco do Nordeste (004)
 
 **Manuais oficiais de referência:** *Cobrança Eletrônica BNB* · *Padrão BNB — CNAB 400*.

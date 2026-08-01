@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Sicoob (756) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 3, 9, 09). Remessa e retorno CNAB 400 e 240. Suporta PIX/Bolepix.
+---
+
 # Sicoob (756)
 
 **Manual oficial de referência:** *Manual de Layout Sicoob — Cobrança* (CNAB 400 e CNAB 240).

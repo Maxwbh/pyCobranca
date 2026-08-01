@@ -1,16 +1,16 @@
 <div align="center">
 
-<img src="docs/images/pycobranca-banner.svg" alt="PyCobrança — boletos, CNAB e PIX em Python puro" width="820">
+<img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/pycobranca-banner.svg" alt="PyCobrança — boletos, CNAB e PIX em Python puro" width="820">
 
 # A plataforma Open Source mais completa para cobrança bancária em Python
 
 **Boletos, CNAB 240/400 e PIX para 18 bancos — com uma única biblioteca, em Python puro.**
 
-[![Versão](https://img.shields.io/badge/versão-1.0.3-2ea44f)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/versão-1.0.3-2ea44f)](https://github.com/Maxwbh/pyCobranca/blob/main/CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](LICENSE)
-[![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](pyproject.toml)
-[![PIX](https://img.shields.io/badge/PIX-Bolepix-32BCAD)](docs/07-pix.md)
+[![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](https://github.com/Maxwbh/pyCobranca/blob/main/LICENSE)
+[![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](https://github.com/Maxwbh/pyCobranca/blob/main/pyproject.toml)
+[![PIX](https://img.shields.io/badge/PIX-Bolepix-32BCAD)](https://maxwbh.github.io/pyCobranca/07-pix/)
 [![Estrelas](https://img.shields.io/github/stars/Maxwbh/pyCobranca?style=flat&logo=github&color=2ea44f)](https://github.com/Maxwbh/pyCobranca/stargazers)
 
 ⭐ **18 bancos**  ·  📄 **CNAB 240/400**  ·  💳 **PIX / Bolepix**  ·  ⚡ **Python puro**  ·  📦 **Um único `pip install`**  ·  🔓 **BSD-3**
@@ -28,7 +28,7 @@ lote de milhares de boletos — com identidade e arquitetura próprias.
 
 <div align="center">
 
-<img src="docs/images/demo.gif" alt="Do pip install ao boleto, PIX e remessa CNAB em segundos" width="720">
+<img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/demo.gif" alt="Do pip install ao boleto, PIX e remessa CNAB em segundos" width="720">
 
 </div>
 
@@ -41,7 +41,7 @@ back-end) chama a biblioteca; ela cuida de boletos, CNAB, PIX e PDF.
 
 <div align="center">
 
-<img src="docs/images/pycobranca-arquitetura.svg" alt="Arquitetura: ERPs e frameworks consomem a PyCobrança, que emite boletos, CNAB, PIX e PDF" width="820">
+<img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/pycobranca-arquitetura.svg" alt="Arquitetura: ERPs e frameworks consomem a PyCobrança, que emite boletos, CNAB, PIX e PDF" width="820">
 
 </div>
 
@@ -56,6 +56,20 @@ padrão para conectar sistemas de emissão a ERPs e plataformas de pagamento.
 A PyCobrança nasceu para atender esse cenário com uma **plataforma única e coesa** — pensada desde
 o início para PIX, CNAB 240/400, PDF em Python puro e consumo via API. Em vez de juntar
 peças soltas, oferece uma API consistente, testada banco a banco e pronta para produção.
+
+### Uma biblioteca embutível — e neutra
+
+A PyCobrança é uma **biblioteca**, por escolha de projeto. Ela roda dentro do seu processo: sem
+rede, sem estado, sem daemon, sem sidecar. Transporte, persistência, filas e autenticação
+continuam seus — nenhum framework web, ORM ou broker é imposto. O contrato REST vem como **dado**
+(OpenAPI 3.0 + serializadores + validador leve, sem dependência HTTP), para você expor do seu
+jeito.
+
+Sob **licença BSD-3-Clause**, pode ser embutida em **produto comercial fechado**, sem obrigação de
+abrir o seu código. E ela é **neutra**: não divulga, não privilegia e não depende de nenhum
+produto construído sobre ela — se você criar um serviço, um SaaS ou uma API a partir da
+PyCobrança, não vai encontrar um concorrente nesta página. A dependência é sempre
+`consumidor → biblioteca`, nunca o contrário.
 
 ## ✨ Destaques
 
@@ -88,10 +102,10 @@ PDFs gerados pela própria PyCobrança (dados fictícios, saída real do backend
 
 | Boleto (modelo moderno) | Boleto com PIX (Bolepix) |
 |:---:|:---:|
-| <img src="docs/images/screenshots/boleto-moderno.png" alt="Boleto no modelo moderno gerado pela PyCobrança" width="330"> | <img src="docs/images/screenshots/boleto-pix.png" alt="Boleto híbrido com QR Code PIX" width="330"> |
+| <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/boleto-moderno.png" alt="Boleto no modelo moderno gerado pela PyCobrança" width="330"> | <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/boleto-pix.png" alt="Boleto híbrido com QR Code PIX" width="330"> |
 | Recibo do Pagador + ficha, código de barras nativo | QR Code Bolepix embutido, célula PIX teal |
 | **Boleto com logo do banco** | **Carnê (3 por A4)** |
-| <img src="docs/images/screenshots/boleto-logo.png" alt="Boleto com o logo do banco no cabeçalho (recibo e ficha)" width="330"> | <img src="docs/images/screenshots/carne.png" alt="Carnê com 3 parcelas por página A4" width="330"> |
+| <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/boleto-logo.png" alt="Boleto com o logo do banco no cabeçalho (recibo e ficha)" width="330"> | <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/carne.png" alt="Carnê com 3 parcelas por página A4" width="330"> |
 | Logo no cabeçalho do recibo e da ficha (`logo_do_banco`) | Canhoto à esquerda, uma A4 a cada 3 parcelas |
 
 </div>
@@ -259,8 +273,8 @@ tem posição.
 Banestes (021), HSBC (399) e Safra (422) só emitem boleto (sem remessa CNAB).</sub>
 
 > Detalhes por layout (posições 240/400, valor × percentual por banco) em
-> [`docs/06-cnab.md`](docs/06-cnab.md); via API REST, o objeto `encargos` em
-> [`docs/04-api-rest.md`](docs/04-api-rest.md).
+> [`docs/06-cnab.md`](https://maxwbh.github.io/pyCobranca/06-cnab/); via API REST, o objeto `encargos` em
+> [`docs/04-api-rest.md`](https://maxwbh.github.io/pyCobranca/04-api-rest/).
 
 ### Ler um retorno CNAB
 
@@ -292,7 +306,7 @@ print(len(resultado.conciliadas), "casadas ·", resultado.pendentes, "pendentes"
 
 <div align="center">
 
-<img src="docs/images/pycobranca-ciclo.svg" alt="Ciclo de cobrança: emissão → remessa CNAB → retorno CNAB → extrato OFX, conciliados pelo nosso número" width="820">
+<img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/pycobranca-ciclo.svg" alt="Ciclo de cobrança: emissão → remessa CNAB → retorno CNAB → extrato OFX, conciliados pelo nosso número" width="820">
 
 </div>
 
@@ -316,8 +330,12 @@ boleto = Banco(..., cedente_documento="12ABC34501DE35", sacado_documento="12.ABC
 
 Na remessa, o documento é gravado **sem perder as letras** e o **tipo de inscrição** (`01` CPF /
 `02` CNPJ) sai correto. No contrato REST, os campos de documento têm `pattern`, então um serviço
-HTTP rejeita formato inválido antes de chamar a engine. Detalhes e a limitação conhecida do
-CrediSIS em [validação de campos](docs/14-validacao-campos.md).
+HTTP rejeita formato inválido antes de chamar a engine.
+
+> 📄 **Guia completo** — o que muda, o cálculo do DV, **onde os sistemas quebram** (o `so_digitos`
+> que descarta letras e o tipo de inscrição que sai errado no CNAB) e um checklist para auditar o
+> seu sistema:
+> **[CNPJ alfanumérico](https://maxwbh.github.io/pyCobranca/18-cnpj-alfanumerico/)**
 
 ### Boleto híbrido com PIX (Bolepix)
 
@@ -374,11 +392,11 @@ Funcionalidade por banco (✅ = disponível/validado):
 - **PIX** — Bolepix (BR Code + QR no PDF + segmento PIX na remessa).
 - **Logo** — logo empacotado via `logo_do_banco("NNN")`, em alta resolução com transparência
   (17 dos 18 bancos; marca do banco, uso nominativo — origem e licença por arquivo em
-  [`render/logos/NOTICE.md`](pycobranca/render/logos/NOTICE.md)).
+  [`render/logos/NOTICE.md`](https://github.com/Maxwbh/pyCobranca/blob/main/pycobranca/render/logos/NOTICE.md)).
 - ¹ BRB usa formato de remessa **DCB proprietário**.
 
 Detalhes de carteiras, quirks e fixtures por banco na
-[matriz de bancos](docs/05-bancos-suportados.md) e nos [documentos por banco](docs/bancos/README.md).
+[matriz de bancos](https://maxwbh.github.io/pyCobranca/05-bancos-suportados/) e nos [documentos por banco](https://maxwbh.github.io/pyCobranca/bancos/).
 
 ## 🧩 O que a PyCobrança faz
 
@@ -429,6 +447,28 @@ brasileira em Python. O rumo do projeto:
 - **Integração com ERPs e frameworks Python** — API limpa, pronta para embutir.
 - **Evolução contínua** conforme os padrões da **FEBRABAN** e a regulação de meios de pagamento.
 
+## ✅ Dá para confiar? Como a PyCobrança é verificada
+
+Trocar a biblioteca que emite cobrança é decisão de risco: o arquivo vai para o banco e um byte
+errado vira título rejeitado. Por isso a verificação tem **três camadas independentes**:
+
+| Camada | O que responde |
+|---|---|
+| **Paridade com a [BrCobrança](https://github.com/kivanio/brcobranca)** (Ruby) | Para os **18 bancos**, código de barras, linha digitável e nosso número foram gerados pela BrCobrança com os mesmos dados de entrada e conferidos campo a campo. |
+| **Verificador FEBRABAN independente** | Um validador que **não usa o código do núcleo** confere DV geral (módulo 11), os três DVs de campo (módulo 10), o round-trip linha ↔ barras, fator de vencimento, valor, banco e moeda. |
+| **Remessa byte a byte** | **26 fixtures** de remessa (16 em CNAB 400, 10 em CNAB 240, 15 bancos) comparadas **byte a byte** — inalteradas através de todas as refatorações do projeto. |
+
+**346 testes** rodando em Python 3.12, 3.13 e 3.14 a cada push. Reproduza em 3 comandos:
+
+```bash
+git clone https://github.com/Maxwbh/pyCobranca.git && cd pyCobranca
+pip install -e ".[dev]"
+pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
+```
+
+> Método completo, divergências conhecidas e como reportar uma:
+> **[Compatibilidade e validação](https://maxwbh.github.io/pyCobranca/17-compatibilidade/)**
+
 ## 🗺️ Roadmap
 
 Entregue e em evolução:
@@ -451,20 +491,21 @@ Entregue e em evolução:
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [Visão Geral](docs/00-visao-geral.md) · [Arquitetura](docs/01-arquitetura.md) | Objetivo, escopo e camadas |
-| [Arquitetura e diretórios](docs/16-arquitetura-diretorios.md) | Árvore do pacote, subsistemas e fluxos |
-| [Bancos Suportados](docs/05-bancos-suportados.md) · [por banco](docs/bancos/README.md) | Matriz, carteiras e especificação |
-| [Adicionar um novo banco](docs/15-novo-banco.md) | Campo livre, DVs, remessa, testes e documentação |
-| [CNAB](docs/06-cnab.md) | Remessa e retorno 240/400 |
-| [Validação de campos](docs/14-validacao-campos.md) | Tamanhos, conjuntos e contrato de erros |
-| [OFX](docs/13-ofx.md) | Extrato bancário e conciliação |
-| [PIX / Bolepix](docs/07-pix.md) | QR Code e segmento PIX no CNAB |
-| [API REST](docs/04-api-rest.md) | Contrato de dados e consumo via HTTP |
-| [Renderização](docs/11-renderizacao.md) | Backend de PDF (ReportLab) |
+| [Visão Geral](https://maxwbh.github.io/pyCobranca/00-visao-geral/) · [Arquitetura](https://maxwbh.github.io/pyCobranca/01-arquitetura/) | Objetivo, escopo e camadas |
+| [Compatibilidade e validação](https://maxwbh.github.io/pyCobranca/17-compatibilidade/) | Paridade com a BrCobrança, verificador independente e byte a byte |
+| [Arquitetura e diretórios](https://maxwbh.github.io/pyCobranca/16-arquitetura-diretorios/) | Árvore do pacote, subsistemas e fluxos |
+| [Bancos Suportados](https://maxwbh.github.io/pyCobranca/05-bancos-suportados/) · [por banco](https://maxwbh.github.io/pyCobranca/bancos/) | Matriz, carteiras e especificação |
+| [Adicionar um novo banco](https://maxwbh.github.io/pyCobranca/15-novo-banco/) | Campo livre, DVs, remessa, testes e documentação |
+| [CNAB](https://maxwbh.github.io/pyCobranca/06-cnab/) | Remessa e retorno 240/400 |
+| [Validação de campos](https://maxwbh.github.io/pyCobranca/14-validacao-campos/) | Tamanhos, conjuntos e contrato de erros |
+| [OFX](https://maxwbh.github.io/pyCobranca/13-ofx/) | Extrato bancário e conciliação |
+| [PIX / Bolepix](https://maxwbh.github.io/pyCobranca/07-pix/) | QR Code e segmento PIX no CNAB |
+| [API REST](https://maxwbh.github.io/pyCobranca/04-api-rest/) | Contrato de dados e consumo via HTTP |
+| [Renderização](https://maxwbh.github.io/pyCobranca/11-renderizacao/) | Backend de PDF (ReportLab) |
 
 ### ▶️ Exemplos executáveis
 
-[`examples/`](examples/) traz scripts curtos e completos — boleto, Bolepix, remessa 400/240,
+[`examples/`](https://github.com/Maxwbh/pyCobranca/tree/main/examples) traz scripts curtos e completos — boleto, Bolepix, remessa 400/240,
 retorno, OFX, carnê, fatura, contrato REST e tratamento de erros. **A CI roda todos a cada push**,
 então nunca ficam desatualizados em relação à API:
 
@@ -477,7 +518,7 @@ python examples/executa_todos.py   # todos, em sequência
 
 Este é um projeto **novo** e contribuições são muito bem-vindas — desde relatar um comportamento
 de banco divergente até adicionar um layout de CNAB. Comece pelo
-[guia de contribuição](CONTRIBUTING.md). Em resumo:
+[guia de contribuição](https://github.com/Maxwbh/pyCobranca/blob/main/CONTRIBUTING.md). Em resumo:
 
 ```bash
 git clone https://github.com/Maxwbh/pyCobranca.git
@@ -493,14 +534,27 @@ grandes para alinharmos o desenho.
 
 ## 📄 Licença
 
-Distribuída sob a licença **[BSD-3-Clause](LICENSE)** — permissiva: permite uso comercial,
+Distribuída sob a licença **[BSD-3-Clause](https://github.com/Maxwbh/pyCobranca/blob/main/LICENSE)** — permissiva: permite uso comercial,
 modificação e redistribuição, exigindo apenas a manutenção do aviso de copyright.
 © 2026 **[M&S DO BRASIL LTDA](https://msbrasil.inf.br)**.
 
 ## 🙏 Créditos
 
-Desenvolvida e mantida pela **[M&S DO BRASIL LTDA](https://msbrasil.inf.br)**. Projeto independente,
-inspirado em soluções Open Source anteriores de cobrança bancária em Python e Ruby.
+Desenvolvida e mantida pela **[M&S DO BRASIL LTDA](https://msbrasil.inf.br)**. Projeto independente:
+a fonte normativa das regras implementadas são os manuais oficiais — layouts CNAB 240/400 da
+**FEBRABAN**, os manuais de cobrança de cada banco e a especificação EMV/BR Code do **Banco
+Central do Brasil**.
+
+Reconhecemos quem abriu caminho no ecossistema brasileiro de cobrança:
+
+- **[BrCobrança](https://github.com/kivanio/brcobranca)** (MIT, © 2009 Kivanio Barbosa) —
+  referência da categoria desde 2009 e **referência de verificação** desta biblioteca: os valores
+  esperados dos testes de paridade dos 18 bancos foram gerados por ela.
+- **[pyboleto](https://github.com/eduardocereto/pyboleto)** (BSD, © 2011 Eduardo Cereto Carvalho e
+  contribuidores) — pioneira na emissão de boletos em Python.
+
+Créditos completos em [`NOTICE`](https://github.com/Maxwbh/pyCobranca/blob/main/NOTICE). Cada projeto citado permanece sob a própria licença; a
+menção é um agradecimento e não implica endosso.
 
 Feito com ☕ para o ecossistema de pagamentos brasileiro.
 
