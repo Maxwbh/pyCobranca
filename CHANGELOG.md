@@ -2,6 +2,27 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.0.3] - 2026-08-01
+
+### Adicionado
+
+- **Type hints expostos ao consumidor** (PEP 561): o pacote passa a distribuir `pycobranca/py.typed`
+  — mypy e pyright leem as anotações da biblioteca sem stubs. Classifier `Typing :: Typed`.
+- **Exemplos executáveis** em [`examples/`](https://github.com/Maxwbh/pyCobranca/tree/main/examples):
+  10 scripts curtos cobrindo boleto, Bolepix,
+  remessa 400/240, retorno, OFX, carnê, fatura (3 níveis), contrato REST e tratamento de erros.
+  A CI roda todos a cada push (`python examples/executa_todos.py`), instalando o pacote **sem** as
+  dependências de desenvolvimento — documentação que não envelhece e teste de fumaça do wheel.
+- **Documentação publicada** em <https://maxwbh.github.io/pyCobranca/> (MkDocs Material, com busca
+  e navegação), gerada do próprio `docs/` a cada push na `main`. Os documentos continuam legíveis
+  no GitHub: o hook `mkdocs_hooks.py` reescreve os links relativos no site. Extra opcional
+  `pip install "pycobranca[docs]"`.
+
+### Alterado
+
+- **`Development Status` de `2 - Pre-Alpha` para `5 - Production/Stable`** — o estágio anterior não
+  refletia 18 bancos, remessa validada byte a byte e a suíte de testes atual.
+
 ## [1.0.2] - 2026-07-30
 
 ### Alterado

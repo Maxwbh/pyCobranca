@@ -9,8 +9,8 @@ como enviar sua mudança.
 Requer **Python 3.12+**.
 
 ```bash
-git clone https://github.com/Maxwbh/pycobranca.git
-cd pycobranca
+git clone https://github.com/Maxwbh/pyCobranca.git
+cd pyCobranca
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```

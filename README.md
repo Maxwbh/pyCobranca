@@ -6,12 +6,12 @@
 
 **Boletos, CNAB 240/400 e PIX para 18 bancos — com uma única biblioteca, em Python puro.**
 
-[![Versão](https://img.shields.io/badge/versão-1.0.2-2ea44f)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/versão-1.0.3-2ea44f)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](LICENSE)
 [![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](pyproject.toml)
 [![PIX](https://img.shields.io/badge/PIX-Bolepix-32BCAD)](docs/07-pix.md)
-[![Estrelas](https://img.shields.io/github/stars/Maxwbh/pycobranca?style=flat&logo=github&color=2ea44f)](https://github.com/Maxwbh/pycobranca/stargazers)
+[![Estrelas](https://img.shields.io/github/stars/Maxwbh/pyCobranca?style=flat&logo=github&color=2ea44f)](https://github.com/Maxwbh/pyCobranca/stargazers)
 
 ⭐ **18 bancos**  ·  📄 **CNAB 240/400**  ·  💳 **PIX / Bolepix**  ·  ⚡ **Python puro**  ·  📦 **Um único `pip install`**  ·  🔓 **BSD-3**
 
@@ -75,6 +75,8 @@ peças soltas, oferece uma API consistente, testada banco a banco e pronta para 
 - 🆕 **CNPJ alfanumérico** (IN RFB 2.229/2024): validação, formatação e gravação no CNAB já
   preparadas para as 12 primeiras posições com letras — o CPF segue numérico.
 - 🔌 **Pronto para API REST** (OpenAPI 3.0): serializadores JSON dos artefatos para consumo HTTP.
+- 🔤 **Tipada de ponta a ponta** (PEP 561): o pacote traz `py.typed`, então mypy e pyright
+  enxergam as anotações direto do `pip install`.
 - ⚡ **Instalação única**: boleto, CNAB, PIX, PDF e QR num só `pip install` — tudo Python puro,
   sem bibliotecas de sistema (nada de cairo, Pango ou wkhtmltopdf).
 
@@ -445,6 +447,8 @@ Entregue e em evolução:
 
 ## 📚 Documentação
 
+📖 **Site completo, com busca e navegação: <https://maxwbh.github.io/pyCobranca/>**
+
 | Documento | Conteúdo |
 |-----------|----------|
 | [Visão Geral](docs/00-visao-geral.md) · [Arquitetura](docs/01-arquitetura.md) | Objetivo, escopo e camadas |
@@ -458,6 +462,17 @@ Entregue e em evolução:
 | [API REST](docs/04-api-rest.md) | Contrato de dados e consumo via HTTP |
 | [Renderização](docs/11-renderizacao.md) | Backend de PDF (ReportLab) |
 
+### ▶️ Exemplos executáveis
+
+[`examples/`](examples/) traz scripts curtos e completos — boleto, Bolepix, remessa 400/240,
+retorno, OFX, carnê, fatura, contrato REST e tratamento de erros. **A CI roda todos a cada push**,
+então nunca ficam desatualizados em relação à API:
+
+```bash
+python examples/01_boleto_pdf.py   # um exemplo
+python examples/executa_todos.py   # todos, em sequência
+```
+
 ## 🤝 Contribuindo
 
 Este é um projeto **novo** e contribuições são muito bem-vindas — desde relatar um comportamento
@@ -465,8 +480,8 @@ de banco divergente até adicionar um layout de CNAB. Comece pelo
 [guia de contribuição](CONTRIBUTING.md). Em resumo:
 
 ```bash
-git clone https://github.com/Maxwbh/pycobranca.git
-cd pycobranca
+git clone https://github.com/Maxwbh/pyCobranca.git
+cd pyCobranca
 pip install -e ".[dev]"
 ruff check . && ruff format --check .   # lint + formatação
 pytest                                   # suíte de testes
