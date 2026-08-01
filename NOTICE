@@ -1,0 +1,53 @@
+================================================================================
+PyCobrança — RECONHECIMENTOS
+================================================================================
+
+Copyright (c) 2026 M&S DO BRASIL LTDA
+Licenciado sob a BSD 3-Clause License — ver o arquivo LICENSE.
+
+Este arquivo é informativo e não altera os termos da licença.
+
+A PyCobrança é uma implementação independente. A fonte normativa das regras
+que ela implementa são os manuais oficiais — layouts CNAB 240/400 da FEBRABAN,
+os manuais de cobrança de cada banco e a especificação EMV/BR Code do Banco
+Central do Brasil.
+
+Ainda assim, esta biblioteca não teria a forma que tem sem o trabalho de quem
+abriu caminho no ecossistema brasileiro de cobrança. Reconhecemos em especial:
+
+  * BrCobrança — https://github.com/kivanio/brcobranca
+    Copyright (c) 2009 Kivanio Barbosa. Licença MIT.
+    Referência da categoria desde 2009. Além de ter servido de inspiração para
+    o escopo, é usada como referência de verificação: os valores esperados dos
+    testes de paridade (código de barras, linha digitável e nosso número dos 18
+    bancos) foram gerados por ela com os mesmos dados de entrada.
+
+  * pyboleto — https://github.com/eduardocereto/pyboleto
+    Copyright (c) 2011, Eduardo Cereto Carvalho and contributors. Licença BSD.
+    Pioneira na emissão de boletos em Python, abriu o caminho que esta
+    biblioteca percorre.
+
+Cada um desses projetos permanece sob a sua própria licença e o seu próprio
+copyright. A menção acima é um agradecimento — não implica endosso dos autores
+citados a esta biblioteca, nem vínculo entre os projetos.
+
+--------------------------------------------------------------------------------
+
+ACKNOWLEDGEMENTS (English)
+
+This file is informational and does not modify the license terms (see LICENSE).
+
+PyCobrança is an independent implementation. The normative sources for the
+rules it implements are the official manuals: FEBRABAN CNAB 240/400 layouts,
+each bank's collection manual, and the Brazilian Central Bank's EMV/BR Code
+specification.
+
+We nonetheless acknowledge the projects that paved the way in the Brazilian
+billing ecosystem — BrCobrança (MIT, Copyright (c) 2009 Kivanio Barbosa), used
+here as a verification reference for the parity test vectors, and pyboleto
+(BSD, Copyright (c) 2011 Eduardo Cereto Carvalho and contributors), a pioneer
+of boleto generation in Python.
+
+Each project remains under its own license and copyright. This mention is a
+note of thanks; it does not imply endorsement by the named authors, nor any
+affiliation between the projects.
