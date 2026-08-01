@@ -4,6 +4,16 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [Não publicado]
 
+### Alterado
+
+- **Créditos de origem corrigidos** no `NOTICE`, no README e na página de compatibilidade: a
+  **pyboleto** (BSD, © 2011 Eduardo Cereto Carvalho e contribuidores) é a **inspiração original** do
+  projeto e passa a vir primeiro; a **BrCobrança** é o **elo adicional**, que entrou depois para
+  ampliar o escopo (CNAB, mais bancos e layouts), simplificar soluções e servir de referência de
+  verificação. A ordem anterior invertia a genealogia.
+- Fica registrado por que a pyboleto não serve como vetor de conferência: o último lançamento é de
+  2016 e o pacote não instala em Python moderno (`error: invalid command 'dist_info'`).
+
 ### Adicionado
 
 - **Página de compatibilidade e validação** ([`docs/17-compatibilidade.md`](docs/17-compatibilidade.md)):
@@ -31,6 +41,12 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Corrigido
 
+- **Documentação afirmava suporte a CNAB 444, que não existe.** `docs/06-cnab.md` dizia que a
+  biblioteca "suporta os três layouts" e `docs/01-arquitetura.md` descrevia geração e parsing como
+  "240/400/444" em quatro pontos — mas não há uma linha de 444 no código. Os textos passam a
+  refletir os **dois layouts realmente implementados** (240 e 400), e o 444 fica marcado como
+  pendente, com registro no [roadmap](docs/02-roadmap-modernizacao.md) explicando o que é (variante
+  do Itaú: o 400 com 44 posições de mensagem) e o critério para entrar.
 - **README com caminhos relativos quebrava na página do PyPI.** O README é a `long_description` do
   pacote, e o PyPI não resolve caminhos relativos: as **8 imagens** (banner, GIF de demonstração,
   diagrama de arquitetura e as 4 capturas de boleto) não apareciam e **25 links** apontavam para

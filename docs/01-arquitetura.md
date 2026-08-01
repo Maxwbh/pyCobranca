@@ -11,7 +11,7 @@ centro, infraestrutura na borda).
 │  to_dict / to_json  ·  render.pdf (reportlab)  ·  render.pix   │
 ├──────────────────────────────────────────────────────────────┤
 │  CNAB                                                           │
-│  cnab.remessa (240/400/444)  ·  cnab.retorno (parse → dict)    │
+│  cnab.remessa (240/400)       ·  cnab.retorno (parse → dict)    │
 ├──────────────────────────────────────────────────────────────┤
 │  Domínio                                                        │
 │  Boleto  ·  Banco (registro)  ·  validações  ·  linha/barra    │
@@ -47,8 +47,8 @@ pycobranca/
 │   ├── sicoob.py
 │   └── ...                # um módulo por banco
 ├── cnab/
-│   ├── remessa/           # geração 240/400/444 por banco
-│   ├── retorno/           # parsing 240/400/444 → dict
+│   ├── remessa/           # geração 240/400 por banco
+│   ├── retorno/           # parsing 240/400 → dict
 │   └── layouts/           # definições posicionais de registros
 ├── pix/
 │   ├── payload.py         # BR Code / EMV (copia-e-cola)
@@ -110,7 +110,7 @@ Cada `BancoBase` declara: `codigo`, `nome`, `digito_banco`, carteiras suportadas
 
 O subsistema CNAB separa **layout** (definição posicional de registros) de **serialização**
 (preencher/ler posições). Layouts são declarativos e versionados por banco e por formato
-(240/400/444), permitindo testar posições isoladamente.
+(240/400), permitindo testar posições isoladamente.
 
 - **Remessa:** `boleto → registros → string de arquivo`.
 - **Retorno:** `string de arquivo → registros → list[dict]` (JSON-friendly para conciliação).
