@@ -119,6 +119,25 @@ e 3 em 240) byte a byte idênticos aos vetores de referência, além do QR no PD
 itens marcados como prioritários; release 1.0. **Status: 1.0.0 marcado**; cobertura de bancos
 completa para o conjunto suportado.
 
+## Em aberto
+
+Itens identificados e ainda **não implementados**. Ficam registrados aqui para que a ausência seja
+explícita, não uma surpresa para quem avalia o projeto.
+
+### CNAB 444 (Itaú) — remessa e retorno
+
+O **444** é uma variante do Itaú: o registro de 400 posições acrescido de **44 posições de
+mensagem** a serem impressas no boleto. Não há suporte na PyCobrança, nem na geração nem na
+leitura.
+
+A lacuna foi identificada comparando a cobertura com a [BrCobrança](https://github.com/kivanio/brcobranca),
+que oferece `400 e 444` na remessa do Itaú — é a única diferença de layout a favor dela; nos demais
+14 bancos em comum a cobertura de remessa é idêntica.
+
+Entra sob o mesmo critério dos outros layouts: **manual oficial com exemplo numérico validável** e
+comparação **byte a byte** contra um vetor de referência. Sem isso, o layout não é portado — enviar
+arquivo não verificado ao banco é pior que não suportar.
+
 ## Matriz de rastreabilidade (recurso → Fase)
 
 | Recurso | Fase |
@@ -128,7 +147,7 @@ completa para o conjunto suportado.
 | Registro de bancos (`Bancos.*`) | 1 |
 | Validação por banco | 1 |
 | Remessa CNAB 240/400 | 2 |
-| Retorno CNAB 240/400/444 | 3 |
+| Retorno CNAB 240/400 | 3 |
 | PIX / Bolepix | 4 |
 | Serialização JSON | 1 (contínuo) |
 | Carnê (3 por A4) | 6 |

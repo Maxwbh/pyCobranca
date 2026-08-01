@@ -482,6 +482,7 @@ Entregue e em evolução:
 - ✅ Leitura de extrato OFX e conciliação com os boletos emitidos
 - ✅ Encargos completos na remessa (juros, multa, desconto 1º/2º/3º, IOF, abatimento)
 - ✅ Fatura (demonstrativo de itens + boleto) com corpo livre
+- 🚧 **CNAB 444 (Itaú)** — variante do 400 com 44 posições de mensagem; ainda **não implementada**
 - 🚧 Novos bancos (mediante manual oficial com exemplo validável)
 - 🚧 Novos modelos de documento (o catálogo em `render/modelos/` aceita extensões)
 
@@ -545,13 +546,15 @@ a fonte normativa das regras implementadas são os manuais oficiais — layouts 
 **FEBRABAN**, os manuais de cobrança de cada banco e a especificação EMV/BR Code do **Banco
 Central do Brasil**.
 
-Reconhecemos quem abriu caminho no ecossistema brasileiro de cobrança:
+Reconhecemos quem abriu caminho no ecossistema brasileiro de cobrança, na ordem em que
+influenciaram este projeto:
 
-- **[BrCobrança](https://github.com/kivanio/brcobranca)** (MIT, © 2009 Kivanio Barbosa) —
-  referência da categoria desde 2009 e **referência de verificação** desta biblioteca: os valores
-  esperados dos testes de paridade dos 18 bancos foram gerados por ela.
 - **[pyboleto](https://github.com/eduardocereto/pyboleto)** (BSD, © 2011 Eduardo Cereto Carvalho e
-  contribuidores) — pioneira na emissão de boletos em Python.
+  contribuidores) — a **inspiração original**. Mostrou que emitir boleto brasileiro em Python puro
+  era possível e que o problema merecia uma biblioteca dedicada; a PyCobrança nasceu desse caminho.
+- **[BrCobrança](https://github.com/kivanio/brcobranca)** (MIT, © 2009 Kivanio Barbosa) — **elo adicional**, que entrou depois para ampliar o escopo (CNAB, mais
+  bancos e layouts) e simplificar as soluções. É também a **referência de verificação**: os valores
+  esperados dos testes de paridade dos 18 bancos foram gerados por ela.
 
 Créditos completos em [`NOTICE`](https://github.com/Maxwbh/pyCobranca/blob/main/NOTICE). Cada projeto citado permanece sob a própria licença; a
 menção é um agradecimento e não implica endosso.

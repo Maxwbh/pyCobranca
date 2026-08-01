@@ -1,13 +1,19 @@
 # 06 — CNAB (Remessa e Retorno)
 
 CNAB (Centro Nacional de Automação Bancária) é o padrão FEBRABAN para troca de arquivos entre
-empresa e banco. A PyCobrança suporta os três layouts usados na cobrança registrada:
+empresa e banco. A PyCobrança implementa os **dois layouts** de uso geral na cobrança registrada:
 
-| Layout | Tamanho do registro | Uso típico |
-|--------|:-------------------:|------------|
-| **CNAB 240** | 240 posições | Padrão FEBRABAN mais recente, estrutura em lotes. |
-| **CNAB 400** | 400 posições | Layout legado por banco, ainda muito usado. |
-| **CNAB 444** | 444 posições | Variante usada por alguns bancos/aplicações. |
+| Layout | Tamanho do registro | Uso típico | Status |
+|--------|:-------------------:|------------|:---:|
+| **CNAB 240** | 240 posições | Padrão FEBRABAN mais recente, estrutura em lotes. | ✅ |
+| **CNAB 400** | 400 posições | Layout legado por banco, ainda muito usado. | ✅ |
+| CNAB 444 | 444 posições | Variante do Itaú — o 400 acrescido de 44 posições de mensagem. | 🚧 |
+
+!!! warning "CNAB 444 ainda não é implementado"
+    O 444 é uma **variante do Itaú**: o registro de 400 posições acrescido de 44 para mensagem no
+    boleto. Não há suporte na PyCobrança — nem na remessa, nem no retorno. Está registrado no
+    [roadmap](02-roadmap-modernizacao.md) e entra sob o mesmo critério dos demais layouts: manual
+    oficial com exemplo numérico validável, e comparação byte a byte contra vetor de referência.
 
 > **Status (Fase 2):** remessa **CNAB 400 implementada para 12 bancos** (Itaú, Bradesco, Banco do
 > Brasil, Santander, Sicoob, Unicred, Banrisul, Banco do Nordeste, BRB/DCB, Citibank, CrediSIS e

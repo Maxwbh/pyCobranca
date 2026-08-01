@@ -17,11 +17,34 @@ e que você pode executar localmente.
 
 ---
 
+## De onde a PyCobrança veio
+
+Dois projetos influenciaram esta biblioteca, em momentos diferentes. Ambos estão creditados no
+[`NOTICE`](https://github.com/Maxwbh/pyCobranca/blob/main/NOTICE):
+
+| Projeto | Licença | Papel |
+|---|---|---|
+| [**pyboleto**](https://github.com/eduardocereto/pyboleto) (Python) | BSD, © 2011 Eduardo Cereto Carvalho e contribuidores | **A inspiração original** — mostrou que emitir boleto brasileiro em Python puro era possível |
+| [**BrCobrança**](https://github.com/kivanio/brcobranca) (Ruby) | MIT · © 2009 Kivanio Barbosa | **Elo adicional** — ampliou o escopo (CNAB, mais bancos e layouts), simplificou soluções e virou a **referência de verificação** |
+
+A **pyboleto** veio primeiro: é dela a ideia de que o problema merecia uma biblioteca Python
+dedicada. A PyCobrança nasceu desse caminho.
+
+A **BrCobrança** entrou depois, para ampliar o alcance — e é contra ela que a paridade é medida,
+por ser a implementação ativa e mais completa da categoria.
+
+!!! note "Por que a pyboleto não é usada como vetor de conferência"
+    Por um motivo prático, não de mérito: o último lançamento é de **2016** e o pacote **não
+    instala em Python moderno** — a geração de metadados falha com
+    `error: invalid command 'dist_info'`. Não há como executá-la para comparar saídas.
+
+    Ela cobre **9 bancos** (um deles o 356, Banco Real, extinto em 2009); a BrCobrança cobre 16 e
+    segue ativa.
+
+---
+
 ## 1. Paridade com a BrCobrança (Ruby)
 
-A [BrCobrança](https://github.com/kivanio/brcobranca) (MIT, © 2009 Kivanio Barbosa) é a referência
-de cobrança bancária brasileira desde 2009 — e está creditada no
-[`NOTICE`](https://github.com/Maxwbh/pyCobranca/blob/main/NOTICE) do projeto.
 Para cada um dos **18 bancos**, os valores esperados dos testes foram
 **gerados pela BrCobrança** (Ruby 3.3) com **exatamente os mesmos dados de entrada** e conferidos
 campo a campo:
