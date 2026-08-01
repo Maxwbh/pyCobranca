@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Ailos (085) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 01). Remessa e retorno CNAB 240.
+---
+
 # Ailos (085)
 
 **Manual oficial de referência:** *Manual Técnico de Cobrança Bancária — 240 Posições* (Ailos).

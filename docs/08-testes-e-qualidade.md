@@ -15,6 +15,10 @@ A qualidade da PyCobrança é sustentada por dois pilares: **testes automatizado
 | Renderização | geração de PDF sem erro, presença de elementos | `pytest` |
 | Exemplos | os scripts de `examples/` rodam ponta a ponta | `examples/executa_todos.py` |
 
+> A leitura voltada para quem está **avaliando adotar** a biblioteca — método de verificação,
+> paridade com a BrCobrança e como reproduzir — está em
+> [17 — Compatibilidade e validação](17-compatibilidade.md).
+
 ### Fixtures de referência
 
 Arquivos de referência (código de barras, linha digitável, remessa e retorno) são a fonte

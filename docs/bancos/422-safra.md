@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Safra (422) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 2). Somente emissão de boleto — este banco não tem remessa CNAB.
+---
+
 # Safra (422)
 
 **Manuais oficiais de referência:** *Layout de Cobrança Safra*. Fontes e portal em

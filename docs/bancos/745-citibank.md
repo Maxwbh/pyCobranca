@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Citibank (745) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (3). Remessa e retorno CNAB 400.
+---
+
 # Citibank (745)
 
 **Manual oficial de referência:** *Layout de Cobrança CNAB 400 — Citibank*. Sem manual público

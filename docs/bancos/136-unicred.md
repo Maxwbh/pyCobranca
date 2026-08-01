@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Unicred (136) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (21). Remessa e retorno CNAB 400 e 240.
+---
+
 # Unicred (136)
 
 **Manual oficial de referência:** *Manual de Cobrança Unicred* (leiautes CNAB 240 e CNAB 400).

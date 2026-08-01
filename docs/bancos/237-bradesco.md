@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Bradesco (237) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (03, 06, 09, 19, 21, 22, 25, 26). Remessa e retorno CNAB 400. Suporta PIX/Bolepix.
+---
+
 # Bradesco (237)
 
 **Manuais oficiais de referência:** *Especificação de Boleto de Cobrança* (Bradesco, ago/2015) ·

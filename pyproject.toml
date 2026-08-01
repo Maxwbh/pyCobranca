@@ -8,7 +8,7 @@ description = "Plataforma de cobrança bancária brasileira em Python: boletos, 
 readme = "README.md"
 requires-python = ">=3.12"
 license = "BSD-3-Clause"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "M&S DO BRASIL LTDA", email = "maxwbh@gmail.com" }]
 maintainers = [{ name = "maxwbh", email = "maxwbh@gmail.com" }]
 keywords = [

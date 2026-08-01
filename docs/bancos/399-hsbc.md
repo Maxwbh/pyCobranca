@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto HSBC (399) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (CNR, CSB). Somente emissão de boleto — este banco não tem remessa CNAB.
+---
+
 # HSBC (399)
 
 **Manuais oficiais de referência:** *Layout de Cobrança HSBC* (carteiras CNR e CSB). Fontes e

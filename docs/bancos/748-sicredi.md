@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Sicredi (748) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 3). Remessa e retorno CNAB 240.
+---
+
 # Sicredi (748)
 
 **Manuais oficiais de referência:** *Manual CNAB 240 — Cobrança Sicredi* (ago/2019) ·

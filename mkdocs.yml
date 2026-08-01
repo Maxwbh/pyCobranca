@@ -63,6 +63,7 @@ nav:
   - Início: index.md
   - Começando:
       - Visão geral: 00-visao-geral.md
+      - Compatibilidade e validação: 17-compatibilidade.md
       - Arquitetura: 01-arquitetura.md
       - Arquitetura e diretórios: 16-arquitetura-diretorios.md
       - Roadmap: 02-roadmap-modernizacao.md
@@ -95,6 +96,7 @@ nav:
       - Extrato OFX: 13-ofx.md
       - Processamento em lote: 12-processamento-lote.md
       - Validação de campos e erros: 14-validacao-campos.md
+      - CNPJ alfanumérico: 18-cnpj-alfanumerico.md
       - Contrato REST: 04-api-rest.md
   - Desenvolvimento:
       - Contribuindo: 10-contribuindo.md

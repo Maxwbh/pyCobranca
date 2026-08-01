@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Itaú (341) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (104, 109, 112, 115, 175, 177, 188). Remessa e retorno CNAB 400. Suporta PIX/Bolepix.
+---
+
 # Itaú (341)
 
 **Manuais oficiais de referência:** *Especificação de Boleto de Cobrança* (Itaú, mar/2015) ·

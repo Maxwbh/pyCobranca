@@ -1,3 +1,8 @@
+---
+description: >-
+  Boleto Banco do Brasil (001) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (11, 12, 15, 16, 17, 18, 31, 51). Remessa e retorno CNAB 400 e 240. Suporta PIX/Bolepix.
+---
+
 # Banco do Brasil (001)
 
 **Manuais oficiais de referência:** *Especificação de Boleto de Cobrança* (BB, jan/2016) ·
