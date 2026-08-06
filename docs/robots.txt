@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maxwbh.github.io/pyCobranca/sitemap.xml

@@ -16,6 +16,8 @@ hooks:
 theme:
   name: material
   language: pt-BR
+  # metatags sociais (Open Graph / Twitter Card) — ver docs/overrides/main.html
+  custom_dir: docs/overrides
   icon:
     repo: fontawesome/brands/github
   features:
