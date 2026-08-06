@@ -25,9 +25,20 @@ on:
 permissions:
   contents: read
 
+# Publicar no Pages é uma operação que não pode ser interrompida no meio:
+# cancelar entre "criar o deployment" e "concluir" deixa o Pages com um
+# deployment pendente, e a execução seguinte fica esperando por ele. Por isso
+# as execuções são **enfileiradas**, não canceladas — é o que a própria GitHub
+# recomenda no workflow padrão de Pages.
+#
+# Em pull request não há deploy (só build), então ali cancelar é seguro e
+# evita fila desnecessária a cada push na branch.
 concurrency:
-  group: docs-${{ github.ref }}
-  cancel-in-progress: true
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('docs-pr-{0}', github.ref)
+        || 'docs-pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
