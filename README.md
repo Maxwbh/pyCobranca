@@ -6,8 +6,8 @@
 
 **Boletos, CNAB 240/400 e PIX para 18 bancos — com uma única biblioteca, em Python puro.**
 
-[![Versão](https://img.shields.io/badge/versão-1.0.3-2ea44f)](https://github.com/Maxwbh/pyCobranca/blob/main/CHANGELOG.md)
-[![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyPI](https://img.shields.io/pypi/v/pycobranca?label=PyPI&color=2ea44f)](https://pypi.org/project/pycobranca/)
+[![Python](https://img.shields.io/pypi/pyversions/pycobranca?logo=python&logoColor=white&color=3776AB)](https://pypi.org/project/pycobranca/)
 [![Licença](https://img.shields.io/badge/licença-BSD--3--Clause-blue)](https://github.com/Maxwbh/pyCobranca/blob/main/LICENSE)
 [![Python puro](https://img.shields.io/badge/Python_puro-sem_libs_de_sistema-2ea44f)](https://github.com/Maxwbh/pyCobranca/blob/main/pyproject.toml)
 [![PIX](https://img.shields.io/badge/PIX-Bolepix-32BCAD)](https://maxwbh.github.io/pyCobranca/07-pix/)

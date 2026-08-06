@@ -39,8 +39,19 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   separado preserva a detecção automática da licença; `license-files` passa a incluir os dois, então
   ambos viajam no wheel e no sdist. Resumo também no README.
 
+- **Metatags sociais (Open Graph e Twitter Card)** no site publicado, via
+  `docs/overrides/main.html`. Sem elas, um link compartilhado no LinkedIn, WhatsApp, Slack ou
+  Twitter aparecia como **card vazio** — sem título, descrição ou imagem. Cada página compartilha
+  com a **própria** descrição (a do front-matter quando existe), e a imagem é um card 1200×630
+  gerado a partir do banner do projeto. Acompanha `robots.txt` apontando para o `sitemap.xml`.
+- **Verificação do Google Search Console** pelos dois métodos: arquivo na raiz do site e metatag
+  `google-site-verification` em todas as páginas. Habilita o envio do `sitemap.xml` e o
+  acompanhamento de indexação das páginas por banco.
+
 ### Corrigido
 
+- **Badge de versão do README ficava desatualizado.** Era um shield estático com a versão escrita à
+  mão; passou a ler o **PyPI** (`pypi/v`), assim como o de versões do Python (`pypi/pyversions`).
 - **Documentação afirmava suporte a CNAB 444, que não existe.** `docs/06-cnab.md` dizia que a
   biblioteca "suporta os três layouts" e `docs/01-arquitetura.md` descrevia geração e parsing como
   "240/400/444" em quatro pontos — mas não há uma linha de 444 no código. Os textos passam a
