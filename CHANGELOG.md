@@ -4,75 +4,10 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [Não publicado]
 
-### Alterado
-
-- **Créditos de origem corrigidos** no `NOTICE`, no README e na página de compatibilidade: a
-  **pyboleto** (BSD, © 2011 Eduardo Cereto Carvalho e contribuidores) é a **inspiração original** do
-  projeto e passa a vir primeiro; a **BrCobrança** é o **elo adicional**, que entrou depois para
-  ampliar o escopo (CNAB, mais bancos e layouts), simplificar soluções e servir de referência de
-  verificação. A ordem anterior invertia a genealogia.
-- Fica registrado por que a pyboleto não serve como vetor de conferência: o último lançamento é de
-  2016 e o pacote não instala em Python moderno (`error: invalid command 'dist_info'`).
-
 ### Adicionado
 
-- **Página de compatibilidade e validação** ([`docs/17-compatibilidade.md`](docs/17-compatibilidade.md)):
-  torna pública a evidência que já existia na suíte — paridade com a BrCobrança nos 18 bancos,
-  verificador FEBRABAN independente do núcleo e as 26 fixtures de remessa comparadas byte a byte,
-  com o passo a passo para reproduzir. Resumo no README.
-- **Guia do CNPJ alfanumérico** ([`docs/18-cnpj-alfanumerico.md`](docs/18-cnpj-alfanumerico.md)):
-  página dedicada com o que muda, o cálculo do DV (`ord(c) - 48`), **onde os sistemas quebram** (a
-  limpeza que descarta letras e o tipo de inscrição que sai errado no CNAB) e um checklist de
-  auditoria. O conteúdo estava disperso em validação de campos e contrato REST.
-- **Meta `description` nas 18 páginas por banco**, gerada a partir dos dados reais do registro
-  (carteiras aceitas, layouts CNAB, suporte a PIX) — é o texto que aparece no resultado de busca.
-- **Posicionamento explícito como biblioteca embutível e neutra** (README e visão geral): roda no
-  processo do consumidor (sem rede, estado ou daemon), não impõe framework, entrega o contrato REST
-  como dado, e a licença BSD-3 permite embutir em produto comercial fechado. A biblioteca não
-  divulga nem depende de nenhum produto construído sobre ela — a dependência é sempre
-  `consumidor → biblioteca`.
-
-- **Arquivo [`NOTICE`](NOTICE)** com reconhecimento à **BrCobrança** (MIT, © 2009 Kivanio Barbosa)
-  e à **pyboleto** (BSD, © 2011 Eduardo Cereto Carvalho e contribuidores), em português e inglês.
-  Registra que a fonte normativa são os manuais FEBRABAN, dos bancos e do Banco Central, e que a
-  menção não implica endosso. A `LICENSE` segue intacta (BSD-3-Clause) — o crédito em arquivo
-  separado preserva a detecção automática da licença; `license-files` passa a incluir os dois, então
-  ambos viajam no wheel e no sdist. Resumo também no README.
-
-- **Metatags sociais (Open Graph e Twitter Card)** no site publicado, via
-  `docs/overrides/main.html`. Sem elas, um link compartilhado no LinkedIn, WhatsApp, Slack ou
-  Twitter aparecia como **card vazio** — sem título, descrição ou imagem. Cada página compartilha
-  com a **própria** descrição (a do front-matter quando existe), e a imagem é um card 1200×630
-  gerado a partir do banner do projeto. Acompanha `robots.txt` apontando para o `sitemap.xml`.
-- **Verificação do Google Search Console** pelos dois métodos: arquivo na raiz do site e metatag
-  `google-site-verification` em todas as páginas. Habilita o envio do `sitemap.xml` e o
-  acompanhamento de indexação das páginas por banco.
-
-### Corrigido
-
-- **Deploy da documentação podia ser cancelado no meio.** O workflow usava
-  `cancel-in-progress: true` para todos os gatilhos; quando um push novo chegava enquanto o job de
-  publicação estava entre "criar o deployment" e "concluir", o Pages ficava com um deployment
-  pendente e a execução seguinte esperava por ele. Agora **push e `workflow_dispatch` enfileiram**
-  (grupo `docs-pages`, sem cancelamento), como recomenda o workflow padrão de Pages da GitHub; em
-  **pull request**, onde só há build e nenhum deploy, o cancelamento continua — por PR, evitando
-  fila desnecessária.
-- **Badge de versão do README ficava desatualizado.** Era um shield estático com a versão escrita à
-  mão; passou a ler o **PyPI** (`pypi/v`), assim como o de versões do Python (`pypi/pyversions`).
-- **Documentação afirmava suporte a CNAB 444, que não existe.** `docs/06-cnab.md` dizia que a
-  biblioteca "suporta os três layouts" e `docs/01-arquitetura.md` descrevia geração e parsing como
-  "240/400/444" em quatro pontos — mas não há uma linha de 444 no código. Os textos passam a
-  refletir os **dois layouts realmente implementados** (240 e 400), e o 444 fica marcado como
-  pendente, com registro no [roadmap](docs/02-roadmap-modernizacao.md) explicando o que é (variante
-  do Itaú: o 400 com 44 posições de mensagem) e o critério para entrar.
-- **README com caminhos relativos quebrava na página do PyPI.** O README é a `long_description` do
-  pacote, e o PyPI não resolve caminhos relativos: as **8 imagens** (banner, GIF de demonstração,
-  diagrama de arquitetura e as 4 capturas de boleto) não apareciam e **25 links** apontavam para
-  lugar nenhum. Agora imagens usam `raw.githubusercontent.com`, páginas de documentação apontam
-  para o site publicado e arquivos do repositório para o `blob`/`tree` — funciona igual no GitHub,
-  no PyPI e em qualquer lugar que renderize o README. Efeito visível na próxima versão publicada.
-- **Visão geral afirmava Python 3.14 como alvo** — desatualizado desde a mudança do piso para 3.12
-  na 1.0.2. Agora reflete o piso real e a matriz da CI.
+- **`NOTICE`** creditando pyboleto (BSD) e BrCobrança (MIT). Distribuído no wheel e no sdist via
+  `license-files`; a `LICENSE` segue intacta.
 
 ## [1.0.3] - 2026-08-01
 
