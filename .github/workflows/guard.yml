@@ -28,6 +28,17 @@ on:
   pull_request_review_comment:
     types: [created, edited]
 
+# Cinco tipos de evento no mesmo PR (push, edição do corpo, ready for review…)
+# geravam execuções paralelas da mesma checagem. Agrupadas por PR, só a última
+# sobrevive — é ela que reflete o estado atual.
+#
+# Comentário e review ficam fora disso, cada um no seu grupo (`run_id`): dois
+# comentários seguidos são textos distintos, e cancelar o primeiro deixaria uma
+# marca passar sem conferência.
+concurrency:
+  group: guarda-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   # `\[?` e `claude\.(ai|com)` não são zelo excessivo: o rodapé automático vem
   # em markdown — "Generated with [Claude Code](...)" — e passou a apontar para

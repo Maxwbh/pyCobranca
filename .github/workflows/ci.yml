@@ -1,13 +1,22 @@
 name: CI
 
+# Branch de trabalho é coberta pelo PR, não pelo push: com gatilho nos dois, um
+# push numa branch com PR aberto rodava a CI **duas vezes**, idêntica.
+#
+# A `hml` também sai do push por dois motivos: ela é head do PR de promoção
+# para a `main` (que já dispara a CI por `pull_request`), e o `hml.yml` repete
+# ali tudo que está aqui — ruff, a suíte nas três versões, exemplos e build.
+# Sobra a `main`, onde nenhum PR entra e a CI é a conferência pós-merge.
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
   pull_request:
-    branches: ["**"]
 
+# A chave precisa ser o PR, não `github.ref`: em `push` o ref é
+# `refs/heads/<branch>` e em `pull_request` é `refs/pull/<n>/merge` — grupos
+# diferentes para o mesmo commit, e o cancel-in-progress nunca agia.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
