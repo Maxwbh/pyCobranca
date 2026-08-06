@@ -1,3 +1,14 @@
+---
+# O `<title>` da home era só "PyCobrança" — um nome que ninguém procura. Quem
+# busca digita "boleto python", "cnab 240 python". O front-matter `title` tem
+# precedência sobre o `site_name` no tema, inclusive na home, e o nome do projeto
+# entra como sufixo. O rótulo "Início" da navegação vem do `nav` e não muda.
+title: Boleto bancário, CNAB 240/400 e PIX em Python
+description: >-
+  Gere boleto bancário, arquivos CNAB 240/400 e QR Code PIX em Python puro.
+  18 bancos, sem dependência de API externa. pip install pycobranca.
+---
+
 # PyCobrança
 
 **Boletos, CNAB 240/400 e PIX para 18 bancos — em Python puro, num único `pip install`.**

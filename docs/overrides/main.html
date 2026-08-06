@@ -15,8 +15,14 @@
      O método por arquivo também está ativo: docs/googlec2394c0afd3e8857.html #}
   <meta name="google-site-verification" content="XS9wvfG-V6V1tGDI7BT0zbeqiQyE3-tkc5LhfL0tvbc">
 
-  {% set titulo = page.title | default(config.site_name, true) ~ " — " ~ config.site_name
-     if page and page.title and page.title != config.site_name
+  {# `page.meta.title` vem antes de `page.title`: na home o segundo é o rótulo da
+     navegação ("Início"), enquanto o primeiro é o título voltado à busca. Sem
+     esta ordem o card social diverge do <title> da própria página. #}
+  {% set nome = page.meta.title
+     if page and page.meta and page.meta.title
+     else (page.title if page and page.title else none) %}
+  {% set titulo = nome ~ " — " ~ config.site_name
+     if nome and nome != config.site_name
      else config.site_name %}
   {% set descricao = page.meta.description
      if page and page.meta and page.meta.description
