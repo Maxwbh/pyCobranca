@@ -1,0 +1,99 @@
+name: Homologação (HML)
+
+# Pipeline de homologação: a branch `hml` é o foco dos testes.
+# Roda a suíte completa, os testes marcados como `hml`/`integration`,
+# cobertura e a verificação de build antes de promover para `main`.
+#
+# Só no push da `hml` — este é o portão de promoção, não a checagem de entrada.
+# O PR *para* a `hml` já é coberto pelo `ci.yml`, que roda o mesmo conjunto
+# (ruff, suíte nas três versões, exemplos e build) sobre a mesma árvore; rodar
+# aqui também dobrava o trabalho no mesmo commit.
+on:
+  push:
+    branches: ["hml"]
+  workflow_dispatch:
+
+concurrency:
+  group: hml-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  homologacao:
+    name: Homologação (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Uma versão só: o PR que trouxe este commit já rodou a suíte em
+        # 3.12, 3.13 e 3.14 pelo `ci.yml`. Fica o piso do `requires-python`,
+        # que é a promessa do pacote e onde uma sintaxe nova escaparia — o
+        # desenvolvimento acontece na 3.14.
+        python-version: ["3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff check)
+        run: ruff check .
+
+      - name: Formatação (ruff format)
+        run: ruff format --check .
+
+      - name: Suíte completa + cobertura
+        run: pytest --cov=pycobranca --cov-report=term-missing --cov-report=xml
+
+      - name: Testes de homologação/integração
+        # Exit 5 = nenhum teste coletado (ainda não há testes `hml`/`integration`);
+        # tratado como sucesso até que esses testes existam.
+        run: |
+          pytest -m "hml or integration" --no-cov -rs || rc=$?
+          if [ "${rc:-0}" -ne 0 ] && [ "${rc:-0}" -ne 5 ]; then
+            exit "${rc}"
+          fi
+
+      - name: Exemplos executáveis
+        run: python examples/executa_todos.py
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-hml
+          path: coverage.xml
+
+  build:
+    name: Verificação de build (HML)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Instalar build
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Construir distribuições
+        run: python -m build
+
+      - name: Publicar artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-hml
+          path: dist/*

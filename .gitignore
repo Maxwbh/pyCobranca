@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# Testes / cobertura
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Editores / SO
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Artefatos de boleto/CNAB gerados localmente
+*.pdf
+*.rem
+*.ret
+!docs/**/*.pdf
+!examples/dados/*.ret
+!tests/fixtures/*.rem
+!tests/fixtures/*.ret
+!tests/fixtures/retorno/*.RET
+!tests/fixtures/retorno/*.ret
+!tests/fixtures/retorno/externos/*.ret
+
+# Saída dos exemplos
+examples/saida/
+
+# Documentação (MkDocs): site gerado e cópia do CHANGELOG feita no build
+site/
+docs/changelog.md
