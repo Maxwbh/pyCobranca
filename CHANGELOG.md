@@ -50,6 +50,13 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Corrigido
 
+- **Deploy da documentação podia ser cancelado no meio.** O workflow usava
+  `cancel-in-progress: true` para todos os gatilhos; quando um push novo chegava enquanto o job de
+  publicação estava entre "criar o deployment" e "concluir", o Pages ficava com um deployment
+  pendente e a execução seguinte esperava por ele. Agora **push e `workflow_dispatch` enfileiram**
+  (grupo `docs-pages`, sem cancelamento), como recomenda o workflow padrão de Pages da GitHub; em
+  **pull request**, onde só há build e nenhum deploy, o cancelamento continua — por PR, evitando
+  fila desnecessária.
 - **Badge de versão do README ficava desatualizado.** Era um shield estático com a versão escrita à
   mão; passou a ler o **PyPI** (`pypi/v`), assim como o de versões do Python (`pypi/pyversions`).
 - **Documentação afirmava suporte a CNAB 444, que não existe.** `docs/06-cnab.md` dizia que a
