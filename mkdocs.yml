@@ -18,6 +18,8 @@ theme:
   language: pt-BR
   # metatags sociais (Open Graph / Twitter Card) — ver docs/overrides/main.html
   custom_dir: docs/overrides
+  favicon: images/favicon.png
+  logo: images/pycobranca-marca.svg
   icon:
     repo: fontawesome/brands/github
   features:
