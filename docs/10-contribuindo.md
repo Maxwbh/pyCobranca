@@ -49,9 +49,14 @@ correto quando apontam para outra página. Páginas novas entram na `nav` do `mk
 
 ## Mensagens de commit
 
-- Em português, claras e descritivas.
+- Em português, claras e descritivas, no imperativo
+  (ex.: `Adiciona carteira 51 ao Banco do Nordeste`).
 - Uma unidade lógica por commit.
-- Autoria atribuída a **@maxwbh**.
+- **A autoria é de quem escreveu o commit** — mantenha o seu `user.name` e `user.email`.
+- **Sem atribuição a ferramenta de IA**, nem na mensagem nem na identidade de autor/committer:
+  rodapés de geração automática, `Co-authored-by` de assistentes e afins. O mesmo vale para o
+  título, o corpo e os comentários do PR. A checagem `Guarda de fluxo` reprova o PR quando
+  encontra alguma dessas marcas.
 
 ## Adicionando um novo banco
 
