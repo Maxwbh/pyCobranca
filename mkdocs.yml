@@ -1,0 +1,107 @@
+site_name: PyCobrança
+site_description: Boletos, CNAB 240/400 e PIX para 18 bancos — em Python puro.
+site_url: https://maxwbh.github.io/pyCobranca/
+repo_url: https://github.com/Maxwbh/pyCobranca
+repo_name: Maxwbh/pyCobranca
+edit_uri: edit/main/docs/
+copyright: BSD-3-Clause · M&S DO BRASIL LTDA
+
+docs_dir: docs
+site_dir: site
+
+# `docs/changelog.md` é copiado do CHANGELOG.md na hora do build (ver docs/10-contribuindo.md).
+hooks:
+  - mkdocs_hooks.py
+
+theme:
+  name: material
+  language: pt-BR
+  # metatags sociais (Open Graph / Twitter Card) — ver docs/overrides/main.html
+  custom_dir: docs/overrides
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Tema escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Tema claro
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+
+plugins:
+  - search:
+      lang: pt
+
+nav:
+  - Início: index.md
+  - Começando:
+      - Visão geral: 00-visao-geral.md
+      - Compatibilidade e validação: 17-compatibilidade.md
+      - Arquitetura: 01-arquitetura.md
+      - Arquitetura e diretórios: 16-arquitetura-diretorios.md
+      - Roadmap: 02-roadmap-modernizacao.md
+  - Bancos:
+      - Matriz de bancos: 05-bancos-suportados.md
+      - Documentação por banco: bancos/README.md
+      - 001 — Banco do Brasil: bancos/001-banco-do-brasil.md
+      - 004 — Banco do Nordeste: bancos/004-banco-do-nordeste.md
+      - 021 — Banestes: bancos/021-banestes.md
+      - 033 — Santander: bancos/033-santander.md
+      - 041 — Banrisul: bancos/041-banrisul.md
+      - 070 — BRB: bancos/070-brb.md
+      - 085 — Ailos: bancos/085-ailos.md
+      - 097 — CrediSIS: bancos/097-credisis.md
+      - 104 — Caixa: bancos/104-caixa.md
+      - 136 — Unicred: bancos/136-unicred.md
+      - 237 — Bradesco: bancos/237-bradesco.md
+      - 336 — C6 Bank: bancos/336-c6.md
+      - 341 — Itaú: bancos/341-itau.md
+      - 399 — HSBC: bancos/399-hsbc.md
+      - 422 — Safra: bancos/422-safra.md
+      - 745 — Citibank: bancos/745-citibank.md
+      - 748 — Sicredi: bancos/748-sicredi.md
+      - 756 — Sicoob: bancos/756-sicoob.md
+      - Fontes oficiais: bancos/fontes-oficiais.md
+  - Recursos:
+      - CNAB (remessa e retorno): 06-cnab.md
+      - PIX / Bolepix: 07-pix.md
+      - Renderização (PDF): 11-renderizacao.md
+      - Extrato OFX: 13-ofx.md
+      - Processamento em lote: 12-processamento-lote.md
+      - Validação de campos e erros: 14-validacao-campos.md
+      - CNPJ alfanumérico: 18-cnpj-alfanumerico.md
+      - Contrato REST: 04-api-rest.md
+  - Desenvolvimento:
+      - Contribuindo: 10-contribuindo.md
+      - Novo banco: 15-novo-banco.md
+      - Testes e qualidade: 08-testes-e-qualidade.md
+      - Changelog: changelog.md
