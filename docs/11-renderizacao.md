@@ -247,7 +247,7 @@ comportamento padrão inalterado (saída byte a byte idêntica).
 
 #### Logos de bancos empacotados
 
-Como conveniência, a biblioteca inclui logos de 12 bancos (nomeados pelo código FEBRABAN) em
+Como conveniência, a biblioteca inclui logos de 17 bancos (nomeados pelo código FEBRABAN) em
 `pycobranca/render/logos/`, expostos por `logo_do_banco`:
 
 ```python

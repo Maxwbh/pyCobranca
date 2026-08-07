@@ -138,6 +138,37 @@ Entra sob o mesmo critério dos outros layouts: **manual oficial com exemplo num
 comparação **byte a byte** contra um vetor de referência. Sem isso, o layout não é portado — enviar
 arquivo não verificado ao banco é pior que não suportar.
 
+### `conta_corrente` sem ajuste de largura em parte dos layouts CNAB 400
+
+Alguns layouts concatenam `conta_corrente` cru no registro, em vez de ajustá-lo à largura do
+campo. Qualquer tamanho diferente do previsto desloca todas as posições seguintes:
+
+| `conta_corrente` no Sicoob 400 | Registro de detalhe |
+|---|---|
+| `"1"` | 393 posições |
+| `"12345"` | 397 posições |
+| `"12345678"` | **400 posições** |
+| `"123456789012"` | 404 posições |
+
+Varrendo os 12 layouts de 400: com conta **curta** falham **Banrisul, Citibank e Sicoob**; com
+conta **longa** falham também **Banco do Brasil, Bradesco e Itaú**.
+
+A causa é divergência entre implementações — o Itaú aplica `zfill(5)` (o que resolve a conta
+curta, mas não a longa), enquanto o Sicoob concatena sem ajuste algum.
+
+Dois atenuantes, que é por isso que o item está aqui e não como falha crítica: a conferência de
+tamanho do registro **detecta e recusa** gerar o arquivo malformado, então nada inválido chega ao
+banco; e as fixtures de teste usam contas na largura correta, de modo que a suíte atual não
+cobre o caso.
+
+O que a correção exigiria: normalizar `conta_corrente` nos layouts que não normalizam — com
+truncamento ou erro explícito para conta longa demais — e enriquecer a mensagem da conferência,
+que hoje informa o registro (`registro 2 com 393 posições`) sem apontar o campo responsável.
+Nenhuma das duas quebra as fixtures existentes.
+
+Enquanto não for corrigido, a orientação para quem integra está em
+[19 — Integração](19-integracao.md#contrato-de-erros).
+
 ## Matriz de rastreabilidade (recurso → Fase)
 
 | Recurso | Fase |

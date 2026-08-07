@@ -97,23 +97,65 @@ Detalhe      (tipo 1)  — um por título
 Trailer      (tipo 9)  — totais
 ```
 
-## Remessa — API alvo
+## Remessa — API
+
+Não há uma classe genérica: **cada banco e layout tem a sua**, porque as posições e as regras
+mudam de um para o outro. O nome segue `Remessa<Banco><Layout>`, com o sufixo `Pix` na variante
+que inclui o segmento de Bolepix.
 
 ```python
-from pycobranca.cnab.remessa import Remessa
+from datetime import date
 
-remessa = Remessa(
-    banco="341",
-    layout="cnab400",
-    cedente="Empresa Exemplo LTDA",
-    documento_cedente="12345678000190",
-    agencia="1234",
-    conta="56789",
-    boletos=[boleto1, boleto2, ...],
+from pycobranca.cnab import Pagamento, RemessaItau400
+
+pagamentos = [
+    Pagamento(
+        nosso_numero="12345678",
+        numero="DOC0001",
+        valor=199.90,
+        data_vencimento=date(2026, 8, 15),
+        data_emissao=date(2026, 7, 23),
+        documento_sacado="52998224725",
+        nome_sacado="Cliente Final da Silva",
+        endereco_sacado="Rua das Flores, 100",
+        bairro_sacado="Centro",
+        cep_sacado="30110000",
+        cidade_sacado="Belo Horizonte",
+        uf_sacado="MG",
+    ),
+]
+
+remessa = RemessaItau400(
+    empresa_mae="Empresa Exemplo LTDA",
+    documento_cedente="11222333000181",
+    agencia="0057",
+    conta_corrente="12345",
+    digito_conta="7",
+    carteira="109",
+    data_geracao=date(2026, 7, 23),
+    pagamentos=pagamentos,
 )
-conteudo = remessa.gerar()  # -> str (arquivo)
-remessa.salvar("CB240723.REM")
+
+arquivo = remessa.gera_arquivo()  # -> str, com os registros separados por \n
 ```
+
+`gera_arquivo()` devolve o conteúdo; gravar em disco é responsabilidade de quem chama —
+a biblioteca não escreve arquivos.
+
+Para validar os encargos antes de gerar, chame `Pagamento.validar()` em cada item (verifica
+`valor > 0` e a coerência de mora, multa e desconto) e `Remessa.validar()` no conjunto.
+
+As classes disponíveis saem do próprio pacote:
+
+```python
+import pycobranca.cnab as cnab
+
+sorted(n for n in dir(cnab) if n.startswith("Remessa"))
+# ['RemessaAilos240', 'RemessaBancoBrasil240', 'RemessaBancoBrasil240Pix', ...]
+```
+
+Quais bancos têm cada layout está em [05 — Bancos Suportados](05-bancos-suportados.md).
+Exemplos executáveis em [`examples/`](https://github.com/Maxwbh/pyCobranca/tree/main/examples).
 
 ## Encargos (juros/mora, multa, desconto, IOF, abatimento)
 
