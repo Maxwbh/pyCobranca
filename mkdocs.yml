@@ -94,6 +94,7 @@ nav:
       - 756 — Sicoob: bancos/756-sicoob.md
       - Fontes oficiais: bancos/fontes-oficiais.md
   - Recursos:
+      - Integração: 19-integracao.md
       - CNAB (remessa e retorno): 06-cnab.md
       - PIX / Bolepix: 07-pix.md
       - Renderização (PDF): 11-renderizacao.md

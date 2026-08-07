@@ -69,8 +69,9 @@ correto quando apontam para outra página. Páginas novas entram na `nav` do `mk
 
 ## Adicionando um layout CNAB
 
-1. Defina o layout posicional em `pycobranca/cnab/layouts/<layout>/<banco>.py`.
-2. Implemente a remessa em `pycobranca/cnab/remessa/` e/ou o retorno em `pycobranca/cnab/retorno/`.
+1. Defina o layout posicional em `pycobranca/cnab/cnab400/<banco>.py` ou
+   `pycobranca/cnab/cnab240/<banco>.py`.
+2. A remessa fica no próprio módulo do layout; o retorno, em `pycobranca/cnab/retorno/`.
 3. Adicione fixtures de remessa/retorno e testes (comparação byte-a-byte / mapeamento de ocorrências).
 4. Atualize [06 — CNAB](06-cnab.md) se o layout trouxer particularidades.
 

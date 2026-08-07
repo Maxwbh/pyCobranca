@@ -189,11 +189,13 @@ itens = [retorno_item_para_api(r, layout=retorno.layout) for r in retorno.regist
 
 ## Cliente Python (design alvo) — **projeto separado**
 
-> **Decisão de escopo:** o SDK HTTP abaixo **não faz parte deste repositório** — será
-> desenvolvido como projeto próprio. Este documento permanece como especificação do contrato.
+> **Decisão de escopo:** o SDK HTTP abaixo **não faz parte deste repositório** nem do pacote
+> `pycobranca` — seria projeto próprio. O código a seguir é ilustração do contrato, não API
+> existente: nenhum destes nomes é importável hoje. A biblioteca não fala HTTP.
 
 ```python
-from pycobranca.clients.rest import CobrancaClient
+# Ilustrativo — este módulo não existe.
+from cobranca_client import CobrancaClient
 
 client = CobrancaClient(base_url="https://sua-instancia/api")
 
