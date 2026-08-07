@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 380" width="1040" height="380" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="Fluxos da PyCobrança: dados vão para o banco, que monta o boleto (código de barras e linha digitável) e o render gera o PDF; e a emissão vira remessa CNAB, o banco processa, devolve retorno CNAB ou extrato OFX e o resultado é conciliado pelo nosso número.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0C1D2B"/>
+      <stop offset="1" stop-color="#0A1622"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#127C74"/>
+      <stop offset="1" stop-color="#0F5F59"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#32BCAD"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="380" rx="18" fill="url(#bg)"/>
+
+  <!-- título -->
+  <text x="520" y="44" text-anchor="middle" fill="#EEF3F5" font-size="22" font-weight="700">Fluxos da PyCobrança</text>
+  <text x="520" y="70" text-anchor="middle" fill="#8AA0AD" font-size="13.5">do dado ao PDF · da emissão à conciliação</text>
+
+  <!-- fluxo 1: emissão do boleto -->
+  <rect x="20" y="92" width="1000" height="120" rx="16" fill="url(#core)" stroke="#32BCAD" stroke-width="1.5"/>
+  <text x="520" y="116" text-anchor="middle" fill="#7FE3D6" font-size="12.5" font-weight="700" letter-spacing="1.5">EMISSÃO DO BOLETO</text>
+
+  <g fill="#0E4B47" stroke="#1C6E67" stroke-width="1">
+    <rect x="50" y="128" width="190" height="72" rx="11"/>
+    <rect x="300" y="128" width="190" height="72" rx="11"/>
+    <rect x="550" y="128" width="190" height="72" rx="11"/>
+    <rect x="800" y="128" width="190" height="72" rx="11"/>
+  </g>
+  <g text-anchor="middle" fill="#EAFBF8" font-size="17" font-weight="700">
+    <text x="145" y="160">Dados</text>
+    <text x="395" y="160">Banco</text>
+    <text x="645" y="160">Boleto</text>
+    <text x="895" y="160">PDF</text>
+  </g>
+  <g text-anchor="middle" fill="#7FE3D6" font-size="14">
+    <text x="145" y="182">título · sacado</text>
+    <text x="395" y="182">campo livre</text>
+    <text x="645" y="182">barras · linha</text>
+    <text x="895" y="182">render</text>
+  </g>
+  <g stroke="#32BCAD" stroke-width="2" fill="none">
+    <path d="M244 164 L294 164" marker-end="url(#arrow)"/>
+    <path d="M494 164 L544 164" marker-end="url(#arrow)"/>
+    <path d="M744 164 L794 164" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- ligação entre os dois fluxos -->
+  <path d="M520 212 L520 232" stroke="#32BCAD" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- fluxo 2: ciclo CNAB / OFX -->
+  <rect x="20" y="236" width="1000" height="120" rx="16" fill="url(#core)" stroke="#32BCAD" stroke-width="1.5"/>
+  <text x="520" y="260" text-anchor="middle" fill="#7FE3D6" font-size="12.5" font-weight="700" letter-spacing="1.5">CICLO CNAB · OFX</text>
+
+  <g fill="#0E4B47" stroke="#1C6E67" stroke-width="1">
+    <rect x="35" y="272" width="170" height="72" rx="11"/>
+    <rect x="235" y="272" width="170" height="72" rx="11"/>
+    <rect x="435" y="272" width="170" height="72" rx="11"/>
+    <rect x="635" y="272" width="170" height="72" rx="11"/>
+    <rect x="835" y="272" width="170" height="72" rx="11"/>
+  </g>
+  <g text-anchor="middle" fill="#EAFBF8" font-size="17" font-weight="700">
+    <text x="120" y="304">Emissão</text>
+    <text x="320" y="304">Remessa</text>
+    <text x="520" y="304">Banco</text>
+    <text x="720" y="304">Retorno</text>
+    <text x="920" y="304">Conciliação</text>
+  </g>
+  <g text-anchor="middle" fill="#7FE3D6" font-size="14">
+    <text x="120" y="326">boleto</text>
+    <text x="320" y="326">CNAB 400/240</text>
+    <text x="520" y="326">processa</text>
+    <text x="720" y="326">CNAB · OFX</text>
+    <text x="920" y="326">nosso número</text>
+  </g>
+  <g stroke="#32BCAD" stroke-width="2" fill="none">
+    <path d="M209 308 L231 308" marker-end="url(#arrow)"/>
+    <path d="M409 308 L431 308" marker-end="url(#arrow)"/>
+    <path d="M609 308 L631 308" marker-end="url(#arrow)"/>
+    <path d="M809 308 L831 308" marker-end="url(#arrow)"/>
+  </g>
+</svg>

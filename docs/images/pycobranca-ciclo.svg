@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 320" width="1040" height="320" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="Ciclo de cobrança: emissão do boleto, remessa CNAB, retorno CNAB e extrato OFX conciliados de volta ao boleto pelo nosso número.">
+  <defs>
+    <linearGradient id="cbg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0C1D2B"/>
+      <stop offset="1" stop-color="#0A1622"/>
+    </linearGradient>
+    <linearGradient id="ccore" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#127C74"/>
+      <stop offset="1" stop-color="#0F5F59"/>
+    </linearGradient>
+    <marker id="carrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#32BCAD"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="320" rx="18" fill="url(#cbg)"/>
+
+  <text x="520" y="44" text-anchor="middle" fill="#EEF3F5" font-size="22" font-weight="700">Ciclo de cobrança</text>
+  <text x="520" y="68" text-anchor="middle" fill="#8AA0AD" font-size="13.5">emissão → remessa → retorno → extrato — conciliados pelo nosso número</text>
+
+  <!-- 4 etapas + conciliação -->
+  <g>
+    <rect x="40"  y="104" width="176" height="96" rx="12" fill="#132A3A" stroke="#274357" stroke-width="1.2"/>
+    <rect x="256" y="104" width="176" height="96" rx="12" fill="#132A3A" stroke="#274357" stroke-width="1.2"/>
+    <rect x="472" y="104" width="176" height="96" rx="12" fill="#132A3A" stroke="#274357" stroke-width="1.2"/>
+    <rect x="688" y="104" width="176" height="96" rx="12" fill="#132A3A" stroke="#274357" stroke-width="1.2"/>
+  </g>
+  <!-- conciliação (destaque teal) -->
+  <rect x="904" y="104" width="96" height="96" rx="12" fill="url(#ccore)" stroke="#32BCAD" stroke-width="1.5"/>
+
+  <g text-anchor="middle">
+    <text x="128" y="140" fill="#EAFBF8" font-size="15.5" font-weight="700">Emissão</text>
+    <text x="128" y="162" fill="#9FD9D2" font-size="11">boleto · PIX</text>
+    <text x="128" y="178" fill="#9FD9D2" font-size="11">nosso número</text>
+
+    <text x="344" y="140" fill="#EAFBF8" font-size="15.5" font-weight="700">Remessa CNAB</text>
+    <text x="344" y="162" fill="#9FD9D2" font-size="11">240 / 400</text>
+    <text x="344" y="178" fill="#9FD9D2" font-size="11">registro + encargos</text>
+
+    <text x="560" y="140" fill="#EAFBF8" font-size="15.5" font-weight="700">Retorno CNAB</text>
+    <text x="560" y="162" fill="#9FD9D2" font-size="11">baixas · ocorrências</text>
+    <text x="560" y="178" fill="#9FD9D2" font-size="11">valor recebido</text>
+
+    <text x="776" y="140" fill="#EAFBF8" font-size="15.5" font-weight="700">Extrato OFX</text>
+    <text x="776" y="162" fill="#9FD9D2" font-size="11">v1 / v2 · saldo</text>
+    <text x="776" y="178" fill="#9FD9D2" font-size="11">transações</text>
+
+    <text x="952" y="146" fill="#EAFBF8" font-size="14" font-weight="800">Conci-</text>
+    <text x="952" y="164" fill="#EAFBF8" font-size="14" font-weight="800">liação</text>
+    <text x="952" y="184" fill="#Bfeee8" font-size="10">pago · pendente</text>
+  </g>
+
+  <!-- setas do fluxo -->
+  <g stroke="#32BCAD" stroke-width="2" fill="none" opacity="0.9">
+    <path d="M216 152 L256 152" marker-end="url(#carrow)"/>
+    <path d="M432 152 L472 152" marker-end="url(#carrow)"/>
+    <path d="M648 152 L688 152" marker-end="url(#carrow)"/>
+    <path d="M864 152 L904 152" marker-end="url(#carrow)"/>
+  </g>
+
+  <!-- retorno e OFX alimentam a conciliação; conciliação volta ao boleto -->
+  <g stroke="#7FE3D6" stroke-width="1.6" fill="none" stroke-dasharray="5 4" opacity="0.8">
+    <path d="M560 200 L560 250 L952 250 L952 200" marker-end="url(#carrow)"/>
+    <path d="M952 250 L128 250 L128 200" marker-end="url(#carrow)"/>
+  </g>
+  <text x="300" y="243" fill="#6F8B98" font-size="10.5">retorno + extrato casam o nosso número e atualizam o status do boleto</text>
+</svg>

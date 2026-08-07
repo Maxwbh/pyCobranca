@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 440" width="1040" height="440" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="Arquitetura da PyCobrança: a sua aplicação chama a PyCobrança, que emite boletos, CNAB, PIX, PDF e lê extratos OFX.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0C1D2B"/>
+      <stop offset="1" stop-color="#0A1622"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#127C74"/>
+      <stop offset="1" stop-color="#0F5F59"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#32BCAD"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="440" rx="18" fill="url(#bg)"/>
+
+  <!-- título -->
+  <text x="520" y="46" text-anchor="middle" fill="#EEF3F5" font-size="22" font-weight="700">Arquitetura</text>
+  <text x="520" y="70" text-anchor="middle" fill="#8AA0AD" font-size="13.5">a sua aplicação chama a PyCobrança, que emite os artefatos de cobrança</text>
+
+  <!-- camada consumidora -->
+  <text x="520" y="108" text-anchor="middle" fill="#7FE3D6" font-size="12.5" font-weight="700" letter-spacing="1.5">SUA APLICAÇÃO</text>
+  <g fill="#132A3A" stroke="#274357" stroke-width="1.2">
+    <rect x="150" y="122" width="148" height="44" rx="10"/>
+    <rect x="316" y="122" width="148" height="44" rx="10"/>
+    <rect x="482" y="122" width="148" height="44" rx="10"/>
+    <rect x="648" y="122" width="148" height="44" rx="10"/>
+    <rect x="814" y="122" width="76" height="44" rx="10"/>
+  </g>
+  <g fill="#DCE6EB" font-size="15" text-anchor="middle" font-weight="600">
+    <text x="224" y="150">ERP</text>
+    <text x="390" y="150">FastAPI</text>
+    <text x="556" y="150">Django</text>
+    <text x="722" y="150">Flask</text>
+    <text x="852" y="150">Node</text>
+  </g>
+
+  <!-- setas para o núcleo -->
+  <g stroke="#32BCAD" stroke-width="2" fill="none" opacity="0.85">
+    <path d="M224 166 L224 192 L520 192"/>
+    <path d="M390 166 L390 192"/>
+    <path d="M556 166 L556 192"/>
+    <path d="M722 166 L722 192 L520 192"/>
+    <path d="M852 166 L852 192 L520 192"/>
+    <path d="M520 188 L520 214" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- núcleo PyCobrança -->
+  <rect x="110" y="218" width="820" height="200" rx="16" fill="url(#core)" stroke="#32BCAD" stroke-width="1.5"/>
+  <text x="140" y="254" fill="#EAFBF8" font-size="21" font-weight="800">Py<tspan fill="#7FE3D6">Cobrança</tspan></text>
+  <text x="140" y="276" fill="#Bfeee8" font-size="12.5">motor de cobrança bancária · Python puro · sem dependências de sistema</text>
+
+  <g>
+    <rect x="134" y="296" width="140" height="102" rx="11" fill="#0E4B47" stroke="#1C6E67" stroke-width="1"/>
+    <rect x="292" y="296" width="140" height="102" rx="11" fill="#0E4B47" stroke="#1C6E67" stroke-width="1"/>
+    <rect x="450" y="296" width="140" height="102" rx="11" fill="#0E4B47" stroke="#1C6E67" stroke-width="1"/>
+    <rect x="608" y="296" width="140" height="102" rx="11" fill="#0E4B47" stroke="#1C6E67" stroke-width="1"/>
+    <rect x="766" y="296" width="140" height="102" rx="11" fill="#0E4B47" stroke="#1C6E67" stroke-width="1"/>
+  </g>
+  <g text-anchor="middle" fill="#EAFBF8" font-size="18" font-weight="700">
+    <text x="204" y="352">Boletos</text>
+    <text x="362" y="352">CNAB</text>
+    <text x="520" y="352">PIX</text>
+    <text x="678" y="352">PDF</text>
+    <text x="836" y="352">OFX</text>
+  </g>
+</svg>
