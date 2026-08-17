@@ -25,6 +25,17 @@ __all__ = ["BancoBase", "REGISTRO"]
 #: código FEBRABAN -> classe do banco (preenchido pelo auto-registro)
 REGISTRO: dict[str, type[BancoBase]] = {}
 
+#: Os quatro que somam/subtraem do valor do documento, na ordem da faixa
+#: FEBRABAN, mais o total. Deduções entram negativas no cálculo de
+#: ``valor_cobrado``; acréscimos, positivas.
+_TOTALIZADORES_OPCIONAIS = (
+    "desconto_abatimento",
+    "outras_deducoes",
+    "mora_multa",
+    "outros_acrescimos",
+    "valor_cobrado",
+)
+
 #: rótulos amigáveis para as mensagens de erro de tamanho de campo
 _ROTULOS_CAMPOS: dict[str, str] = {
     "agencia": "agência",
@@ -81,6 +92,18 @@ class BancoBase:
     instrucoes: list[str] = field(default_factory=list)
     demonstrativo: str = ""
     sacador_avalista: str = ""
+    # ---- totalizadores impressos no boleto (opcionais) ----
+    #: Os cinco campos da faixa FEBRABAN. Ficam **em branco por padrão**: no
+    #: boleto comum quem os preenche é o caixa, no ato do pagamento. Informe-os
+    #: quando o valor já é conhecido na emissão — desconto por pontualidade,
+    #: abatimento negociado, ou um boleto reemitido com mora apurada.
+    desconto_abatimento: Decimal | str | float | None = None
+    outras_deducoes: Decimal | str | float | None = None
+    mora_multa: Decimal | str | float | None = None
+    outros_acrescimos: Decimal | str | float | None = None
+    #: Deixe ``None`` para a biblioteca somar os quatro anteriores ao valor do
+    #: documento. Informe explicitamente para sobrepor esse cálculo.
+    valor_cobrado: Decimal | str | float | None = None
     #: Logo opt-in do banco/beneficiário para o cabeçalho do boleto: ``bytes`` de
     #: um PNG/JPEG ou caminho de arquivo. ``None`` usa o nome do banco em texto.
     #: A biblioteca **não** embute marcas registradas — o asset é do chamador.
@@ -107,6 +130,10 @@ class BancoBase:
 
     def __post_init__(self) -> None:
         self.valor = Decimal(str(self.valor))
+        for campo in _TOTALIZADORES_OPCIONAIS:
+            bruto = getattr(self, campo)
+            if bruto is not None:
+                setattr(self, campo, Decimal(str(bruto)))
 
     # ---- derivados ----
     @property
@@ -195,7 +222,13 @@ class BancoBase:
         def data_br(d: date | None) -> str:
             return d.strftime("%d/%m/%Y") if d else ""
 
-        valor_br = f"{self.valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        def moeda(v: Decimal | None) -> str:
+            """Máscara brasileira; campo não informado imprime vazio, não ``0,00``."""
+            if v is None:
+                return ""
+            return f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        valor_br = moeda(self.valor)
         banco: dict[str, Any] = {
             "codigo_dv": f"{self.codigo}-{self.digito_banco}",
             "nome": self.nome,
@@ -235,8 +268,30 @@ class BancoBase:
             },
             "sacador_avalista": self.sacador_avalista,
             "demonstrativo": self.demonstrativo,
+            "totalizadores": {
+                "desconto_abatimento": moeda(self.desconto_abatimento),
+                "outras_deducoes": moeda(self.outras_deducoes),
+                "mora_multa": moeda(self.mora_multa),
+                "outros_acrescimos": moeda(self.outros_acrescimos),
+                "valor_cobrado": moeda(self._valor_cobrado()),
+            },
             "pix": self._contexto_pix(),
         }
+
+    def _valor_cobrado(self) -> Decimal | None:
+        """Valor do documento menos deduções, mais acréscimos.
+
+        Devolve ``None`` — campo em branco — quando nenhum totalizador foi
+        informado: no boleto comum quem preenche essa faixa é o caixa, e imprimir
+        um total antecipado induziria o pagador a erro.
+        """
+        if self.valor_cobrado is not None:
+            return Decimal(str(self.valor_cobrado))
+        parcelas = [getattr(self, campo) for campo in _TOTALIZADORES_OPCIONAIS[:4]]
+        if all(p is None for p in parcelas):
+            return None
+        desconto, deducoes, mora, acrescimos = (p or Decimal(0) for p in parcelas)
+        return Decimal(str(self.valor)) - desconto - deducoes + mora + acrescimos
 
     def _contexto_pix(self) -> dict[str, Any]:
         """Bolepix real: payload EMV + QR quando há chave PIX e o banco suporta."""

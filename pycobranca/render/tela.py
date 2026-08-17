@@ -24,6 +24,10 @@ from .comum import (
 
 __all__ = ["Tela"]
 
+#: Reticências usadas ao cortar texto que não cabe. Um caractere só, e presente
+#: no WinAnsi das fontes base do PDF — três pontos consumiriam largura útil.
+_RETICENCIAS = "…"
+
 
 class Tela:
     """Superfície de desenho do boleto (página A4 com margens de ``_MARGEM`` mm).
@@ -85,6 +89,47 @@ class Tela:
         """Rótulos vão em CAIXA ALTA no modelo clássico e como escritos no moderno."""
         return rot if self.moderno else rot.upper()
 
+    # ---- contenção de largura ----
+    def cabe(self, s, largura_pt: float, *, fonte="Helvetica", tam=8.5) -> str:
+        """``s`` reduzido ao que cabe em ``largura_pt``, com reticências no corte.
+
+        Sem isso o texto simplesmente continua desenhando: razão social longa
+        atravessava a borda da célula e saía da página, num PDF válido em bytes
+        e errado no papel. Cortar acompanha o que o CNAB já faz — os registros
+        gravam o nome do sacado truncado no tamanho do campo.
+        """
+        if not s:
+            return s
+        largura = self.canvas.stringWidth
+        if largura(s, fonte, tam) <= largura_pt:
+            return s
+        reticencias = largura(_RETICENCIAS, fonte, tam)
+        if reticencias > largura_pt:  # célula estreita demais até para o corte
+            return ""
+        disponivel = largura_pt - reticencias
+        corte = len(s)
+        while corte > 0 and largura(s[:corte], fonte, tam) > disponivel:
+            corte -= 1
+        return s[:corte].rstrip() + _RETICENCIAS
+
+    def cabe_corpo(self, s, largura_pt: float, *, fonte="Helvetica-Bold", tam=12.0, minimo=8.0):
+        """``(texto, corpo)`` — o maior corpo até ``tam`` em que ``s`` cabe.
+
+        Para um título curto e conhecido, como o nome do banco, encolher é
+        melhor do que cortar: "Caixa Econômica Federal" media 145 pt para um vão
+        de 115 e atravessava a régua do cabeçalho, colidindo com o código-DV.
+        Abaixo de ``minimo`` a redução deixaria de ser legível e o corte assume.
+        """
+        if not s:
+            return s, tam
+        largura = self.canvas.stringWidth
+        corpo = tam
+        while corpo > minimo and largura(s, fonte, corpo) > largura_pt:
+            corpo -= 0.25
+        if largura(s, fonte, corpo) > largura_pt:
+            return self.cabe(s, largura_pt, fonte=fonte, tam=corpo), corpo
+        return s, corpo
+
     # ---- célula rotulada (o tijolo do layout) ----
     def celula(
         self,
@@ -112,9 +157,23 @@ class Tela:
         texto(x_(x) + 1.2 * mm, y_topo - 2.8 * mm, self.rot_fmt(rot), tam=5.8, cor=self.rotulo)
         fonte = "Helvetica-Bold" if negrito else "Helvetica"
         y_val = y_topo - (6.4 if linha2 else h - 1.8) * mm
+        # A célula conhece a própria largura; o texto, não. É aqui que a
+        # contenção precisa acontecer — o recuo de 1,2 mm existe dos dois lados.
+        util = (w - 2.4) * mm
         if alinhar_dir:
+            # O valor vem da direita e cresce em direção ao rótulo, então a
+            # célula precisa de altura para que o número tenha linha própria —
+            # é responsabilidade do modelo, e ``test_render_totalizadores``
+            # cobre isso. Aqui basta não ultrapassar a moldura.
+            val = self.cabe(val, (w - 2.7) * mm, fonte=fonte, tam=tam)
             texto(0, y_val, val, fonte=fonte, tam=tam, dir_x=x_(x) + (w - 1.5) * mm)
         else:
-            texto(x_(x) + 1.2 * mm, y_val, val, fonte=fonte, tam=tam)
+            texto(
+                x_(x) + 1.2 * mm,
+                y_val,
+                self.cabe(val, util, fonte=fonte, tam=tam),
+                fonte=fonte,
+                tam=tam,
+            )
         if linha2:
-            texto(x_(x) + 1.2 * mm, y_topo - (h - 2.0) * mm, linha2, tam=8)
+            texto(x_(x) + 1.2 * mm, y_topo - (h - 2.0) * mm, self.cabe(linha2, util, tam=8), tam=8)

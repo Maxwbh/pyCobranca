@@ -4,10 +4,36 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [Não publicado]
 
+### Alterado
+
+- **Boleto moderno redesenhado**: chips de Vencimento/Valor/Nosso Número com mais contraste,
+  faixa de marca de 12 mm (logo-texto, empresa, parcela e rodapé), grade de 6 colunas alinhada
+  ao eixo de Vencimento/Valor e linha de corte contínua. `modelo="moderno"` passa a renderizar
+  este layout; o anterior sai.
+
 ### Adicionado
 
 - **`NOTICE`** creditando pyboleto (BSD) e BrCobrança (MIT). Distribuído no wheel e no sdist via
   `license-files`; a `LICENSE` segue intacta.
+- **Totalizadores do boleto**: `desconto_abatimento`, `outras_deducoes`, `mora_multa`,
+  `outros_acrescimos` e `valor_cobrado`. O total é somado a partir dos quatro primeiros quando não
+  informado. Em branco por padrão.
+
+### Corrigido
+
+- **Texto longo vazava para fora do boleto.** Razão social ou endereço extensos atravessavam a
+  borda da célula e saíam da página, num PDF válido em bytes e errado no papel — sem exceção.
+  Agora o texto é cortado no limite da célula, com reticências, como o CNAB já faz nos registros.
+- **Primeiro dígito da linha digitável cortado no boleto clássico.** A régua do cabeçalho passava
+  por cima dele e o `3` era lido como `B`. O corpo caiu de 9,5 para 9,0, que é o maior que cabe
+  no vão.
+- **Nome do banco por cima do código-DV no boleto moderno.** "Caixa Econômica Federal" media
+  145 pt para um vão de 115 e atravessava a régua do cabeçalho. O nome agora encolhe até caber.
+- **Encargo de sete dígitos por cima do rótulo na faixa de totalizadores.** As faixas ganharam
+  altura para o valor ter linha própria: 6,5 → 9,0 mm no recibo moderno e 30 → 40 mm no bloco de
+  instruções do clássico. O bloco do clássico passa a comportar 8 linhas de instrução, contra 6.
+- **Valores monetários alinhados à esquerda no boleto moderno.** Valor do documento, vencimento,
+  quantidade, agência/código e nosso número passam a alinhar à direita, como no clássico.
 
 ## [1.0.3] - 2026-08-01
 

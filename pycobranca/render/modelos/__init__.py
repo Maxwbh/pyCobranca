@@ -3,7 +3,7 @@
 Modelos disponíveis:
 
 - :mod:`~pycobranca.render.modelos.boleto_classico` — Boleto Clássico.
-- :mod:`~pycobranca.render.modelos.boleto_moderno` — Boleto Moderno (chips, PIX, TEMA).
+- :mod:`~pycobranca.render.modelos.boleto_moderno` — Boleto Moderno (chips, faixa de marca, PIX).
 - :mod:`~pycobranca.render.modelos.carne` — Carnê (3 parcelas por A4).
 - :mod:`~pycobranca.render.modelos.fatura` — Fatura (demonstrativo de itens + boleto).
 

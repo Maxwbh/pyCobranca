@@ -47,7 +47,10 @@ def cabecalho_classico(tela, info, texto_dir, *, linha_digitavel) -> None:
             cor=tela.white,
             dir_x=x_(0) + 7.0 * mm,
         )
-        texto(x_(10), y_topo - 6.5 * mm, info.banco_nome, fonte="Helvetica-Bold", tam=10)
+        # Da sigla até a régua de x_(62). Os 18 nomes cabem a 10 pt; a contenção
+        # é para o nome vindo de um banco novo ou personalizado.
+        nome, corpo = tela.cabe_corpo(info.banco_nome, (62 - 10 - 1.5) * mm, tam=10)
+        texto(x_(10), y_topo - 6.5 * mm, nome, fonte="Helvetica-Bold", tam=corpo)
     canvas.setStrokeColor(tela.marca)
     canvas.setLineWidth(1.2)
     canvas.line(x_(62), y_topo, x_(62), y_topo - h * mm)
@@ -61,7 +64,12 @@ def cabecalho_classico(tela, info, texto_dir, *, linha_digitavel) -> None:
         centro_x=x_(72),
     )
     if linha_digitavel:
-        texto(0, y_topo - 7 * mm, texto_dir, fonte="Courier-Bold", tam=9.5, dir_x=x_(_LARGURA))
+        # 9,5 dava 307,8 pt de largura para um vão de 306,1 — a régua de x_(82)
+        # passava por cima do primeiro dígito, e o "3" era lido como "B". Como o
+        # texto é alinhado à direita, a ponta esquerda cai onde a largura levar.
+        # 9,0 é o maior corpo que ainda cabe: a linha digitável é para ser lida
+        # e digitada, então encolher mais do que o necessário é prejuízo.
+        texto(0, y_topo - 7 * mm, texto_dir, fonte="Courier-Bold", tam=9.0, dir_x=x_(_LARGURA))
     else:
         texto(0, y_topo - 7.2 * mm, texto_dir, fonte="Helvetica-Bold", tam=12, dir_x=x_(_LARGURA))
     canvas.setStrokeColor(tela.marca)
@@ -151,7 +159,12 @@ def ficha_classica(tela, info) -> None:
     )
     tela.avanca(h)
 
-    h_instr = 30.0
+    # 30 mm davam 6 mm por totalizador: rótulo e valor caíam na mesma linha, e
+    # "(-) DESCONTO / ABATIMENTOS" deixava 46 pt — um valor de sete dígitos
+    # (49,6 pt) passava por cima do rótulo. A 40 mm o número tem linha própria.
+    # De quebra, o bloco de instruções passa a comportar 8 linhas: a sétima
+    # chegava a 31 mm e transbordava a moldura.
+    h_instr = 40.0
     y_topo = tela.y_()
     canvas.setLineWidth(0.5)
     canvas.setStrokeColor(tela.borda)
@@ -166,31 +179,52 @@ def ficha_classica(tela, info) -> None:
     for i, ln in enumerate(info.instrucoes):
         texto(x_(1.2), y_topo - (7.0 + 4.0 * i) * mm, ln, tam=8.5)
     lados = [
-        "(-) DESCONTO / ABATIMENTOS",
-        "(-) OUTRAS DEDUÇÕES",
-        "(+) MORA / MULTA",
-        "(+) OUTROS ACRÉSCIMOS",
-        "(=) VALOR COBRADO",
+        ("(-) DESCONTO / ABATIMENTOS", "desconto_abatimento"),
+        ("(-) OUTRAS DEDUÇÕES", "outras_deducoes"),
+        ("(+) MORA / MULTA", "mora_multa"),
+        ("(+) OUTROS ACRÉSCIMOS", "outros_acrescimos"),
+        ("(=) VALOR COBRADO", "valor_cobrado"),
     ]
     h_lado = h_instr / len(lados)
-    for i, rot_c in enumerate(lados):
+    for i, (rot_c, chave) in enumerate(lados):
         canvas.setStrokeColor(tela.borda)
         canvas.rect(x_(142), y_topo - (i + 1) * h_lado * mm, 48 * mm, h_lado * mm, stroke=1, fill=0)
         texto(x_(143.2), y_topo - (i * h_lado + 2.8) * mm, rot_c, tam=5.5, cor=tela.rotulo)
+        texto(
+            0,
+            y_topo - (i * h_lado + h_lado - 1.6) * mm,
+            info.total(chave),
+            fonte="Helvetica-Bold",
+            tam=8.5,
+            dir_x=x_(188.5),
+        )
     tela.avanca(h_instr)
 
     h_sac = 26.0
     y_topo = tela.y_()
     canvas.setStrokeColor(tela.borda)
     canvas.rect(x_(0), y_topo - h_sac * mm, 142 * mm, h_sac * mm, stroke=1, fill=0)
+    # Este bloco é desenhado fora de `celula`, então a contenção de largura
+    # precisa ser explícita: a moldura tem 142 mm e o recuo é de 1,2 mm.
+    util = (142 - 2.4) * mm
     texto(x_(1.2), y_topo - 3.0 * mm, "SACADO", tam=5.5, cor=tela.rotulo)
-    texto(x_(1.2), y_topo - 7.0 * mm, info.sacado_curto, fonte="Helvetica-Bold", tam=8.5)
-    texto(x_(1.2), y_topo - 11.0 * mm, info.sacado_endereco, tam=8.5)
+    texto(
+        x_(1.2),
+        y_topo - 7.0 * mm,
+        tela.cabe(info.sacado_curto, util, fonte="Helvetica-Bold", tam=8.5),
+        fonte="Helvetica-Bold",
+        tam=8.5,
+    )
+    texto(x_(1.2), y_topo - 11.0 * mm, tela.cabe(info.sacado_endereco, util, tam=8.5), tam=8.5)
     texto(
         x_(1.2),
         y_topo - (h_sac - 2.5) * mm,
-        f"SACADOR / AVALISTA: {info.sacador_avalista or '—'}    "
-        f"CÓDIGO DE BAIXA: {info.codigo_baixa}",
+        tela.cabe(
+            f"SACADOR / AVALISTA: {info.sacador_avalista or '—'}    "
+            f"CÓDIGO DE BAIXA: {info.codigo_baixa}",
+            util,
+            tam=6,
+        ),
         tam=6,
         cor=tela.rotulo,
     )
