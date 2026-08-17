@@ -132,12 +132,42 @@ boleto = Banco(
 pdf = render_boleto_pdf(boleto.contexto_render(), modelo="moderno")
 ```
 
-- `modelo="moderno"` (padrão recomendado): recibo com chips, célula PIX e TEMA.
-- `modelo="classico"`: layout tradicional.
+- `modelo="moderno"` (padrão recomendado): recibo com chips de destaque, faixa de marca opcional,
+  célula PIX e grade de 6 colunas alinhada ao eixo de Vencimento/Valor.
+- `modelo="classico"`: layout tradicional (bordas pretas, rótulos em caixa alta).
 - `render_carne_pdf({"parcelas": [...]})`: carnê 3×A4.
 - `render_fatura_pdf(contexto)`: **fatura** — corpo livre + boleto na mesma página (ver abaixo).
 - `desenha_boleto(canvas, contexto, modelo)`: desenha o boleto num canvas existente, para compor o
   boleto dentro de outro documento (é o que a fatura usa).
+
+### Faixa de totalizadores
+
+Os cinco campos da faixa FEBRABAN saem **em branco por padrão** — no boleto comum quem os preenche
+é o caixa, no ato do pagamento. Informe-os quando o valor já é conhecido na emissão (desconto por
+pontualidade, abatimento negociado, boleto reemitido com mora apurada):
+
+```python
+boleto = Banco(
+    valor="1279.50",
+    desconto_abatimento="150.00",
+    outras_deducoes="12.30",
+    mora_multa="8.00",
+    outros_acrescimos="3.20",
+    ...,
+)
+```
+
+| Campo | Sinal no total |
+|-------|----------------|
+| `desconto_abatimento` | − |
+| `outras_deducoes` | − |
+| `mora_multa` | + |
+| `outros_acrescimos` | + |
+| `valor_cobrado` | total |
+
+`valor_cobrado` é calculado a partir dos quatro anteriores quando não informado, e continua vazio
+enquanto nenhum deles for. Informe-o explicitamente para sobrepor o cálculo — é o caso quando o
+banco já apurou o total. Os valores aceitam `str`, `int`, `float` ou `Decimal`, como `valor`.
 
 ## Fatura — corpo livre em 3 níveis
 
