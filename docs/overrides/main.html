@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{#
+  Metatags sociais (Open Graph e Twitter Card).
+
+  Sem elas, um link do site compartilhado no LinkedIn, WhatsApp, Slack ou
+  Twitter aparece como um card vazio — sem título, descrição ou imagem. O
+  título e a descrição vêm da própria página (o `description` do front-matter
+  quando existe, senão o do site), então cada página compartilha com o seu
+  próprio texto.
+#}
+
+{% block extrahead %}
+  {# Google Search Console — verificação da propriedade.
+     O método por arquivo também está ativo: docs/googlec2394c0afd3e8857.html #}
+  <meta name="google-site-verification" content="XS9wvfG-V6V1tGDI7BT0zbeqiQyE3-tkc5LhfL0tvbc">
+
+  {# `page.meta.title` vem antes de `page.title`: na home o segundo é o rótulo da
+     navegação ("Início"), enquanto o primeiro é o título voltado à busca. Sem
+     esta ordem o card social diverge do <title> da própria página. #}
+  {% set nome = page.meta.title
+     if page and page.meta and page.meta.title
+     else (page.title if page and page.title else none) %}
+  {% set titulo = nome ~ " — " ~ config.site_name
+     if nome and nome != config.site_name
+     else config.site_name %}
+  {% set descricao = page.meta.description
+     if page and page.meta and page.meta.description
+     else config.site_description %}
+  {% set imagem = config.site_url ~ "images/social-card.png" %}
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ titulo }}">
+  <meta property="og:description" content="{{ descricao }}">
+  <meta property="og:image" content="{{ imagem }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}">
+  <meta property="og:locale" content="pt_BR">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ titulo }}">
+  <meta name="twitter:description" content="{{ descricao }}">
+  <meta name="twitter:image" content="{{ imagem }}">
+{% endblock %}
