@@ -1,0 +1,153 @@
+name: Guarda de fluxo
+
+# Impõe a política de branches do projeto nos pull requests:
+#   - PR para `main` só é permitido a partir de `hml` (promoção via hml).
+#   - PR para `hml` deve ter exatamente 1 commit (commit único).
+#   - Nenhum commit do PR pode conter atribuição a IA/Claude — na mensagem
+#     nem na identidade de autor/committer.
+#   - Nem o título/corpo do PR, nem os comentários.
+# A imposição efetiva do merge depende também da branch protection da `main`
+# (squash-only + restrição de origem) configurada nas Settings do repositório.
+#
+# Sobre a força de cada job: os que rodam em `pull_request` viram check e podem
+# ser exigidos na branch protection. O job de comentário roda fora do check
+# suite do PR — ele DETECTA e avisa, mas não bloqueia o merge sozinho.
+
+on:
+  pull_request:
+    branches: ["main", "hml"]
+    # `edited` é indispensável aqui: sem ele o default do GitHub é
+    # opened/synchronize/reopened, e a checagem de título e corpo nunca
+    # reexecutaria depois de uma edição — bastaria abrir o PR limpo e colar a
+    # marca em seguida para o check continuar verde.
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+  pull_request_review:
+    types: [submitted, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+
+# Cinco tipos de evento no mesmo PR (push, edição do corpo, ready for review…)
+# geravam execuções paralelas da mesma checagem. Agrupadas por PR, só a última
+# sobrevive — é ela que reflete o estado atual.
+#
+# Comentário e review ficam fora disso, cada um no seu grupo (`run_id`): dois
+# comentários seguidos são textos distintos, e cancelar o primeiro deixaria uma
+# marca passar sem conferência.
+concurrency:
+  group: guarda-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # `\[?` e `claude\.(ai|com)` não são zelo excessivo: o rodapé automático vem
+  # em markdown — "Generated with [Claude Code](...)" — e passou a apontar para
+  # o domínio .com. Um padrão que exija as palavras coladas, ou que case só o
+  # .ai, deixa passar.
+  PADRAO_IA: 'claude\.(ai|com)|anthropic\.com|openai\.com|chatgpt\.com|gemini\.google\.com|copilot\.(microsoft|github)\.com|[Cc]laude-[Ss]ession|[Cc]o-[Aa]uthored-[Bb]y:.*(laude|opilot|hatGPT|emini|nthropic)|[Gg]enerated (by|with) *\[?(AI|Claude|ChatGPT|Copilot|Gemini|GPT)|[Pp]owered by *\[?(AI|Claude|OpenAI|ChatGPT)'
+
+jobs:
+  guarda:
+    name: Guarda de fluxo
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Origem e contagem de commits
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          COMMITS: ${{ github.event.pull_request.commits }}
+        run: |
+          echo "PR: $HEAD -> $BASE ($COMMITS commit(s))"
+          erros=0
+
+          # 1) Só `hml` pode abrir PR para `main`.
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "hml" ]; then
+            echo "::error::PR para 'main' só é permitido a partir de 'hml' (recebido de '$HEAD'). Promova a mudança pela 'hml'."
+            erros=1
+          fi
+
+          # 2) PR para `hml` deve ter commit único.
+          if [ "$BASE" = "hml" ] && [ "$COMMITS" -ne 1 ]; then
+            echo "::error::PR para 'hml' deve ter exatamente 1 commit (recebido: $COMMITS). Faça squash da branch."
+            erros=1
+          fi
+
+          exit "$erros"
+
+      - name: Sem atribuição a IA nos commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Varre os commits exclusivos do PR. A identidade entra junto com a
+          # mensagem: commit de texto impecável assinado por um bot passa
+          # despercebido em quem olha só o corpo.
+          erros=0
+          for sha in $(git log "$BASE_SHA..$HEAD_SHA" --format='%H'); do
+            alvo=$(git log -1 --format='%B%n%an <%ae>%n%cn <%ce>' "$sha")
+            if printf '%s\n' "$alvo" | grep -qiE "$PADRAO_IA"; then
+              echo "::error::$sha contém atribuição a IA:"
+              printf '%s\n' "$alvo" | grep -iE "$PADRAO_IA" | sed 's/^/    /'
+              erros=1
+            fi
+          done
+          if [ "$erros" -ne 0 ]; then
+            echo "Reescreva os commits sem essas marcas, conferindo também --author e --committer."
+            exit 1
+          fi
+          echo "OK — sem atribuição a IA nos commits do PR."
+
+      - name: Sem atribuição a IA no título e corpo do PR
+        env:
+          # Por variável de ambiente, nunca interpolado no script: corpo de PR
+          # é texto de terceiro e fecharia as aspas do shell.
+          PR_TITULO: ${{ github.event.pull_request.title }}
+          PR_CORPO: ${{ github.event.pull_request.body }}
+        run: |
+          # Superfície que faltava: o rodapé automático é acrescentado na
+          # publicação do PR, depois do commit já estar limpo — por isso passou
+          # despercebido nos PRs #3 e #6, que estão públicos com a marca.
+          erros=0
+          conferir() {
+            if printf '%s\n' "$2" | grep -qiE "$PADRAO_IA"; then
+              echo "::error::$1 do PR contém atribuição a IA:"
+              printf '%s\n' "$2" | grep -iE "$PADRAO_IA" | sed 's/^/    /'
+              erros=1
+            fi
+          }
+          conferir "Título" "$PR_TITULO"
+          conferir "Corpo" "$PR_CORPO"
+          if [ "$erros" -ne 0 ]; then
+            echo "Edite o PR removendo as marcas. O rodapé automático reaparece a"
+            echo "cada publicação, então confira de novo depois de salvar."
+            exit 1
+          fi
+          echo "OK — título e corpo do PR limpos."
+
+  comentario:
+    name: Comentário sem atribuição a IA
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir o comentário recém-publicado
+        env:
+          CORPO: ${{ github.event.comment.body || github.event.review.body }}
+          AUTOR: ${{ github.event.comment.user.login || github.event.review.user.login }}
+          LINK: ${{ github.event.comment.html_url || github.event.review.html_url }}
+        run: |
+          if [ -z "$CORPO" ]; then
+            echo "Comentário vazio — nada a verificar."
+            exit 0
+          fi
+          if printf '%s\n' "$CORPO" | grep -qiE "$PADRAO_IA"; then
+            echo "::error::Comentário de @$AUTOR contém atribuição a IA — edite em $LINK"
+            printf '%s\n' "$CORPO" | grep -iE "$PADRAO_IA" | sed 's/^/    /'
+            exit 1
+          fi
+          echo "OK — comentário limpo."

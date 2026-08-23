@@ -1,0 +1,88 @@
+name: Documentação
+
+# Publica o site MkDocs (docs/) no GitHub Pages a cada push na branch padrão.
+# Em pull request, apenas constrói (com --strict) para pegar link quebrado.
+#
+# Pré-requisito no repositório: Settings > Pages > Source = "GitHub Actions".
+#
+# O push na `main` roda **sem filtro de caminho**: qualquer push republica o
+# site. Assim um redeploy é sempre possível (inclusive depois de uma falha de
+# publicação), sem depender de qual arquivo mudou. Em pull request o filtro
+# continua, para não construir a documentação em PR que só mexe em código.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "mkdocs_hooks.py"
+      - "CHANGELOG.md"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Publicar no Pages é uma operação que não pode ser interrompida no meio:
+# cancelar entre "criar o deployment" e "concluir" deixa o Pages com um
+# deployment pendente, e a execução seguinte fica esperando por ele. Por isso
+# as execuções são **enfileiradas**, não canceladas — é o que a própria GitHub
+# recomenda no workflow padrão de Pages.
+#
+# Em pull request não há deploy (só build), então ali cancelar é seguro e
+# evita fila desnecessária a cada push na branch.
+concurrency:
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('docs-pr-{0}', github.ref)
+        || 'docs-pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Construir o site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[docs]"
+
+      - name: Copiar o CHANGELOG para a documentação
+        run: cp CHANGELOG.md docs/changelog.md
+
+      - name: Construir (falha em link quebrado)
+        run: mkdocs build --strict
+
+      - name: Publicar artefato do Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Publicar no GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
