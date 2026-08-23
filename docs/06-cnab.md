@@ -15,13 +15,13 @@ empresa e banco. A PyCobrança implementa os **dois layouts** de uso geral na co
     [roadmap](02-roadmap-modernizacao.md) e entra sob o mesmo critério dos demais layouts: manual
     oficial com exemplo numérico validável, e comparação byte a byte contra vetor de referência.
 
-> **Status (Fase 2):** remessa **CNAB 400 implementada para 12 bancos** (Itaú, Bradesco, Banco do
+> **Status:** remessa **CNAB 400 implementada para 12 bancos** (Itaú, Bradesco, Banco do
 > Brasil, Santander, Sicoob, Unicred, Banrisul, Banco do Nordeste, BRB/DCB, Citibank, CrediSIS e
 > C6) e **CNAB 240 para 7 bancos** (Ailos, Banco do Brasil, Caixa, Santander, Sicoob, Sicredi e
 > Unicred), todas validadas **byte a byte** contra vetores de referência (fixtures congeladas em
 > `tests/fixtures/`; ver [`docs/bancos/`](bancos/README.md)).
 >
-> **Bolepix na remessa (Fase 4):** com um `PagamentoPix`, a remessa acrescenta o **registro tipo 8**
+> **Bolepix na remessa:** com um `PagamentoPix`, a remessa acrescenta o **registro tipo 8**
 > (CNAB 400: Itaú, Bradesco, C6, Santander) ou o **segmento Y-03** (CNAB 240: Banco do Brasil,
 > Caixa, Sicoob) após cada título — classes `Remessa*Pix`, validadas byte a byte.
 
@@ -51,7 +51,7 @@ cnab/
     └── ocorrencias.py    # rótulos legíveis dos códigos de ocorrência (convenience)
 ```
 
-## Retorno — status (Fase 3)
+## Retorno — status
 
 > **Implementado e validado campo a campo** contra vetores de referência para 11 arquivos `.RET`.
 > **CNAB 400**: Itaú, Bradesco, Banco do Brasil, Santander (com campos PIX), Banco do Nordeste,

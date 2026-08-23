@@ -38,6 +38,9 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   (campo livre com 24 dígitos); BRB, Safra e Sicredi barravam na validação; e o **Citibank
   produzia um código de barras diferente, sem erro** — estruturalmente válido, com o `portfolio`
   zerado e o destino errado.
+- **`boleto_de_api` nomeava um banco que o chamador não mandou.** Um `bank` não-textual (`[]`)
+  saía como `'0[]'` na mensagem, porque o código já vinha normalizado com zeros à esquerda. O erro
+  passa a mostrar o valor como veio.
 - **`agencia` e `conta_corrente` eram obrigatórios no `BoletoData`.** O Santander identifica o
   cedente pelo convênio e a Caixa pelo código do beneficiário: exigi-los tornava esses dois
   inexprimíveis no contrato. A exigência por banco continua em `validar()`.

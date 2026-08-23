@@ -6,8 +6,8 @@ schemas REST (OpenAPI 3.0) e oferece um validador leve para os **testes de
 contrato**, garantindo que a serialização permaneça compatível conforme a API
 evolui.
 
-Fonte do contrato: :data:`CONTRATO` (``contrato_rest.json``), curado de
-um ``openapi.yaml`` de referência (v1.5.0).
+Fonte do contrato: :data:`CONTRATO` (``contrato_rest.json``), mantido em
+sincronia manual com o domínio — o próprio arquivo é a referência.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from ..exceptions import PyCobrancaError
+from ..exceptions import BancoNaoRegistrado, PyCobrancaError
 
 __all__ = [
     "CONTRATO",
@@ -242,8 +242,14 @@ def boleto_de_api(payload: dict[str, Any]):
     # `bank` vem de JSON e pode chegar como qualquer coisa; normalizar para texto
     # antes da busca evita TypeError num `dict.get` com chave não-hasheável.
     bank = payload.get("bank")
-    bank = bank if isinstance(bank, str) else str(bank)
-    Banco = Bancos.find(_CODIGO_POR_SLUG.get(bank, bank))
+    procurado = bank if isinstance(bank, str) else str(bank)
+    try:
+        Banco = Bancos.find(_CODIGO_POR_SLUG.get(procurado, procurado))
+    except BancoNaoRegistrado as erro:
+        # A mensagem de `find` mostra o código já normalizado com zeros à
+        # esquerda: um `bank` de lista virava "0[]", nomeando um banco que o
+        # chamador nunca mandou. Aqui o valor recebido aparece como veio.
+        raise BancoNaoRegistrado(f"bank {bank!r} não corresponde a banco suportado") from erro
     aceitos = {f.name for f in dataclasses.fields(Banco)}
 
     kwargs: dict[str, Any] = {}
