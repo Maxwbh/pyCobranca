@@ -8,7 +8,7 @@ centro, infraestrutura na borda).
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Serialização / Renderização                                   │
-│  to_dict / to_json  ·  render.pdf (reportlab)  ·  render.pix   │
+│  to_dict · contracts  ·  render (reportlab)  ·  pix (EMV/QR)   │
 ├──────────────────────────────────────────────────────────────┤
 │  CNAB                                                           │
 │  cnab.remessa (240/400)       ·  cnab.retorno (parse → dict)    │
@@ -26,39 +26,44 @@ centro, infraestrutura na borda).
 
 ```
 pycobranca/
-├── __init__.py            # versão pública, exports de conveniência
+├── __init__.py            # __version__, banco_info(), BANCOS (derivado do REGISTRO)
 ├── core/
 │   ├── dv.py              # dígitos verificadores (módulo 10, módulo 11)
 │   ├── datas.py           # fator de vencimento, datas base FEBRABAN
-│   ├── documentos.py      # validação/formatação CPF, CNPJ
-│   └── numeros.py         # formatação monetária, zero-fill
+│   └── documentos.py      # validação/formatação CPF, CNPJ (inclui alfanumérico)
 ├── boleto/
-│   ├── base.py            # classe Boleto (dataclass + validações comuns)
-│   ├── linha_digitavel.py # composição da linha digitável
-│   └── codigo_barras.py   # composição do código de barras (44 posições)
+│   ├── codigo_barras.py   # composição do código de barras (44 posições)
+│   └── linha_digitavel.py # composição da linha digitável (IPTE, 47 dígitos)
 ├── bancos/
 │   ├── __init__.py        # registro: Bancos.todos/find/com_pix
-│   ├── base.py            # BancoBase (contrato por banco)
+│   ├── base.py            # BancoBase (dataclass do título + contrato por banco)
 │   ├── banco_do_brasil.py
 │   ├── bradesco.py
 │   ├── itau.py
-│   ├── santander.py
-│   ├── caixa.py
-│   ├── sicoob.py
-│   └── ...                # um módulo por banco
+│   └── ...                # um módulo por banco (18 no total)
 ├── cnab/
-│   ├── remessa/           # geração 240/400 por banco
-│   ├── retorno/           # parsing 240/400 → dict
-│   └── layouts/           # definições posicionais de registros
+│   ├── pagamento.py       # Pagamento / PagamentoPix
+│   ├── cnab400/           # remessa 400 (base + um módulo por banco)
+│   ├── cnab240/           # remessa 240 (base + um módulo por banco)
+│   └── retorno/           # parsing 240/400 → RegistroRetorno
 ├── pix/
 │   ├── payload.py         # BR Code / EMV (copia-e-cola)
-│   └── qrcode.py          # geração de QR Code
-├── render/
-│   ├── barcode.py        # Interleaved 2 of 5 (Python puro)
-│   └── reportlab.py      # backend ÚNICO de renderização (modelos classico/moderno, carnê, tema)
-├── serialization.py       # mixin to_dict/to_json
+│   └── qr.py              # matriz e SVG do QR Code
+├── ofx/                   # leitura de extrato e conciliação
+├── contracts/             # contrato REST (schemas + serializadores + validador)
+├── render/                # PDF via ReportLab — ver 11 — Renderização
+│   ├── comum.py           # constantes, paleta e primitivas de desenho
+│   ├── tela.py            # a Tela (canvas + cursor + coordenadas + célula)
+│   ├── dados.py           # DadosBoleto / extrai_dados
+│   ├── blocos.py          # blocos comuns aos modelos
+│   ├── modelos/           # catálogo: boleto_classico, boleto_moderno, carne, fatura
+│   ├── barcode.py         # Interleaved 2 of 5 (Python puro)
+│   └── marcas.py          # logos empacotados dos bancos
 └── exceptions.py          # hierarquia de erros de domínio
 ```
+
+O mapa detalhado, arquivo a arquivo, está em
+[16 — Arquitetura e diretórios](16-arquitetura-diretorios.md).
 
 ### Convenção de nomenclatura (pt-BR canônica)
 
@@ -73,9 +78,11 @@ alinhados ao domínio bancário brasileiro. A tabela abaixo fixa a nomenclatura 
 > **Decisões de escopo:** o SDK HTTP é **projeto separado**; a **renderização é exclusivamente via
 > ReportLab**.
 
-## Domínio: o objeto `Boleto`
+## Domínio: o título como `dataclass`
 
-O `Boleto` é modelado como uma `dataclass` com validação explícita. Campos essenciais:
+Não existe uma classe `Boleto` genérica: o título é a própria subclasse de `BancoBase`, uma
+`dataclass` com validação explícita — `Bancos.find("341")` devolve a classe do Itaú, e instanciá-la
+é criar o boleto. Campos essenciais:
 
 | Campo | Descrição |
 |-------|-----------|
@@ -131,8 +138,13 @@ os modelos `classico` e `moderno` (Bolepix, carnê e TEMA) e vencedora do benchm
 
 ## Serialização
 
-Um mixin `SerializableMixin` fornece `to_dict()` e `to_json()` para `Boleto`, registros CNAB e
-resultados de retorno, garantindo respostas amigáveis a APIs REST.
+`to_dict()` devolve uma estrutura JSON-friendly nos tipos que atravessam a fronteira do processo —
+o título (`BancoBase`), o retorno CNAB (`Retorno` e `RegistroRetorno`), o extrato OFX (`Extrato`,
+`Transacao`) e a conciliação. Não há mixin nem `to_json()`: cada classe implementa o método com os
+campos que fazem sentido para ela, e serializar para JSON é `json.dumps` do lado do consumidor.
+
+Para o formato exato esperado por um serviço REST, use os serializadores de
+`pycobranca.contracts` — ver [04 — Contrato REST](04-api-rest.md).
 
 ## Consumo via API REST
 

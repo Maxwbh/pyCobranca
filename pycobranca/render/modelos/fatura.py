@@ -45,6 +45,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from ...exceptions import ModeloInvalido
 from ..comum import _LARGURA
 
 __all__ = [
@@ -352,7 +353,7 @@ def desenha_corpo(tela, info, contexto) -> bool:
             tipo = str(bloco.get("tipo") or "").lower()
             desenhador = BLOCOS.get(tipo)
             if desenhador is None:
-                raise ValueError(
+                raise ModeloInvalido(
                     f"bloco de fatura inválido: {tipo!r} (use um de: {', '.join(sorted(BLOCOS))})"
                 )
             desenhador(tela, bloco)

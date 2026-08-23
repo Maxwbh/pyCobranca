@@ -13,13 +13,50 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Adicionado
 
+- **`boleto_de_api(payload)`** — caminho de volta do contrato REST: recebe `{"bank", "data"}`,
+  valida, traduz os nomes divergentes, converte datas ISO e devolve o título. Com
+  `tema_de_api(data)` para a faixa de marca, que o renderizador nomeia de outro jeito.
+  A ida e volta `boleto_para_api` → `boleto_de_api` é testada nos 18 bancos.
+- **`emite_boleto(boleto, modelo, tema=None)`** — PDF e dados numa chamada, montando o título uma
+  vez só. Devolve `BoletoEmitido` com `.pdf`, `.linha_digitavel`, `.codigo_barras`,
+  `.nosso_numero`, `.vencimento`, `.valor_documento`, `.pix_copia_cola`, `.totalizadores` e
+  `.to_dict()`.
+- **Campos específicos de banco no `BoletoData`**: `data_documento`, `digito_conta`,
+  `digito_agencia`, `digito_convenio`, `variacao`, `incremento`, `portfolio`, `posto` e `byte_idt`
+  (tupla `CAMPOS_POR_BANCO`). Sem eles o contrato não expressava 7 dos 18 bancos.
 - **`NOTICE`** creditando pyboleto (BSD) e BrCobrança (MIT). Distribuído no wheel e no sdist via
   `license-files`; a `LICENSE` segue intacta.
 - **Totalizadores do boleto**: `desconto_abatimento`, `outras_deducoes`, `mora_multa`,
   `outros_acrescimos` e `valor_cobrado`. O total é somado a partir dos quatro primeiros quando não
-  informado. Em branco por padrão.
+  informado. Em branco por padrão. Expostos também no contrato REST (`BoletoData`, com os mesmos
+  nomes) e na tupla `TOTALIZADORES` de `pycobranca.contracts`.
 
 ### Corrigido
+
+- **Contrato REST não expressava 7 dos 18 bancos.** Faltavam os campos que entram no campo livre
+  ou são obrigatórios por regra do banco. Banco do Nordeste, Banestes e Unicred levantavam
+  (campo livre com 24 dígitos); BRB, Safra e Sicredi barravam na validação; e o **Citibank
+  produzia um código de barras diferente, sem erro** — estruturalmente válido, com o `portfolio`
+  zerado e o destino errado.
+- **`agencia` e `conta_corrente` eram obrigatórios no `BoletoData`.** O Santander identifica o
+  cedente pelo convênio e a Caixa pelo código do beneficiário: exigi-los tornava esses dois
+  inexprimíveis no contrato. A exigência por banco continua em `validar()`.
+- **`Retorno.ler` só aceitava caminho.** Passa a aceitar `bytes` e objeto com `.read()`, como
+  `Extrato.ler` já fazia — um upload não precisa mais de arquivo temporário. A anotação dos dois
+  passa a dizer isso (`FonteDeArquivo`): o pacote distribui `py.typed`, e a anotação estreita
+  fazia o verificador de tipos acusar erro num uso que funciona.
+- **`except PyCobrancaError` não cobria a biblioteca**, ao contrário do que a documentação
+  prometia. Duas exceções (`InvalidBarcodeError`, `ErroDeContrato`) herdavam só de `ValueError`, e
+  **14 pontos do pacote levantavam `ValueError`/`KeyError`/`RuntimeError` crus** — inclusive
+  `banco_info()`, que usava `KeyError` enquanto `Bancos.find()` já usava `BancoNaoRegistrado`.
+  Todas passam a herdar de `PyCobrancaError` **e** do erro embutido correspondente, nessa ordem:
+  quem tratava pelo tipo embutido continua funcionando. Novas: `DadosInvalidos` (composição do
+  título), `ModeloInvalido` (catálogo de renderização) e `DependenciaAusente` (reportlab/qrcode).
+- **Entrada malformada escapava da fronteira do contrato.** Campo desconhecido no `BoletoData`
+  virava `TypeError` do construtor; data fora do ISO, `ValueError` de `fromisoformat` sem dizer
+  qual campo; `bool` passava por `number` (é subclasse de `int` em Python) e estourava em
+  `Decimal("True")`; e `bank`/`modelo` não-hasheáveis derrubavam o acesso ao registro. Todos viram
+  `ErroDeContrato`/`ModeloInvalido` nomeando o campo.
 
 - **Texto longo vazava para fora do boleto.** Razão social ou endereço extensos atravessavam a
   borda da célula e saíam da página, num PDF válido em bytes e errado no papel — sem exceção.
@@ -34,6 +71,17 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   instruções do clássico. O bloco do clássico passa a comportar 8 linhas de instrução, contra 6.
 - **Valores monetários alinhados à esquerda no boleto moderno.** Valor do documento, vencimento,
   quantidade, agência/código e nosso número passam a alinhar à direita, como no clássico.
+- **Instrução longa saía pela lateral da página no boleto clássico.** O texto do bloco de
+  instruções era desenhado sem corte — uma linha de 60 caracteres media 708 pt numa folha de
+  595 — e não havia limite de linhas: da nona em diante o texto caía abaixo da moldura. Passa a
+  ser cortado na largura do bloco e limitado ao que a altura comporta, como o moderno já fazia.
+- **Rótulo encostando no valor nas células de 7 mm.** Rótulo com `g`, `p` ou `ç` — "Espécie",
+  "Agência/Código Beneficiário" — descia até a borda superior do valor. O rótulo subiu 0,3 mm,
+  sem mexer na altura de nenhuma célula.
+- **`contexto_render()` estourava com `ValueError` em campo monetário atribuído depois da
+  construção.** O `__post_init__` converte o que chega pelo construtor, mas os campos são públicos
+  e mutáveis: um `boleto.mora_multa = "12.00"` quebrava a formatação. Agora reconverte, como
+  `valor_centavos` já fazia, e valor inválido levanta `DadosInvalidos`.
 
 ## [1.0.3] - 2026-08-01
 

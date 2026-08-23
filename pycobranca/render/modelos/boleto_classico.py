@@ -176,8 +176,13 @@ def ficha_classica(tela, info) -> None:
         tam=5.5,
         cor=tela.rotulo,
     )
-    for i, ln in enumerate(info.instrucoes):
-        texto(x_(1.2), y_topo - (7.0 + 4.0 * i) * mm, ln, tam=8.5)
+    # A instrução é texto livre do beneficiário: sem corte, uma linha comprida
+    # saía pela lateral da página (708 pt numa folha de 595), e a nona linha
+    # caía abaixo da moldura. O moderno já limitava os dois; aqui não.
+    cabem = int((h_instr - 7.0 - 1.5) / 4.0) + 1
+    util_instr = (142 - 2.4) * mm
+    for i, ln in enumerate(info.instrucoes[:cabem]):
+        texto(x_(1.2), y_topo - (7.0 + 4.0 * i) * mm, tela.cabe(ln, util_instr), tam=8.5)
     lados = [
         ("(-) DESCONTO / ABATIMENTOS", "desconto_abatimento"),
         ("(-) OUTRAS DEDUÇÕES", "outras_deducoes"),

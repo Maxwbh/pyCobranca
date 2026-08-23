@@ -7,6 +7,8 @@ SVG para pré-visualizações.
 
 from __future__ import annotations
 
+from ..exceptions import DependenciaAusente
+
 __all__ = ["qr_matrix", "qr_svg"]
 
 
@@ -14,7 +16,7 @@ def _qrcode():
     try:
         import qrcode
     except ModuleNotFoundError as exc:  # pragma: no cover - dependência opcional
-        raise RuntimeError(
+        raise DependenciaAusente(
             "A biblioteca 'qrcode' é necessária para gerar a imagem do QR do PIX. "
             "Reinstale o pacote: pip install --force-reinstall pycobranca."
         ) from exc

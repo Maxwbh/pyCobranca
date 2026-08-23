@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from ..exceptions import DadosInvalidos
+
 __all__ = [
     "modulo10",
     "modulo11_codigo_barras",
@@ -20,7 +22,7 @@ __all__ = [
 def _apenas_digitos(sequencia: str) -> str:
     seq = "".join(ch for ch in str(sequencia) if ch.isdigit())
     if not seq:
-        raise ValueError(f"sequência sem dígitos: {sequencia!r}")
+        raise DadosInvalidos(f"sequência sem dígitos: {sequencia!r}")
     return seq
 
 

@@ -6,13 +6,22 @@ __all__ = [
     "PyCobrancaError",
     "BoletoInvalido",
     "BancoNaoRegistrado",
+    "DadosInvalidos",
+    "DependenciaAusente",
+    "ModeloInvalido",
     "OFXInvalido",
     "RetornoInvalido",
 ]
 
 
 class PyCobrancaError(Exception):
-    """Erro-base da biblioteca."""
+    """Erro-base da biblioteca.
+
+    **Todo** erro levantado pela PyCobrança herda desta classe *e* do erro
+    embutido correspondente (``ValueError``, ``KeyError``, ``RuntimeError``),
+    nessa ordem: ``except PyCobrancaError`` cobre a biblioteca inteira, e quem
+    já tratava pelo tipo embutido continua funcionando.
+    """
 
 
 class BoletoInvalido(PyCobrancaError, ValueError):
@@ -31,6 +40,27 @@ class BoletoInvalido(PyCobrancaError, ValueError):
 
 class BancoNaoRegistrado(PyCobrancaError, KeyError):
     """Código FEBRABAN não consta no registro de bancos."""
+
+
+class DadosInvalidos(PyCobrancaError, ValueError):
+    """Entrada fora do que a composição do título aceita.
+
+    É o erro das camadas baixas — dígitos verificadores, fator de vencimento,
+    código de barras e linha digitável —, onde a regra é estrutural e não tem
+    banco envolvido: campo livre com 24 posições, código de barras com 43
+    dígitos, sequência sem dígito para o módulo 10.
+
+    Distinta de :class:`BoletoInvalido`, que reúne as violações **de regra de
+    banco** numa lista.
+    """
+
+
+class ModeloInvalido(PyCobrancaError, ValueError):
+    """Documento ou bloco de layout que não existe no catálogo de renderização."""
+
+
+class DependenciaAusente(PyCobrancaError, RuntimeError):
+    """Dependência de renderização faltando na instalação (``reportlab``, ``qrcode``)."""
 
 
 class OFXInvalido(PyCobrancaError, ValueError):

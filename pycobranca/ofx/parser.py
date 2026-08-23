@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 
+from ..core.entrada import FonteDeArquivo
 from ..exceptions import OFXInvalido
 from .nosso_numero import extrair_nosso_numero
 
@@ -113,7 +114,7 @@ class Extrato:
 
     # ---- leitura ----
     @classmethod
-    def ler(cls, arquivo, *, somente_creditos: bool = False) -> Extrato:
+    def ler(cls, arquivo: FonteDeArquivo, *, somente_creditos: bool = False) -> Extrato:
         """Lê um OFX de um caminho, ``bytes`` ou objeto com ``.read()``."""
         if hasattr(arquivo, "read"):
             dados = arquivo.read()

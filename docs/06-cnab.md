@@ -57,7 +57,8 @@ cnab/
 > **CNAB 400**: Itaú, Bradesco, Banco do Brasil, Santander (com campos PIX), Banco do Nordeste,
 > Banrisul, CrediSIS, C6, Unicred e BRB. **CNAB 240**: base/Caixa, Santander, Ailos, Sicredi e
 > Sicoob (dois segmentos, **T** = dados gerais e **U** = valores, combinados em um registro).
-> `Retorno.ler(caminho)` detecta o layout pelo tamanho do registro e o banco pelo header.
+> `Retorno.ler` aceita caminho, `bytes` ou objeto com `.read()`, e detecta o layout pelo tamanho
+> do registro e o banco pelo header.
 
 ### Layouts declarativos
 
@@ -249,19 +250,50 @@ dados = retorno.to_dict()  # list[dict], nulos removidos
 > banco reconhecível (em vez de devolver lista vazia). Ver
 > [contrato de erros](14-validacao-campos.md).
 
+`Retorno.ler` aceita **caminho, `bytes` ou objeto com `.read()`** — um serviço que recebe o `.RET`
+por upload não precisa passar por arquivo temporário:
+
+```python
+Retorno.ler("arquivo.ret")  # caminho
+Retorno.ler(upload.read())  # bytes
+Retorno.ler(open("a.ret", "rb"))  # file-like
+```
+
+A decodificação é **Latin-1**, que mapeia os 256 bytes e por isso nunca substitui caractere: o CNAB
+é posicional, e um byte perdido deslocaria todas as posições seguintes do registro.
+
 Os valores são devolvidos como **strings cruas** do arquivo (ex.: `valor_recebido`
 `"0000000003790"` = R$ 37,90; datas no formato do banco), preservando fidelidade ao retorno; a
 interpretação numérica/monetária fica a cargo do consumidor (aplicação).
 
-## Agrupamento determinístico (remessa em lote)
+## Um arquivo, uma conta
 
-Ao gerar remessa a partir de vários títulos, o agrupamento é **determinístico**: um arquivo CNAB
-**nunca** mistura banco, layout, convênio, carteira ou conta incompatíveis. Quando a entrada
-contém títulos heterogêneos, ela é separada automaticamente em **sublotes compatíveis**, cada um
-gerando seu próprio arquivo. Os totais de header/trailer são validados antes de disponibilizar o
-arquivo, o conteúdo é guardado de forma imutável para auditoria e é possível reprocessar apenas o
-sublote com erro. O fluxo assíncrono desse agrupamento está detalhado em
-[12 — Processamento em Lote](12-processamento-lote.md).
+Cada instância de `Remessa*` representa **um arquivo para uma conta**: banco, layout, convênio,
+carteira e conta vêm do construtor, e os `pagamentos` são os títulos daquela conta. A biblioteca
+**não separa** uma lista heterogênea em sublotes — quem tem títulos de contas ou bancos diferentes
+agrupa antes e instancia uma remessa por grupo.
+
+```python
+from itertools import groupby
+
+
+def chave(pagamento):
+    return (pagamento.banco, pagamento.conta)  # e convênio, carteira… conforme o seu modelo
+
+
+for (banco, conta), titulos in groupby(sorted(pagamentos, key=chave), key=chave):
+    remessa = REMESSA_POR_BANCO[banco](
+        conta_corrente=conta,
+        pagamentos=list(titulos),
+        **dados_do_cedente,
+    )
+    arquivos.append(remessa.gera_arquivo())
+```
+
+O que a biblioteca garante por conta própria: os totais de header/trailer são calculados a partir
+dos registros efetivamente montados, e a conferência de tamanho recusa o arquivo malformado antes
+de devolvê-lo. Custo de `gera_arquivo()` em lote e as demais fronteiras do hospedeiro estão em
+[19 — Integração](19-integracao.md#lotes).
 
 ## Mapeamento de ocorrências
 

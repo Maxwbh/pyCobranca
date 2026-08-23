@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from ..exceptions import DadosInvalidos
+
 __all__ = ["fator_vencimento", "data_do_fator", "BASE_FATOR", "ROLLOVER_FATOR"]
 
 BASE_FATOR = date(1997, 10, 7)
@@ -24,13 +26,13 @@ def fator_vencimento(vencimento: date) -> int:
     reinício da FEBRABAN).
     """
     if vencimento < BASE_FATOR:
-        raise ValueError(f"vencimento anterior à base do fator: {vencimento}")
+        raise DadosInvalidos(f"vencimento anterior à base do fator: {vencimento}")
     if vencimento < ROLLOVER_FATOR:
         fator = (vencimento - BASE_FATOR).days
     else:
         fator = 1000 + (vencimento - ROLLOVER_FATOR).days
     if fator > 9999:
-        raise ValueError(f"fator de vencimento fora do intervalo (>{9999}): {vencimento}")
+        raise DadosInvalidos(f"fator de vencimento fora do intervalo (>{9999}): {vencimento}")
     return fator
 
 
@@ -41,7 +43,7 @@ def data_do_fator(fator: int, *, referencia: date | None = None) -> date:
     decide a época: fatores lidos a partir de 22/02/2025 usam a nova base.
     """
     if not 0 < fator <= 9999:
-        raise ValueError(f"fator inválido: {fator}")
+        raise DadosInvalidos(f"fator inválido: {fator}")
     referencia = referencia or date.today()
     if referencia >= ROLLOVER_FATOR and fator >= 1000:
         return ROLLOVER_FATOR + timedelta(days=fator - 1000)

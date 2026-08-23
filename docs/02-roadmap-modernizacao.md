@@ -50,8 +50,9 @@ implementação de referência (Ruby) produzem código de barras e linha digitá
 - [x] Validação estrutural (posições por registro, header/trailer, sequenciais) com desvios
   conhecidos do layout anotados (`tamanho_registro=None`).
 
-**Critério de aceite:** remessa 240 e 400 geradas byte-a-byte compatíveis com os vetores de referência para os bancos prioritários. **Status: atendido** — 19 arquivos de remessa (12 em 400
-e 7 em 240) validados em `tests/test_cnab_remessa.py`; ver [`docs/bancos/`](../docs/bancos/README.md).
+**Critério de aceite:** remessa 240 e 400 geradas byte-a-byte compatíveis com os vetores de referência para os bancos prioritários. **Status: atendido** — 26 arquivos de remessa validados em
+`tests/test_cnab_remessa.py`: 19 combinações banco/layout (12 em 400 e 7 em 240) mais as 7
+variantes com segmento PIX; ver [`docs/bancos/`](../docs/bancos/README.md).
 
 ## Fase 3 — CNAB Retorno
 

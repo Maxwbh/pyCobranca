@@ -7,6 +7,8 @@ pronto para ser embutido em qualquer HTML.
 
 from __future__ import annotations
 
+from ..exceptions import PyCobrancaError
+
 __all__ = ["interleaved_2of5_svg", "sequencia_i2of5", "InvalidBarcodeError"]
 
 # Padrões de barras/espaços por dígito: N = estreito, W = largo (2 largos por dígito).
@@ -24,7 +26,7 @@ _PADROES = {
 }
 
 
-class InvalidBarcodeError(ValueError):
+class InvalidBarcodeError(PyCobrancaError, ValueError):
     """Código informado não é válido para Interleaved 2 of 5."""
 
 

@@ -121,11 +121,11 @@ pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
 # remessa byte a byte
 pytest tests/test_cnab_remessa.py -v
 
-# a suíte completa (346 testes)
+# a suíte completa (967 testes)
 pytest
 ```
 
-A CI roda os 346 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
+A CI roda os 967 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
 [exemplos executáveis](https://github.com/Maxwbh/pyCobranca/tree/main/examples), que instalam o
 pacote **sem** as dependências de desenvolvimento — o que também valida o conteúdo do wheel.
 

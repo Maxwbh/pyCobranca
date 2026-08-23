@@ -239,14 +239,17 @@ Acrescente uma entrada em [`tests/exemplos_boletos.py`](../tests/exemplos_boleto
 construtor e a **saída de referência**:
 
 ```python
-"banco_exemplo": {
-    "boleto": lambda: BancoExemplo(
-        **COMUM, agencia="1234", convenio="1234567", carteira="1", nosso_numero="12345678"
-    ),
-    "codigo_barras": "99991153900000127501234123456700012345678914",
-    "linha_digitavel": "99991.23418 23456.700014 23456.789140 1 15390000012750",
-    "nosso_numero": "00012345678-9",
-},
+EXEMPLOS = {
+    # ... os outros bancos
+    "banco_exemplo": {
+        "boleto": lambda: BancoExemplo(
+            **COMUM, agencia="1234", convenio="1234567", carteira="1", nosso_numero="12345678"
+        ),
+        "codigo_barras": "99991153900000127501234123456700012345678914",
+        "linha_digitavel": "99991.23418 23456.700014 23456.789140 1 15390000012750",
+        "nosso_numero": "00012345678-9",
+    },
+}
 ```
 
 Essa única entrada alimenta três suítes:

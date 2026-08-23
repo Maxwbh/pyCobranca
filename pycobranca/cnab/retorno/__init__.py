@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ...core.entrada import FonteDeArquivo
 from ...exceptions import RetornoInvalido
 from .base import RegistroRetorno
 from .cnab240 import banco_do_arquivo_240, parse_cnab240
@@ -35,15 +36,28 @@ class Retorno:
     registros: list[RegistroRetorno] = field(default_factory=list)
 
     @classmethod
-    def ler(cls, caminho: str | Path, layout: str | None = None) -> Retorno:
-        """Lê o arquivo de retorno em ``caminho``.
+    def ler(cls, arquivo: FonteDeArquivo, layout: str | None = None) -> Retorno:
+        """Lê um retorno de um caminho, ``bytes`` ou objeto com ``.read()``.
+
+        Aceitar bytes é o que permite tratar um upload sem passar por arquivo
+        temporário — a mesma tolerância de :meth:`pycobranca.ofx.Extrato.ler`.
 
         ``layout`` (``"240"``/``"400"``) pode ser informado; por padrão é
         detectado pelo tamanho do primeiro registro.
         """
-        texto = Path(caminho).read_text(encoding="latin-1")
-        linhas = texto.splitlines()
-        return cls.ler_linhas(linhas, layout=layout)
+        if hasattr(arquivo, "read"):
+            dados = arquivo.read()
+        elif isinstance(arquivo, (bytes, bytearray)):
+            dados = bytes(arquivo)
+        else:
+            dados = Path(arquivo).read_bytes()
+        if isinstance(dados, str):  # objeto aberto em modo texto
+            texto = dados
+        else:
+            # Latin-1 mapeia todo byte 0–255, então nunca levanta: o CNAB é
+            # posicional e um byte perdido deslocaria o registro inteiro.
+            texto = dados.decode("latin-1")
+        return cls.ler_linhas(texto.splitlines(), layout=layout)
 
     @classmethod
     def ler_linhas(cls, linhas: list[str], layout: str | None = None) -> Retorno:
