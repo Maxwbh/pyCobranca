@@ -79,5 +79,6 @@ layout de arquivo `087`, de lote `045`. `forma_cadastramento` = `0`, `tipo_docum
 
 **DV da conta:** módulo 11 sobre a conta de 7 posições, mapa `{10: 0}`.
 
-**Segmento R condicional:** `total_segmentos()` conta 2 registros por pagamento sem multa e 3
-com multa; `monta_segmento_r` retorna `None` quando não há multa, mantendo a contagem correta.
+**Segmento R condicional:** `monta_segmento_r` devolve `None` quando não há multa, e o contador
+de `monta_lote` só avança quando o segmento é de fato emitido — 2 registros por pagamento sem
+multa, 3 com multa, com os trailers batendo nos dois casos.

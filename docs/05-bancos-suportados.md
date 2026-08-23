@@ -42,7 +42,7 @@ CNAB e PIX variam por banco, e a matriz mostra exatamente onde.
 | 756 | Sicoob | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 Totais: **18** com boleto, **7** com PIX, **12** com remessa 400, **7** com remessa 240,
-**15** com layout de retorno próprio.
+**14** com layout de retorno próprio.
 
 Cada banco tem uma página com carteiras, formato do nosso número, composição do campo livre e
 fontes oficiais: [`docs/bancos/`](bancos/README.md).

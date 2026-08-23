@@ -154,7 +154,12 @@ class Tela:
         canvas.setLineWidth(0.5)
         canvas.setStrokeColor(self.borda)
         canvas.rect(x_(x), y_topo - h * mm, w * mm, h * mm, stroke=1, fill=0)
-        texto(x_(x) + 1.2 * mm, y_topo - 2.8 * mm, self.rot_fmt(rot), tam=5.8, cor=self.rotulo)
+        # 2,5 mm e não 2,8: numa célula de 7 mm o valor fica 2,4 mm abaixo do
+        # rótulo, e cap(8,5 pt) + descida(5,8 pt) pede 2,58 mm. Rótulo com 'g',
+        # 'p' ou 'ç' — "Espécie", "Agência/Código Beneficiário" — encostava o
+        # rabo da letra no topo do valor. Subir o rótulo 0,3 mm abre a folga sem
+        # mexer na altura de nenhuma célula.
+        texto(x_(x) + 1.2 * mm, y_topo - 2.5 * mm, self.rot_fmt(rot), tam=5.8, cor=self.rotulo)
         fonte = "Helvetica-Bold" if negrito else "Helvetica"
         y_val = y_topo - (6.4 if linha2 else h - 1.8) * mm
         # A célula conhece a própria largura; o texto, não. É aqui que a

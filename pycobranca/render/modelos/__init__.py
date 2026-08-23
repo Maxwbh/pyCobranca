@@ -27,6 +27,7 @@ from __future__ import annotations
 
 from types import ModuleType
 
+from ...exceptions import ModeloInvalido
 from . import boleto_classico, boleto_moderno, fatura
 from .carne import render_carne_pdf
 
@@ -46,9 +47,11 @@ def modelo_boleto(nome: str) -> ModuleType:
     """Devolve o módulo do modelo de boleto ``nome``.
 
     Raises:
-        ValueError: se o modelo não estiver registrado em :data:`MODELOS_BOLETO`.
+        ModeloInvalido: se o modelo não estiver registrado em :data:`MODELOS_BOLETO`.
     """
-    try:
-        return MODELOS_BOLETO[nome]
-    except KeyError:
-        raise ValueError(f"modelo inválido: {nome!r} (use 'classico' ou 'moderno')") from None
+    # O nome pode chegar de JSON como qualquer coisa; uma lista ou um dicionário
+    # levantariam TypeError no acesso, antes do `except KeyError`.
+    modelo = MODELOS_BOLETO.get(nome) if isinstance(nome, str) else None
+    if modelo is None:
+        raise ModeloInvalido(f"modelo inválido: {nome!r} (use 'classico' ou 'moderno')")
+    return modelo

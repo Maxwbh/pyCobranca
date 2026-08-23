@@ -15,6 +15,7 @@ Estrutura:
 from __future__ import annotations
 
 from ..core.dv import modulo11_codigo_barras
+from ..exceptions import DadosInvalidos
 
 __all__ = ["montar_codigo_barras"]
 
@@ -36,14 +37,14 @@ def montar_codigo_barras(
     """
     banco = str(banco).zfill(3)
     if len(banco) != 3 or not banco.isdigit():
-        raise ValueError(f"código de banco inválido: {banco!r}")
+        raise DadosInvalidos(f"código de banco inválido: {banco!r}")
     if not 0 < int(fator) <= 9999:
-        raise ValueError(f"fator de vencimento inválido: {fator!r}")
+        raise DadosInvalidos(f"fator de vencimento inválido: {fator!r}")
     if not 0 <= int(valor_centavos) < 10**10:
-        raise ValueError(f"valor em centavos inválido: {valor_centavos!r}")
+        raise DadosInvalidos(f"valor em centavos inválido: {valor_centavos!r}")
     campo_livre = str(campo_livre)
     if len(campo_livre) != 25 or not campo_livre.isdigit():
-        raise ValueError(f"campo livre deve ter 25 dígitos: {campo_livre!r}")
+        raise DadosInvalidos(f"campo livre deve ter 25 dígitos: {campo_livre!r}")
 
     sem_dv = f"{banco}{moeda}{int(fator):04d}{int(valor_centavos):010d}{campo_livre}"
     dv = modulo11_codigo_barras(sem_dv)

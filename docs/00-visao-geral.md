@@ -16,8 +16,9 @@ financeiros.
    piso em **Python 3.12** (suíte na matriz 3.12/3.13/3.14) e dependências puras em Python.
 2. **Conformidade FEBRABAN verificável.** Cada regra (DV, fator de vencimento, campo livre, layout
    CNAB) é coberta por testes com valores conhecidos.
-3. **Serialização JSON de primeira classe.** Todo objeto de domínio expõe `to_dict()` para consumo
-   por APIs e microsserviços.
+3. **Serialização JSON de primeira classe.** Os artefatos que atravessam a fronteira do processo
+   — título, retorno CNAB, extrato OFX e conciliação — expõem `to_dict()`; o formato exato de uma
+   API REST vem de `pycobranca.contracts`.
 4. **Validação por banco explícita e testável.** Cada banco declara suas regras; falhas são erros
    de domínio claros, não exceções genéricas.
 5. **Sem dependências de sistema.** A renderização é pura Python (ReportLab) — nada de cairo, Pango
@@ -75,7 +76,7 @@ mesma engine sem conflito.
 | Dependências pesadas para renderização de PDF. | Renderização em Python puro (ReportLab), sem libs nativas — ver [11 — Renderização](11-renderizacao.md). |
 | Divergência entre ambientes de validação e produção. | Contratos OpenAPI versionados e fixtures de referência congeladas. |
 | Falta de dados reais para retorno/CNAB. | Fixtures anonimizadas e cenários mínimos por banco. |
-| Lotes grandes causando timeout/estouro de memória. | Processamento assíncrono por job — ver [12 — Processamento em Lote](12-processamento-lote.md). |
+| Lotes grandes causando estouro de memória. | `gera_arquivo()` monta o arquivo inteiro em memória; o custo está medido em [19 — Integração](19-integracao.md#lotes). |
 
 ## Definição de pronto (nível projeto)
 

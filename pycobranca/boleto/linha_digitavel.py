@@ -14,6 +14,7 @@ Formato: ``AAABC.CCCCD DDDDD.DDDDDE EEEEE.EEEEEF G HHHHIIIIIIIIII``.
 from __future__ import annotations
 
 from ..core.dv import modulo10
+from ..exceptions import DadosInvalidos
 
 __all__ = ["linha_digitavel"]
 
@@ -22,7 +23,7 @@ def linha_digitavel(codigo_barras: str) -> str:
     """Gera a linha digitável formatada a partir das 44 posições."""
     cb = str(codigo_barras)
     if len(cb) != 44 or not cb.isdigit():
-        raise ValueError(f"código de barras deve ter 44 dígitos: {codigo_barras!r}")
+        raise DadosInvalidos(f"código de barras deve ter 44 dígitos: {codigo_barras!r}")
 
     banco_moeda = cb[0:4]
     dv_geral = cb[4]

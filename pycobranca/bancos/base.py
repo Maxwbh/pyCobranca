@@ -18,7 +18,7 @@ from ..boleto.codigo_barras import montar_codigo_barras
 from ..boleto.linha_digitavel import linha_digitavel as _linha_digitavel
 from ..core.datas import fator_vencimento
 from ..core.documentos import so_alfanumerico, so_digitos, validar_cnpj, validar_cpf
-from ..exceptions import BoletoInvalido
+from ..exceptions import BoletoInvalido, DadosInvalidos
 
 __all__ = ["BancoBase", "REGISTRO"]
 
@@ -222,10 +222,20 @@ class BancoBase:
         def data_br(d: date | None) -> str:
             return d.strftime("%d/%m/%Y") if d else ""
 
-        def moeda(v: Decimal | None) -> str:
-            """Máscara brasileira; campo não informado imprime vazio, não ``0,00``."""
+        def moeda(v: Decimal | str | float | None) -> str:
+            """Máscara brasileira; campo não informado imprime vazio, não ``0,00``.
+
+            Reconverte para ``Decimal`` como ``valor_centavos`` já fazia: o
+            ``__post_init__`` normaliza o que chega pelo construtor, mas os
+            campos são públicos e mutáveis, e um ``"12.00"`` atribuído depois
+            estourava aqui com ``ValueError: Unknown format code 'f'``.
+            """
             if v is None:
                 return ""
+            try:
+                v = Decimal(str(v))
+            except ArithmeticError as erro:
+                raise DadosInvalidos(f"valor monetário inválido: {v!r}") from erro
             return f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
         valor_br = moeda(self.valor)

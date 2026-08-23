@@ -29,9 +29,11 @@ do pacote leve; ele é dependência padrão, então já vem instalado.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from io import BytesIO
 from typing import Any
 
+from ..exceptions import ModeloInvalido
 from .barcode import InvalidBarcodeError, interleaved_2of5_svg, sequencia_i2of5
 from .comum import _canvas_e_libs
 from .dados import extrai_dados
@@ -40,6 +42,8 @@ from .modelos import MODELO_FATURA, modelo_boleto, render_carne_pdf
 from .tela import Tela
 
 __all__ = [
+    "emite_boleto",
+    "BoletoEmitido",
     "render_boleto_pdf",
     "render_carne_pdf",
     "render_fatura_pdf",
@@ -98,6 +102,80 @@ def render_boleto_pdf(contexto: dict[str, Any], modelo: str = "moderno") -> byte
     canvas.showPage()
     canvas.save()
     return buf.getvalue()
+
+
+@dataclass(frozen=True)
+class BoletoEmitido:
+    """O boleto pronto: o PDF e os dados que acompanham a resposta.
+
+    Existe para que o PDF e os números venham da **mesma** montagem. Buscando-os
+    em separado — PDF do render, linha digitável do objeto — abre-se espaço para
+    o papel dizer uma coisa e o JSON outra, sem nada avisar; e o contexto de
+    render, de onde os dados saem, é formato interno que não serve de contrato.
+    """
+
+    pdf: bytes
+    linha_digitavel: str
+    codigo_barras: str
+    nosso_numero: str
+    vencimento: str
+    valor_documento: str
+    #: Copia-e-cola do Bolepix, ou ``None`` quando o boleto não tem PIX.
+    pix_copia_cola: str | None = None
+    #: Os cinco campos da faixa FEBRABAN, já formatados; vazios quando não informados.
+    totalizadores: dict[str, str] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Tudo menos o PDF — pronto para virar o corpo de uma resposta JSON."""
+        return {
+            "linha_digitavel": self.linha_digitavel,
+            "codigo_barras": self.codigo_barras,
+            "nosso_numero": self.nosso_numero,
+            "vencimento": self.vencimento,
+            "valor_documento": self.valor_documento,
+            "pix_copia_cola": self.pix_copia_cola,
+            "totalizadores": dict(self.totalizadores),
+        }
+
+
+def emite_boleto(
+    boleto, modelo: str = "moderno", *, tema: dict[str, Any] | None = None
+) -> BoletoEmitido:
+    """PDF **e** dados do boleto numa chamada só.
+
+    Monta o contexto uma vez e lê dele tanto o desenho quanto os números, de
+    modo que `validar()` e a montagem do código de barras rodam uma vez — contra
+    quatro quando o chamador busca os derivados de volta no objeto.
+
+    Args:
+        boleto: instância de :class:`~pycobranca.bancos.base.BancoBase`.
+        modelo: ``"moderno"`` (padrão) ou ``"classico"``.
+        tema: bloco opcional da faixa de marca; ver
+            :func:`pycobranca.contracts.tema_de_api` para montá-lo a partir de
+            um ``BoletoData``.
+
+    Returns:
+        :class:`BoletoEmitido`.
+    """
+    contexto = boleto.contexto_render()
+    if tema:
+        if not isinstance(tema, dict):
+            raise ModeloInvalido(
+                f"tema deve ser um dicionário, recebido {type(tema).__name__} — "
+                "monte-o com pycobranca.contracts.tema_de_api()"
+            )
+        contexto["tema"] = tema
+    pix = contexto.get("pix") or {}
+    return BoletoEmitido(
+        pdf=render_boleto_pdf(contexto, modelo=modelo),
+        linha_digitavel=contexto["linha_digitavel"],
+        codigo_barras=contexto["codigo_barras"],
+        nosso_numero=contexto["nosso_numero"],
+        vencimento=contexto["vencimento"],
+        valor_documento=contexto["valor_documento"],
+        pix_copia_cola=pix.get("copia_cola") if pix.get("habilitado") else None,
+        totalizadores=contexto.get("totalizadores") or {},
+    )
 
 
 def render_fatura_pdf(contexto: dict[str, Any], modelo: str = "moderno") -> bytes:

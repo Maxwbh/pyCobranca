@@ -79,8 +79,7 @@ Dois fatos supervenientes mudaram o veredito:
 | 200 | **2,1 s** (10,7 ms/boleto) | 265,2 s (1.326 ms/boleto) | **~124×** |
 | Tamanho do PDF | **7,8 KB** | 23,7 KB | 3× |
 
-Para emissão em lote (100–200 no fluxo assíncrono do
-[doc 12](12-processamento-lote.md)), o WeasyPrint levaria **~4,4 minutos** num lote de 200 —
+Para emissão em lote (100–200 boletos), o WeasyPrint levaria **~4,4 minutos** num lote de 200 —
 enquanto o ReportLab entrega em **~2 segundos**, viabilizando até resposta síncrona.
 
 > **Padrão promovido a 1º: `ReportLabBackend` (`modelo="moderno"`).** Visual idêntico à
@@ -139,6 +138,33 @@ pdf = render_boleto_pdf(boleto.contexto_render(), modelo="moderno")
 - `render_fatura_pdf(contexto)`: **fatura** — corpo livre + boleto na mesma página (ver abaixo).
 - `desenha_boleto(canvas, contexto, modelo)`: desenha o boleto num canvas existente, para compor o
   boleto dentro de outro documento (é o que a fatura usa).
+- `emite_boleto(boleto, modelo, tema=None)`: **PDF e dados numa chamada** (ver abaixo).
+
+### `emite_boleto` — PDF e dados juntos
+
+`render_boleto_pdf` devolve só os bytes. Quem precisa responder com o PDF **e** os números —
+qualquer serviço — voltava ao objeto para buscar `linha_digitavel`, `codigo_barras` e
+`nosso_numero`, o que remonta o título do zero a cada acesso:
+
+```python
+from pycobranca.render import emite_boleto
+
+saida = emite_boleto(boleto, modelo="moderno")
+saida.pdf  # bytes
+saida.linha_digitavel  # str
+saida.codigo_barras
+saida.nosso_numero
+saida.vencimento
+saida.valor_documento
+saida.pix_copia_cola  # None quando o boleto não tem PIX
+saida.totalizadores  # dict com os cinco campos formatados
+saida.to_dict()  # tudo menos o PDF, pronto para o corpo da resposta
+```
+
+O ganho de tempo é pequeno — o desenho do PDF domina a chamada. O que importa é serem **a mesma
+montagem**: buscando o PDF de um lado e os números do outro, o papel pode dizer uma coisa e o JSON
+outra sem nada avisar. E `contexto_render()`, de onde os dados sairiam, é formato interno do
+`render/` — não serve de contrato para quem consome.
 
 ### Faixa de totalizadores
 
@@ -153,7 +179,7 @@ boleto = Banco(
     outras_deducoes="12.30",
     mora_multa="8.00",
     outros_acrescimos="3.20",
-    ...,
+    # ... demais campos do boleto
 )
 ```
 
@@ -168,6 +194,45 @@ boleto = Banco(
 `valor_cobrado` é calculado a partir dos quatro anteriores quando não informado, e continua vazio
 enquanto nenhum deles for. Informe-o explicitamente para sobrepor o cálculo — é o caso quando o
 banco já apurou o total. Os valores aceitam `str`, `int`, `float` ou `Decimal`, como `valor`.
+
+### Faixa de marca (`tema`)
+
+O modelo moderno aceita um **tema**: uma faixa de 12 mm no topo com a marca de quem emite, marca
+d'água na diagonal e rodapé no pé da página. É opt-in — sem `tema`, nada disso é desenhado.
+
+O tema entra **no contexto de render**, não no construtor do banco:
+
+```python
+ctx = boleto.contexto_render()
+ctx["tema"] = {
+    "habilitado": True,  # sem isto, o bloco inteiro é ignorado
+    "cor": "#1B4F8A",  # cor da faixa, da borda dos chips e do rodapé
+    "logo_texto": "EXEMPLO",  # selo branco à esquerda (26 mm; encolhe até caber)
+    "empresa": "Exemplo Serviços Ltda",  # nome ao lado do selo
+    "parcela_texto": "Parcela 3/12",  # canto direito da faixa
+    "marca_dagua": "EXEMPLO",  # diagonal, em 10% da cor do tema
+    "rodape": "financeiro@exemplo.com.br · 0800 000 0000",
+}
+pdf = render_boleto_pdf(ctx, modelo="moderno")
+```
+
+| Chave | Efeito | Ausente |
+|---|---|---|
+| `habilitado` | liga o tema | nada é desenhado |
+| `cor` | faixa, borda dos chips, marca d'água e rodapé | `#1B4F8A` |
+| `logo_texto` | selo branco de 26 mm à esquerda | sem selo; `empresa` começa na margem |
+| `empresa` | nome na faixa | omitido |
+| `parcela_texto` | texto à direita da faixa | omitido |
+| `marca_dagua` | diagonal em duas posições da página | omitida |
+| `rodape` | linha centralizada no pé | omitido |
+
+`logo_texto` e `empresa` têm largura limitada e **encolhem o corpo até caber** em vez de invadir a
+faixa. Para a marca em imagem (PNG/JPEG) no lugar do nome do banco, use o
+[logo opt-in](#logo-opt-in-no-cabecalho) — são mecanismos independentes e combináveis.
+
+> **No contrato REST**, o tema aparece em `BoletoData` com outro vocabulário — `cor_marca`,
+> `logo_empresa`, `marca_dagua`, `rodape_contato`, `parcela_atual`/`total_parcelas` — e a tradução
+> para as chaves acima é do serviço que expõe a API; a biblioteca não a faz.
 
 ## Fatura — corpo livre em 3 níveis
 
@@ -283,7 +348,8 @@ Como conveniência, a biblioteca inclui logos de 17 bancos (nomeados pelo códig
 ```python
 from pycobranca.render import logo_do_banco, bancos_com_logo
 
-bancos_com_logo()  # ('001', '004', '033', '041', '085', '104', '136', '237', '336', '341', '748', '756')
+bancos_com_logo()  # ('001', '004', '021', '033', '041', '070', '085', '097', '104',
+#  '136', '237', '336', '341', '399', '422', '748', '756')
 ctx["banco"]["logo"] = logo_do_banco("237")  # bytes do PNG, ou None se não houver
 ```
 

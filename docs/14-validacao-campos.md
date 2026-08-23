@@ -14,22 +14,29 @@ as exceções descritas aqui.
 | `BancoNaoRegistrado` | código FEBRABAN fora do registro | `KeyError` |
 | `OFXInvalido` | conteúdo não é um OFX (marcador `<OFX>`/`OFXHEADER` ausente) — na leitura de extrato | `ValueError` |
 | `RetornoInvalido` | arquivo de retorno CNAB vazio ou sem header de banco reconhecível | `ValueError` |
-| `ErroDeContrato` | serialização fora do contrato REST (`valida_contrato`) | `ValueError` |
+| `ErroDeContrato` | serialização ou payload fora do contrato REST | `ValueError` |
+| `DadosInvalidos` | entrada fora do que a composição do título aceita (campo livre com 24 posições, código de barras com 43 dígitos, fator fora do intervalo) | `ValueError` |
+| `ModeloInvalido` | modelo de documento ou bloco de fatura que não existe no catálogo | `ValueError` |
+| `DependenciaAusente` | `reportlab`/`qrcode` faltando na instalação | `RuntimeError` |
 
 > **OFX e retorno CNAB:** `Extrato.ler(...)` levanta `OFXInvalido` para um arquivo que não é OFX
 > (em vez de devolver um extrato vazio), e `Retorno.ler(...)` levanta `RetornoInvalido` para um
 > arquivo vazio ou sem header — assim o consumidor distingue **arquivo inválido** de **resultado
 > vazio**. Um extrato OFX válido **sem transações** não é erro.
 
-Todas herdam de `PyCobrancaError`. O ponto-chave para um consumidor é o atributo **`.erros`** de
-`BoletoInvalido` — uma lista, não uma string — que permite mapear cada violação individualmente.
+Todas herdam de `PyCobrancaError` **e** do erro embutido correspondente (`ValueError`,
+`KeyError`), nessa ordem: `except PyCobrancaError` cobre a biblioteca inteira, e
+`except ValueError` continua funcionando para quem trata pelo tipo genérico.
+
+O ponto-chave para um consumidor é o atributo **`.erros`** de `BoletoInvalido` — uma lista,
+não uma string — que permite mapear cada violação individualmente.
 
 ```python
 from pycobranca.bancos import Itau
 from pycobranca.exceptions import BoletoInvalido
 
 try:
-    Itau(agencia="12345", conta="123456", carteira="999", ...).codigo_barras
+    Itau(agencia="12345", conta="123456", carteira="999", **resto).codigo_barras
 except BoletoInvalido as exc:
     exc.erros
     # ['carteira '999' não suportada (use uma de: 104, 109, 112, 115, 175, 177, 188)',

@@ -1,53 +1,47 @@
 # 04 — Contrato de dados para API REST
 
 A PyCobrança serializa seus artefatos (boleto, remessa, retorno) para um **contrato de dados JSON**
-(OpenAPI 3.0), pronto para ser exposto por um serviço REST. A relação acontece de duas formas:
-
-1. **Como produtora de artefatos** — gera boletos, remessa e retorno em JSON compatível com o
-   contrato, permitindo que qualquer serviço REST reutilize a lógica.
-2. **Como consumidora** — um **cliente Python** (`clients/`) pode chamar um serviço remoto que
-   exponha o mesmo contrato.
-
-## Endpoints de referência
-
-Endpoints típicos de um serviço de cobrança. Os prioritários para o SDK:
-
-| Endpoint | Método | Uso |
-|----------|:------:|-----|
-| `/api/boleto` | GET | Gera boleto (PDF/JPG/PNG/TIF), opcionalmente base64. |
-| `/api/boleto/multi` | POST | Geração em lote. |
-| `/api/remessa` | POST | Gera arquivo de remessa CNAB 240/400. |
-| `/api/retorno` | POST | Faz parsing de arquivo de retorno CNAB → JSON. |
-| `/api/bancos` | GET | Lista bancos suportados e capacidades. |
-| `/api/ofx/parse` | POST | Extrai transações de extrato OFX (conciliação). |
-| `/api/docs` | GET | Swagger UI (OpenAPI 3.0). |
+(OpenAPI 3.0), pronto para ser exposto por um serviço REST. O contrato vem como **dado, não como
+servidor**: a biblioteca não fala HTTP e não traz cliente nem framework — quem expõe é você, em
+FastAPI, Flask, Django ou o que preferir.
 
 ## Contrato de dados (boleto)
 
-Campos principais aceitos pela API — a PyCobrança usa os mesmos nomes na serialização para
-minimizar atrito:
+O payload é `{"bank": <slug>, "data": <BoletoData>}` — o banco vai **fora** do `data`, como slug
+(`itau`, não `341`), e o schema `BoletoData` **não tem** campo `banco`:
 
 ```json
 {
-  "banco": "341",
-  "valor": 127.50,
-  "cedente": "Empresa Exemplo LTDA",
-  "documento_cedente": "12345678000190",
-  "agencia": "1234",
-  "conta_corrente": "56789",
-  "carteira": "109",
-  "nosso_numero": "12345678",
-  "data_vencimento": "2026-08-15",
-  "sacado": "Cliente Final",
-  "sacado_documento": "12345678909"
+  "bank": "itau",
+  "data": {
+    "valor": 127.50,
+    "cedente": "Empresa Exemplo LTDA",
+    "documento_cedente": "12345678000190",
+    "agencia": "1234",
+    "conta_corrente": "56789",
+    "carteira": "109",
+    "nosso_numero": "12345678",
+    "data_vencimento": "2026-08-15",
+    "sacado": "Cliente Final",
+    "sacado_documento": "12345678909"
+  }
 }
 ```
 
-Campos opcionais de temização (logo, cor da marca, marca d'água, fonte) e `template` (`carne`)
-são repassados quando presentes.
+O mapa código FEBRABAN → slug é `SLUG_POR_CODIGO`. Os nomes dentro de `data` acompanham os campos
+de `BancoBase`, com quatro exceções que a serialização traduz — a tupla `NOMES_DO_CONTRATO` é a
+fonte:
 
-> **Nota de contrato:** no endpoint `GET /api/boleto`, o banco vai no parâmetro `bank` (slug,
-> ex.: `itau`) e os demais campos no parâmetro `data` (schema `BoletoData`, sem o campo `banco`).
+| No contrato | No construtor |
+|---|---|
+| `conta_corrente` | `conta` |
+| `documento_cedente` | `cedente_documento` |
+| `chave_pix` | `pix_chave` |
+| `txid` | `pix_txid` |
+
+> **`additionalProperties` é permissivo.** `valida_contrato` ignora campo desconhecido em vez de
+> recusá-lo, então um `data` com `banco` dentro **passa** — e o banco declarado ali seria
+> silenciosamente descartado. Quem monta o payload à mão precisa conferir a forma acima.
 
 ## Contrato de dados verificado
 
@@ -89,6 +83,26 @@ payload = boleto_para_api(
 valida_contrato(payload["data"], "BoletoData")  # levanta ErroDeContrato se divergir
 # payload == {"bank": "itau", "data": {...}}
 ```
+
+### Faixa de totalizadores (`BoletoData`)
+
+Os cinco campos FEBRABAN impressos no boleto viajam no contrato com **os mesmos nomes** que têm em
+`BancoBase` — não há tradução nos dois sentidos. A tupla `TOTALIZADORES` expõe a lista:
+
+```python
+from pycobranca.contracts import TOTALIZADORES, boleto_para_api
+
+TOTALIZADORES
+# ('desconto_abatimento', 'outras_deducoes', 'mora_multa', 'outros_acrescimos', 'valor_cobrado')
+
+boleto_para_api(boleto)["data"]
+# {..., 'desconto_abatimento': 150.0, 'mora_multa': 8.0}
+```
+
+Campo não informado **some do payload** — boleto sem encargo sai idêntico ao que saía antes destes
+campos existirem. `valor_cobrado` é serializado como foi informado (ou omitido); o total calculado
+a partir dos outros quatro é detalhe de renderização e vive em `contexto_render()`, não aqui —
+assim `boleto_para_api` continua sendo uma projeção fiel do que o chamador montou.
 
 ### Encargos na remessa (`Pagamento`)
 
@@ -152,7 +166,7 @@ O mesmo schema `BoletoData` carrega o corpo da **fatura** — não há schema no
 
 ```json
 {
-  "banco": "341", "valor": 127.50, "...": "...",
+  "valor": 127.50, "...": "...",
   "fatura": {
     "titulo": "FATURA DE CONSUMO",
     "blocos": [
@@ -187,58 +201,47 @@ itens = [retorno_item_para_api(r, layout=retorno.layout) for r in retorno.regist
 #  'codigo_ocorrencia': '06', 'motivo_ocorrencia': 'Liquidação normal', ...}
 ```
 
-## Cliente Python (design alvo) — **projeto separado**
+## Caminho de volta: `boleto_de_api`
 
-> **Decisão de escopo:** o SDK HTTP abaixo **não faz parte deste repositório** nem do pacote
-> `pycobranca` — seria projeto próprio. O código a seguir é ilustração do contrato, não API
-> existente: nenhum destes nomes é importável hoje. A biblioteca não fala HTTP.
+Receber um `BoletoData` e construir o título é uma chamada:
 
 ```python
-# Ilustrativo — este módulo não existe.
-from cobranca_client import CobrancaClient
+from pycobranca.contracts import boleto_de_api, tema_de_api
+from pycobranca.render import emite_boleto
 
-client = CobrancaClient(base_url="https://sua-instancia/api")
+boleto = boleto_de_api(payload)  # {"bank": ..., "data": {...}}
+saida = emite_boleto(boleto, tema=tema_de_api(payload["data"]))
 
-# Gerar boleto remotamente
-pdf_bytes = client.boleto(
-    banco="341",
-    valor=127.50,
-    cedente="Empresa Exemplo LTDA",
-    documento_cedente="12345678000190",
-    agencia="1234",
-    conta_corrente="56789",
-    carteira="109",
-    nosso_numero="12345678",
-    data_vencimento="2026-08-15",
-    sacado="Cliente Final",
-    sacado_documento="12345678909",
-    formato="pdf",
-)
-
-# Gerar remessa
-remessa = client.remessa(banco="341", tipo="cnab400", pagamentos=[...])
-
-# Parsear retorno
-ocorrencias = client.retorno(arquivo=open("retorno.ret", "rb"))
-
-# Listar bancos
-bancos = client.bancos()
+resposta = {"pdf_base64": b64(saida.pdf), **saida.to_dict()}
 ```
 
-## Estratégia de compatibilidade
+Ela valida contra o schema, resolve o slug, aplica as quatro traduções de nome, converte as datas
+ISO para `date` e descarta os campos de apresentação que o construtor não aceita. Levanta
+`ErroDeContrato` (schema), `BancoNaoRegistrado` (slug desconhecido) ou `BoletoInvalido` (regra do
+banco).
 
-- **Mesmos nomes de campos** entre `Boleto.to_dict()` e o corpo esperado pela API.
-- **Testes de contrato** contra o `openapi.json` de referência, garantindo que o cliente e os
-  artefatos permaneçam válidos conforme a API evolui.
-- **Modo local vs. remoto:** o mesmo código de aplicação pode alternar entre gerar o boleto
-  localmente (`Boleto.to_pdf`) ou remotamente (`client.boleto`) conforme configuração.
+**A ida e volta é testada nos 18 bancos**: `boleto_de_api(boleto_para_api(b))` reproduz o mesmo
+código de barras e a mesma linha digitável. É o que garante que os campos consumidos pelo campo
+livre — `portfolio`, `incremento`, `byte_idt`, `digito_conta` e os demais de
+`CAMPOS_POR_BANCO` — estejam todos no schema.
 
-## Autenticação
+> `agencia` e `conta_corrente` **não são obrigatórios**: o Santander identifica o cedente pelo
+> convênio e a Caixa pelo código do beneficiário. A exigência por banco é conferida por `validar()`
+> na engine — ver [14 — Validação de campos](14-validacao-campos.md).
 
-O cliente Python deve suportar cabeçalhos de autenticação (`Authorization`) e `timeout`
-configuráveis para uso em produção atrás de gateway.
+## O que o contrato não cobre
 
-## Caminho de evolução
+- **Não há cliente HTTP.** A biblioteca não fala rede; um SDK, se existir, é projeto de quem o
+  escreve. Nenhum nome de cliente é importável de `pycobranca`.
+- **`valida_contrato` confere forma, não regra bancária.** Ele aplica `required`, `type`, `enum`,
+  `pattern` e itens de array — que é exatamente o conjunto de palavras-chave usado no
+  `contrato_rest.json`. Carteira aceita pelo banco, largura de campo e DV são conferidos por
+  `validar()` na engine, ver [14 — Validação de campos](14-validacao-campos.md).
+- **O nível 3 da fatura (`fatura.desenhar`)** é um `callable` Python e não atravessa REST.
 
-Os testes de contrato validam o SDK. Em uma etapa futura (fora do escopo atual), um serviço REST
-poderia oferecer um backend opcional baseado em PyCobrança para deployments Python-only.
+## Versionamento
+
+`CONTRATO` é um fragmento curado, versionado em `pycobranca/contracts/contrato_rest.json` e
+mantido **em sincronia manual**. Os testes de contrato (`tests/test_contrato_rest.py`) prendem a
+serialização ao schema: um campo novo em `BancoBase` que não chegue ao `BoletoData` não quebra a
+suíte sozinho — por isso, ao acrescentar campo ao domínio, acrescente-o também aqui.

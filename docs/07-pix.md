@@ -8,8 +8,8 @@ payload PIX (BR Code), o QR Code, e o segmento PIX no CNAB de remessa.
 
 ```
 pix/
-├── payload.py    # BR Code / EMV (copia-e-cola)
-└── qrcode.py     # geração da imagem do QR Code
+├── payload.py    # BR Code / EMV (copia-e-cola) + CRC16
+└── qr.py         # matriz de módulos (qr_matrix) e SVG (qr_svg)
 ```
 
 ## BR Code (EMV)
@@ -34,8 +34,8 @@ O `payload.py` monta a string, calcula o **CRC16-CCITT** e retorna o copia-e-col
 
 ## QR Code
 
-`qrcode.py` gera a imagem do QR Code a partir do payload, para embutir no PDF do boleto
-(`render/pdf.py`). A geração é pura Python (sem dependências de sistema).
+`qr.py` gera a **matriz de módulos** do QR a partir do payload; o pacote `render/` a desenha
+vetorialmente no PDF. A geração é pura Python (sem dependências de sistema).
 
 > **Status: implementado** (`pycobranca/pix/`): payload EMV validado **byte a byte contra o
 > exemplo canônico do manual do BCB** (CRC `1D3D`), QR real via `qrcode` (dependência do pacote) e

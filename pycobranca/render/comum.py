@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from io import BytesIO
 
+from ..exceptions import DependenciaAusente
 from .barcode import sequencia_i2of5
 
 __all__ = [
@@ -75,7 +76,7 @@ def _canvas_e_libs():
         from reportlab.lib.units import mm
         from reportlab.pdfgen.canvas import Canvas
     except ModuleNotFoundError as exc:  # pragma: no cover - dependência opcional
-        raise RuntimeError(
+        raise DependenciaAusente(
             "ReportLab não está instalado. Reinstale: pip install --force-reinstall pycobranca."
         ) from exc
     return colors, A4, mm, Canvas

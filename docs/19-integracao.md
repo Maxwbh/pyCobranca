@@ -102,19 +102,27 @@ arquivo. **Use `Decimal`**: é a convenção do projeto e evita que o erro de ar
 ```python
 from decimal import Decimal
 
-Pagamento(valor=Decimal("199.90"), ...)
+Pagamento(valor=Decimal("199.90"), **resto)
 ```
 
 ## Contrato de erros
 
-Todas as exceções herdam de `PyCobrancaError`, então um `except` cobre a biblioteca inteira:
+Todas as exceções da biblioteca herdam de `PyCobrancaError`, então um `except` cobre tudo — e
+cada uma herda também do erro embutido correspondente, de modo que quem já tratava por
+`ValueError`/`KeyError` continua funcionando:
 
 | Exceção | Quando |
 |---|---|
-| `BancoNaoRegistrado` | código FEBRABAN desconhecido em `Bancos.find()` |
+| `BancoNaoRegistrado` | código FEBRABAN desconhecido em `Bancos.find()` ou `banco_info()` |
 | `BoletoInvalido` | campo fora das regras do banco |
+| `DadosInvalidos` | entrada fora do que a composição do título aceita |
 | `RetornoInvalido` | arquivo de retorno vazio ou sem header reconhecível |
 | `OFXInvalido` | arquivo que não é OFX |
+| `ModeloInvalido` | modelo de documento ou bloco de fatura fora do catálogo |
+| `DependenciaAusente` | `reportlab`/`qrcode` faltando na instalação |
+
+De borda, e igualmente cobertas: `InvalidBarcodeError` (`render`), `ErroDeContrato`
+(`contracts`) e `PixInvalido` (`pix`).
 
 `BoletoInvalido` carrega **`.erros`**, uma lista com um item por problema — dá para devolver
 todas as violações de uma vez, em vez de o usuário descobrir uma por tentativa:

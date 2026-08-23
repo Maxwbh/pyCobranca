@@ -113,23 +113,28 @@ pycobranca/
 │   └── contrato_rest.py        CONTRATO (OpenAPI 3.0), SLUG_POR_CODIGO, *_para_api,
 │                               valida_contrato, ErroDeContrato
 │
-└── render/                     PDF via ReportLab — estrutura alvo
-    ├── __init__.py             API pública (render_boleto_pdf, render_carne_pdf, barcode, logos)
-    ├── comum.py                constantes + primitivas de desenho (canvas, texto, célula,
-    │                           barcode, QR, logo)
-    ├── dados.py                DadosBoleto / extrai_dados — normaliza o contexto para os
-    │                           renderizadores
-    ├── boleto.py               render_boleto_pdf
-    ├── carne.py                render_carne_pdf
+└── render/                     PDF via ReportLab
+    ├── __init__.py             API pública: render_boleto_pdf, render_carne_pdf,
+    │                           render_fatura_pdf, desenha_boleto, barcode, logos
+    ├── comum.py                constantes, paleta e primitivas (canvas, texto, barcode, QR, logo)
+    ├── tela.py                 Tela — canvas + cursor + coordenadas em mm, célula rotulada,
+    │                           contenção de largura (cabe / cabe_corpo)
+    ├── dados.py                DadosBoleto / extrai_dados — normaliza o contexto de render
+    ├── blocos.py               blocos comuns aos modelos (rótulo, demonstrativo, corte)
+    ├── modelos/                catálogo dos documentos
+    │   ├── __init__.py         MODELOS_BOLETO, modelo_boleto() e o contrato de um modelo
+    │   ├── boleto_classico.py  layout tradicional (bordas pretas, rótulos em caixa alta)
+    │   ├── boleto_moderno.py   chips de destaque, faixa de marca, PIX, grade de 6 colunas
+    │   ├── carne.py            render_carne_pdf — 3 parcelas por A4
+    │   └── fatura.py           render_fatura_pdf — corpo livre + boleto na mesma página
     ├── barcode.py              Interleaved 2 of 5 (interleaved_2of5_svg / sequencia_i2of5)
     ├── marcas.py               logos empacotados dos bancos (logo_do_banco, bancos_com_logo)
     └── logos/                  logos/*.png (um por código FEBRABAN) + NOTICE.md
 ```
 
-> **`render/` em reorganização.** A árvore acima é a **estrutura alvo** do pacote de renderização:
-> o desenho em ReportLab, hoje concentrado num módulo único, passa a ser dividido em primitivas
-> (`comum.py`), normalização do contexto (`dados.py`) e os dois renderizadores (`boleto.py`,
-> `carne.py`). A **API pública exportada por `render/__init__.py` não muda**.
+> **Adicionar um documento novo** custa um módulo em `modelos/`: as camadas de baixo (`comum`,
+> `tela`, `dados`, `blocos`) são compartilhadas. O contrato do modelo — `MODERNO: bool` e
+> `desenha(tela, info, contexto)` — está na docstring de `modelos/__init__.py`.
 
 ## Subsistemas
 

@@ -51,6 +51,7 @@ open("boleto.pdf", "wb").write(render_boleto_pdf(boleto.contexto_render()))
 | Se você quer… | Comece por |
 |---|---|
 | Entender o escopo e a arquitetura | [Visão geral](00-visao-geral.md) · [Arquitetura](01-arquitetura.md) |
+| **Ver tudo o que a biblioteca entrega** | [Superfície pública](20-superficie-publica.md) |
 | **Avaliar se dá para confiar** | [Compatibilidade e validação](17-compatibilidade.md) |
 | Saber o que cada banco suporta | [Bancos suportados](05-bancos-suportados.md) · [Docs por banco](bancos/README.md) |
 | Gerar remessa e ler retorno | [CNAB](06-cnab.md) |
@@ -60,7 +61,7 @@ open("boleto.pdf", "wb").write(render_boleto_pdf(boleto.contexto_render()))
 | Tratar erros de validação | [Validação de campos](14-validacao-campos.md) |
 | **Preparar-se para o CNPJ alfanumérico** | [CNPJ alfanumérico](18-cnpj-alfanumerico.md) |
 | Conciliar o extrato | [OFX](13-ofx.md) |
-| Emitir em lote | [Processamento em lote](12-processamento-lote.md) |
+| Embutir a engine em outro sistema | [Integração](19-integracao.md) · [Superfície pública](20-superficie-publica.md) |
 | Adicionar um banco novo | [Guia de novo banco](15-novo-banco.md) · [Contribuindo](10-contribuindo.md) |
 
 ## Exemplos executáveis

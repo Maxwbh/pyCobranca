@@ -47,8 +47,9 @@ def banco_info(codigo: str) -> str:
         KeyError: Se o código não estiver registrado.
     """
     from .bancos import REGISTRO
+    from .exceptions import BancoNaoRegistrado
 
     codigo = str(codigo).zfill(3)
     if codigo not in REGISTRO:
-        raise KeyError(f"Banco não registrado: {codigo!r}")
+        raise BancoNaoRegistrado(f"Banco não registrado: {codigo!r}")
     return REGISTRO[codigo].nome

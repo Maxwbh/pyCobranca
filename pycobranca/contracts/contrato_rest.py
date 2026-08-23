@@ -19,10 +19,18 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from ..exceptions import PyCobrancaError
+
 __all__ = [
     "CONTRATO",
     "SLUG_POR_CODIGO",
+    "TOTALIZADORES",
+    "CAMPOS_POR_BANCO",
+    "NOMES_DO_CONTRATO",
+    "TEMA_DO_CONTRATO",
     "boleto_para_api",
+    "boleto_de_api",
+    "tema_de_api",
     "pagamento_para_api",
     "remessa_para_api",
     "retorno_item_para_api",
@@ -55,8 +63,70 @@ SLUG_POR_CODIGO: dict[str, str] = {
     "756": "sicoob",
 }
 
+#: Inverso de :data:`SLUG_POR_CODIGO`, para o caminho de volta.
+_CODIGO_POR_SLUG: dict[str, str] = {slug: cod for cod, slug in SLUG_POR_CODIGO.items()}
 
-class ErroDeContrato(ValueError):
+
+#: Os cinco campos da faixa FEBRABAN, na ordem em que aparecem no boleto. Os
+#: nomes são idênticos aos de :class:`~pycobranca.bancos.base.BancoBase`, então
+#: o consumidor não precisa de tradução nos dois sentidos.
+TOTALIZADORES = (
+    "desconto_abatimento",
+    "outras_deducoes",
+    "mora_multa",
+    "outros_acrescimos",
+    "valor_cobrado",
+)
+
+#: Campos específicos de banco que entram no campo livre ou são obrigatórios
+#: por regra própria. Sem eles o contrato não expressa 7 dos 18 bancos — e o
+#: Citibank sem ``portfolio`` produzia um código de barras **diferente**, válido
+#: em estrutura e errado no destino, sem levantar exceção.
+CAMPOS_POR_BANCO = (
+    "data_documento",
+    "digito_conta",
+    "digito_agencia",
+    "digito_convenio",
+    "variacao",
+    "incremento",
+    "portfolio",
+    "posto",
+    "byte_idt",
+)
+
+#: ``nome no contrato -> nome no construtor``. São as únicas quatro divergências;
+#: ``documento_cedente``/``cedente_documento`` inverte as palavras, que é o tipo
+#: de detalhe em que um mapeamento escrito à mão erra.
+NOMES_DO_CONTRATO: dict[str, str] = {
+    "conta_corrente": "conta",
+    "documento_cedente": "cedente_documento",
+    "chave_pix": "pix_chave",
+    "txid": "pix_txid",
+}
+
+#: ``nome no contrato -> chave do bloco ``tema`` no contexto de render``. O
+#: renderizador usa outro vocabulário, e sem este mapa cada consumidor inventa
+#: o seu. ``empresa`` não tem campo no contrato: cai de ``logo_empresa``.
+TEMA_DO_CONTRATO: dict[str, str] = {
+    "cor_marca": "cor",
+    "logo_empresa": "logo_texto",
+    "marca_dagua": "marca_dagua",
+    "rodape_contato": "rodape",
+}
+
+#: Campos do ``BoletoData`` que a engine não consome na construção do título:
+#: ``emv`` é saída (a própria PyCobrança o gera), ``tipo_chave_pix`` e
+#: ``pix_label`` são rótulo, ``fonte_ttf`` não tem suporte, e ``itens``/``fatura``
+#: pertencem a :func:`~pycobranca.render.render_fatura_pdf`.
+_IGNORADOS_NA_CONSTRUCAO = frozenset(
+    {"emv", "pix_label", "tipo_chave_pix", "fonte_ttf", "itens", "fatura"}
+)
+
+#: Datas do contrato chegam como ISO 8601 e o construtor espera ``date``.
+_CAMPOS_DATA = frozenset({"data_vencimento", "data_documento"})
+
+
+class ErroDeContrato(PyCobrancaError, ValueError):
     """Falha de validação de um artefato contra o contrato REST."""
 
 
@@ -95,12 +165,113 @@ def boleto_para_api(banco) -> dict[str, Any]:
         "numero_documento": getattr(banco, "numero_documento", "") or None,
         "sacado_endereco": getattr(banco, "sacado_endereco", "") or None,
     }
+    # Faixa de totalizadores. `_sem_nulos` derruba os não informados, então um
+    # boleto sem encargos sai com o payload idêntico ao de antes deste campo —
+    # e `0` informado de propósito sobrevive, porque só `None` é descartado.
+    for campo in TOTALIZADORES:
+        data[campo] = _num(getattr(banco, campo, None))
+    # Campos específicos de banco: sem eles o payload não reconstrói o título.
+    for campo in CAMPOS_POR_BANCO:
+        valor = getattr(banco, campo, None)
+        data[campo] = _data_iso(valor) if isinstance(valor, date) else (valor or None)
     # Bolepix: quando o banco suporta PIX e há chave configurada.
     if getattr(banco, "suporta_pix", False) and getattr(banco, "pix_chave", ""):
         data["chave_pix"] = banco.pix_chave
         if getattr(banco, "pix_txid", ""):
             data["txid"] = banco.pix_txid
     return {"bank": SLUG_POR_CODIGO.get(banco.codigo, banco.codigo), "data": _sem_nulos(data)}
+
+
+def tema_de_api(data: dict[str, Any]) -> dict[str, Any] | None:
+    """Bloco ``tema`` do contexto de render, a partir de um ``BoletoData``.
+
+    O contrato e o renderizador usam vocabulários diferentes para a faixa de
+    marca (``cor_marca`` × ``cor``, ``rodape_contato`` × ``rodape``…). Sem esta
+    tradução cada consumidor escreve a sua, e ``empresa`` — o texto mais visível
+    da faixa — não tem campo próprio no contrato, então herda ``logo_empresa``.
+
+    Devolve ``None`` quando nenhum campo de tema foi informado, que é o caso em
+    que o boleto sai sem faixa.
+    """
+    tema = {
+        destino: data[origem]
+        for origem, destino in TEMA_DO_CONTRATO.items()
+        if data.get(origem) not in (None, "")
+    }
+    if not tema:
+        return None
+    if "logo_texto" in tema:
+        tema.setdefault("empresa", tema["logo_texto"])
+    atual, total = data.get("parcela_atual"), data.get("total_parcelas")
+    if atual and total:
+        tema["parcela_texto"] = f"Parcela {atual}/{total}"
+    return {"habilitado": True, **tema}
+
+
+def boleto_de_api(payload: dict[str, Any]):
+    """``{"bank": slug, "data": BoletoData}`` → instância do banco, pronta para uso.
+
+    É o caminho de volta de :func:`boleto_para_api`. Sem ele, todo consumidor
+    reescreve as quatro traduções de nome, a conversão das datas ISO e a lista
+    de campos que a engine não aceita no construtor — e errar qualquer uma
+    delas produz título inválido ou, pior, título **válido e errado**.
+
+    O bloco de instruções (``instrucao1``/``instrucao2``) vira a lista
+    ``instrucoes``. Os campos de apresentação (tema, fatura) não entram aqui:
+    use :func:`tema_de_api` e :func:`~pycobranca.render.render_fatura_pdf`.
+
+    Toda falha sai como :class:`~pycobranca.exceptions.PyCobrancaError` — é o
+    ponto da fronteira. Campo desconhecido e data mal formada viram
+    ``ErroDeContrato`` nomeando o campo, em vez do ``TypeError`` do construtor e
+    do ``ValueError`` de ``fromisoformat``, que escapariam de um ``except`` da
+    biblioteca e não diriam onde está o problema.
+
+    Raises:
+        ErroDeContrato: se ``data`` não satisfizer o schema, trouxer campo que a
+            engine não conhece ou data em formato diferente de ISO 8601.
+        BancoNaoRegistrado: se ``bank`` não corresponder a banco suportado.
+        BoletoInvalido: se os dados violarem as regras do banco (em ``validar()``).
+    """
+    import dataclasses
+
+    from ..bancos import Bancos
+
+    data = payload.get("data") or {}
+    valida_contrato(data, "BoletoData")
+
+    # `bank` vem de JSON e pode chegar como qualquer coisa; normalizar para texto
+    # antes da busca evita TypeError num `dict.get` com chave não-hasheável.
+    bank = payload.get("bank")
+    bank = bank if isinstance(bank, str) else str(bank)
+    Banco = Bancos.find(_CODIGO_POR_SLUG.get(bank, bank))
+    aceitos = {f.name for f in dataclasses.fields(Banco)}
+
+    kwargs: dict[str, Any] = {}
+    instrucoes = [data[c] for c in ("instrucao1", "instrucao2") if data.get(c)]
+    for chave, valor in data.items():
+        if valor is None or chave in _IGNORADOS_NA_CONSTRUCAO or chave in TEMA_DO_CONTRATO:
+            continue
+        if chave in ("instrucao1", "instrucao2", "parcela_atual", "total_parcelas"):
+            continue
+        destino = NOMES_DO_CONTRATO.get(chave, chave)
+        # `additionalProperties` é permissivo no validador, então chave estranha
+        # chega até aqui. Recusar nomeando-a acha o erro de digitação; deixar
+        # passar entregaria um boleto sem o campo que o chamador achou que mandou.
+        if destino not in aceitos:
+            raise ErroDeContrato(
+                f"BoletoData.{chave}: campo desconhecido para o banco {Banco.nome} ({Banco.codigo})"
+            )
+        if destino in _CAMPOS_DATA and isinstance(valor, str):
+            try:
+                valor = date.fromisoformat(valor)
+            except ValueError as erro:
+                raise ErroDeContrato(
+                    f"BoletoData.{chave}: {valor!r} não é uma data ISO 8601 (AAAA-MM-DD)"
+                ) from erro
+        kwargs[destino] = valor
+    if instrucoes:
+        kwargs["instrucoes"] = instrucoes
+    return Banco(**kwargs)
 
 
 def _desconto_para_api(codigo, valor, data) -> dict[str, Any] | None:
@@ -297,6 +468,11 @@ def valida_contrato(dados: dict, schema_nome: str) -> None:
                     valida_contrato(item, ref)
             continue
         esperado = _TIPOS.get(tipo)
+        # `bool` é subclasse de `int` em Python, então `True` passaria por
+        # `number`/`integer` e chegaria à engine como valor monetário — onde
+        # `Decimal("True")` levanta InvalidOperation, fora da hierarquia de erros.
+        if tipo in ("number", "integer") and isinstance(valor, bool):
+            raise ErroDeContrato(f"{schema_nome}.{chave}: esperado {tipo}, recebido bool")
         if esperado and not isinstance(valor, esperado):
             raise ErroDeContrato(
                 f"{schema_nome}.{chave}: esperado {tipo}, recebido {type(valor).__name__}"
