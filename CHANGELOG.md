@@ -10,7 +10,9 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   jan/2017) compõe o DAC de `agência + conta + carteira + nosso número`, com exceções que usam só
   `carteira + nosso número`. A 112 é uma delas, e a composição longa era aplicada às sete
   carteiras aceitas — produzindo um código de barras **estruturalmente válido com o dígito
-  errado**: o boleto imprime, e o banco recusa ou credita em outro título. As demais não mudam.
+  errado**: o boleto imprime e passa em conferência estrutural, e a inconsistência pode permanecer
+  invisível em validadores estruturais, só sendo detectada quando o título é validado segundo as
+  regras específicas do Itaú. As demais não mudam.
   [#40](https://github.com/Maxwbh/pyCobranca/issues/40)
 - **Paridade do Itaú presa por vetor**: as sete carteiras aceitas passam a ser conferidas byte a
   byte contra vetores externos. O manual se contradiz sobre as carteiras escriturais (a nota 23 as

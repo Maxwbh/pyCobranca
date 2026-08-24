@@ -82,8 +82,11 @@ class Itau(BancoBase):
 
         As carteiras de :data:`_DAC_SEM_AGENCIA_CONTA` usam ``carteira + nosso número``;
         as demais, ``agência + conta + carteira + nosso número``. Errar a composição
-        produz um código de barras **estruturalmente válido e com o dígito errado** — o
-        boleto imprime, o banco recusa ou credita em outro título.
+        produz um código de barras **estruturalmente válido e com o dígito errado**: o DV
+        geral é recalculado sobre o conteúdo alterado e continua fechando, de modo que a
+        conferência estrutural passa. A inconsistência pode permanecer invisível em
+        validadores estruturais e só ser detectada quando o título é validado segundo as
+        regras específicas do Itaú.
         """
         if self.carteira in self._DAC_SEM_AGENCIA_CONTA:
             return modulo10(f"{self.carteira}{self._nosso_numero8}")

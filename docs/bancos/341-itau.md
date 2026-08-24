@@ -48,8 +48,9 @@ apenas dos campos: Carteira e Nosso Número"*.
 
 !!! warning "Corrigido na 1.1.1 — carteira 112"
     Até a 1.1.0 a composição longa valia para as sete carteiras. Na 112 isso produzia um código de
-    barras **estruturalmente válido com o dígito errado** — o boleto imprime e o banco recusa ou
-    credita em outro título. Reportado na
+    barras **estruturalmente válido com o dígito errado** — o boleto imprime e passa em conferência
+    estrutural, e a inconsistência pode permanecer invisível em validadores estruturais, só sendo
+    detectada quando o título é validado segundo as regras específicas do Itaú. Reportado na
     [issue #40](https://github.com/Maxwbh/pyCobranca/issues/40), conferido contra boletos emitidos
     pelo próprio Itaú.
 

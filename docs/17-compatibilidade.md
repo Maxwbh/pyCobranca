@@ -79,6 +79,10 @@ Para cada um dos 18 bancos, a partir do que a PyCobrança emitiu:
 Se a PyCobrança e esse verificador independente concordam, o título é aceito por qualquer sistema
 conforme à FEBRABAN.
 
+O Itaú entra aqui com **as sete carteiras aceitas**, não só a do exemplo: a composição do dígito do
+nosso número muda por carteira, e conferir uma só deixaria as outras seis apoiadas apenas no vetor
+externo — que prova concordância, não correção.
+
 ---
 
 ## 3. Remessa CNAB byte a byte
@@ -109,17 +113,17 @@ git clone https://github.com/Maxwbh/pyCobranca.git
 cd pyCobranca
 pip install -e ".[dev]"
 
-# as duas camadas de validação do boleto (36 testes)
+# as duas camadas de validação do boleto (43 testes)
 pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
 
 # remessa byte a byte
 pytest tests/test_cnab_remessa.py -v
 
-# a suíte completa (976 testes)
+# a suíte completa (995 testes)
 pytest
 ```
 
-A CI roda os 976 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
+A CI roda os 995 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
 [exemplos executáveis](https://github.com/Maxwbh/pyCobranca/tree/main/examples), que instalam o
 pacote **sem** as dependências de desenvolvimento — o que também valida o conteúdo do wheel.
 

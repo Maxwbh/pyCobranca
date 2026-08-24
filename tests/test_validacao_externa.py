@@ -79,9 +79,8 @@ def _reconstroi_codigo_barras(linha_47: str) -> str:
     return f"{banco}{moeda}{dv_geral}{fator_valor}{livre1}{livre2}{livre3}"
 
 
-@pytest.mark.parametrize("nome", sorted(EXEMPLOS))
-def test_boleto_validado_por_sistema_externo(nome: str) -> None:
-    boleto: BancoBase = EXEMPLOS[nome]["boleto"]()
+def _confere(nome: str, boleto: BancoBase) -> None:
+    """Roda o verificador independente sobre um título já emitido."""
     cb = boleto.codigo_barras
     linha = _so_digitos(boleto.linha_digitavel)
 
@@ -111,3 +110,35 @@ def test_boleto_validado_por_sistema_externo(nome: str) -> None:
     # 6) banco e moeda
     assert cb[0:3] == str(boleto.codigo).zfill(3), f"{nome}: código do banco diverge"
     assert cb[3] == "9", f"{nome}: moeda deveria ser 9 (Real)"
+
+
+@pytest.mark.parametrize("nome", sorted(EXEMPLOS))
+def test_boleto_validado_por_sistema_externo(nome: str) -> None:
+    _confere(nome, EXEMPLOS[nome]["boleto"]())
+
+
+# --- Itaú: uma carteira por composição de DAC --------------------------------
+#
+# ``EXEMPLOS`` traz o Itaú só na carteira 109. A 112 usa outra composição do DAC
+# do nosso número (issue #40) e nunca passava por aqui: era conferida só contra
+# vetor externo, e vetor prova que duas implementações concordam, não que ambas
+# estejam certas. Este verificador não usa nada do núcleo.
+
+
+@pytest.mark.parametrize("carteira", ("104", "109", "112", "115", "175", "177", "188"))
+def test_carteiras_do_itau_validadas_por_sistema_externo(carteira: str) -> None:
+    from pycobranca.bancos import Bancos
+
+    boleto = Bancos.find("341")(
+        valor="127.50",
+        cedente="Empresa Exemplo LTDA",
+        cedente_documento="11222333000181",
+        agencia="0057",
+        conta="12345",
+        carteira=carteira,
+        nosso_numero="12345678",
+        data_vencimento=date(2026, 8, 15),
+        sacado="Cliente Final da Silva",
+        sacado_documento="52998224725",
+    )
+    _confere(f"itau/{carteira}", boleto)
