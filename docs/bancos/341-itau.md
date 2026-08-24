@@ -33,13 +33,38 @@ DACs por módulo 10 (um para agência/conta/carteira/nosso número e outro para 
 
 ## Dígitos verificadores
 
-- **DAC nosso número**: módulo 10 de `agência(4) + conta(5) + carteira(3) + nosso número(8)`.
 - **DAC conta**: módulo 10 de `agência(4) + conta(5)`.
+- **DAC nosso número**: módulo 10, e **a composição muda conforme a carteira**.
+
+O manual (*Cobrança CNAB 400*, jan/2017, nota 23) manda usar
+`agência(4) + conta(5) + carteira(3) + nosso número(8)`, *"exceto as carteiras escriturais e na
+modalidade direta as carteiras 126, 131, 145, 150 e 168, cujo DAC do 'Nosso Número' é composto
+apenas dos campos: Carteira e Nosso Número"*.
+
+| Carteira | Modalidade (nota 5 do manual) | Composição do DAC |
+|:--:|---|---|
+| 104 | Escritural eletrônica – carnê | `carteira + nosso número` |
+| **112** | **Escritural eletrônica – simples** | `carteira + nosso número` |
+| 115 | Escritural eletrônica – simples, faixa livre | `carteira + nosso número` |
+| 188 | Escritural eletrônica – cobrança inteligente (B2B) | `carteira + nosso número` |
+| 109 | Direta eletrônica sem emissão – simples | `agência + conta + carteira + nosso número` |
+| 175, 177 | não constam na tabela do manual de 2017 | `agência + conta + carteira + nosso número` |
+
+!!! warning "Corrigido na 1.1.1"
+    Até a 1.1.0 a composição longa era aplicada às sete carteiras. Nas quatro escriturais isso
+    produzia um código de barras **estruturalmente válido com o dígito errado** — o boleto imprime
+    e o banco recusa ou credita em outro título. Reportado na
+    [issue #40](https://github.com/Maxwbh/pyCobranca/issues/40), com conferência contra boletos
+    emitidos pelo próprio Itaú.
+
+O manual se contradiz num número: a nota 23 lista `145` e o anexo 4 lista `146`. Nenhuma das duas
+está entre as carteiras aceitas aqui; ambas ficam na composição curta até que um vetor de
+referência decida.
 
 ## Carteiras suportadas
 
-`104, 109, 112, 115, 175, 177, 188` (cobrança direta; carteiras escriturais 198/106/… têm campo
-livre próprio — fora do escopo atual).
+`104, 109, 112, 115, 175, 177, 188`. As carteiras de nosso número com 15 posições
+(107, 122, 142, 143, 196 e 198) têm código de barras próprio — fora do escopo atual.
 
 ## Validação de campos (geração do boleto)
 

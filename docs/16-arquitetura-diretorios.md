@@ -28,6 +28,8 @@ pyCobranca/
 ├── docs/                 esta documentação
 │   ├── bancos/           um .md por banco + README (índice) + fontes-oficiais.md
 │   └── images/           SVGs (banner, arquitetura, ciclo, diretórios) e screenshots
+├── examples/             11 scripts executáveis, rodados pela CI a cada push
+├── tools/                utilitários de manutenção (screenshots.py regera as capturas)
 ├── .github/workflows/    pipelines de CI e verificação
 ├── pyproject.toml        build PEP 517, deps, ruff (line-length 100) e pytest
 ├── README.md · CHANGELOG.md · CONTRIBUTING.md · LICENSE

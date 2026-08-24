@@ -51,7 +51,7 @@ Os campos do título, em quatro grupos:
 | **Obrigatórios** | `valor`, `nosso_numero`, `data_vencimento`, `cedente`, `cedente_documento`, `sacado`, `sacado_documento` |
 | **Identificação da conta** | `agencia`, `conta`, `carteira`, `convenio`, `digito_agencia`, `digito_conta`, `digito_convenio` |
 | **Impressão** | `numero_documento`, `data_documento`, `cedente_endereco`, `cedente_cidade`, `sacado_endereco`, `sacador_avalista`, `especie_documento`, `especie_moeda`, `aceite`, `quantidade`, `local_pagamento`, `instrucoes`, `demonstrativo`, `logo` |
-| **Encargos (faixa de totalizadores)** | `desconto_abatimento`, `outras_deducoes`, `mora_multa`, `outros_acrescimos`, `valor_cobrado` |
+| **Encargos** (contrato; não saem impressos) | `desconto_abatimento`, `outras_deducoes`, `mora_multa`, `outros_acrescimos`, `valor_cobrado` |
 | **PIX** | `pix_chave`, `pix_txid` |
 | **Específicos de banco** | `variacao`, `posto`, `byte_idt`, `portfolio`, `incremento`, `numero_contrato` |
 
@@ -81,7 +81,8 @@ Quais são obrigatórios **por banco** — e quais carteiras cada um aceita — 
 `codigo_barras`, `linha_digitavel`, `nosso_numero`, `documento`, `vencimento`,
 `valor_documento`, `quantidade`, `especie_moeda`, `local_pagamento`, `instrucoes`,
 `demonstrativo`, `sacador_avalista`, `totalizadores` e `pix`. Já vem com os valores
-**formatados para impressão** (`"1.279,50"`, `"10/09/2026"`).
+**formatados para impressão** (`"1.279,50"`, `"10/09/2026"`). `totalizadores` é a exceção: os cinco
+campos vêm sempre vazios, porque a faixa de encargos é preenchida pelo caixa no ato do pagamento.
 
 ---
 
@@ -119,7 +120,7 @@ garantia de que os dois descrevem o mesmo boleto:
 | `.vencimento` | `str` (`dd/mm/aaaa`) |
 | `.valor_documento` | `str` (`1.279,50`) |
 | `.pix_copia_cola` | `str \| None` |
-| `.totalizadores` | `dict[str, str]` |
+| `.totalizadores` | `dict[str, str]` — sempre vazios: a faixa é do caixa |
 | `.to_dict()` | `dict` — tudo, menos o PDF |
 
 ```python

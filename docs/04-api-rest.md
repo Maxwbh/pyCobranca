@@ -143,10 +143,10 @@ valida_contrato(payload["data"], "BoletoData")  # levanta ErroDeContrato se dive
 # payload == {"bank": "itau", "data": {...}}
 ```
 
-### Faixa de totalizadores (`BoletoData`)
+### Faixa de encargos (`BoletoData`)
 
-Os cinco campos FEBRABAN impressos no boleto viajam no contrato com **os mesmos nomes** que têm em
-`BancoBase` — não há tradução nos dois sentidos. A tupla `TOTALIZADORES` expõe a lista:
+Os cinco campos FEBRABAN viajam no contrato com **os mesmos nomes** que têm em `BancoBase` — não
+há tradução nos dois sentidos. A tupla `TOTALIZADORES` expõe a lista:
 
 ```python
 from pycobranca.contracts import TOTALIZADORES, boleto_para_api
@@ -159,9 +159,14 @@ boleto_para_api(boleto)["data"]
 ```
 
 Campo não informado **some do payload** — boleto sem encargo sai idêntico ao que saía antes destes
-campos existirem. `valor_cobrado` é serializado como foi informado (ou omitido); o total calculado
-a partir dos outros quatro é detalhe de renderização e vive em `contexto_render()`, não aqui —
-assim `boleto_para_api` continua sendo uma projeção fiel do que o chamador montou.
+campos existirem. `valor_cobrado` é serializado como foi informado, ou omitido: não há cálculo em
+lugar nenhum, então `boleto_para_api` é projeção fiel do que o chamador montou.
+
+> **Estes campos não são impressos no boleto.** A faixa da ficha sai em branco, porque quem a
+> preenche é o caixa no ato do pagamento — ver
+> [11 — Renderização](11-renderizacao.md#faixa-de-encargos-sempre-em-branco). No contrato eles
+> servem para **trafegar o encargo entre sistemas**, que é outro problema: a regra que o pagador lê
+> vai em `instrucao1`/`instrucao2`.
 
 ### Encargos na remessa (`Pagamento`)
 

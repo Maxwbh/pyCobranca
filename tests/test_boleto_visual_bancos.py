@@ -326,13 +326,17 @@ def test_com_pix_os_campos_do_titulo_continuam_impressos(nome: str, modelo: str)
 
 
 @pytest.mark.parametrize(("nome", "modelo"), CASOS)
-def test_encargo_de_sete_digitos_sai_inteiro(nome: str, modelo: str) -> None:
-    """Cortar dinheiro com reticências é pior que não imprimir: ``150.…`` engana."""
+def test_encargo_informado_nao_chega_ao_papel(nome: str, modelo: str) -> None:
+    """A faixa de desconto/mora/total é preenchida pelo caixa, no ato do pagamento.
+
+    O título aqui vai com os quatro encargos em ``1.234.567,89``; se algum
+    aparecer impresso, o pagador lê um encargo que o banco ainda não apurou.
+    """
     escritas, _, _, ctx = _desenho(nome, modelo, "encargos")
     impressos = _impressos(escritas)
-    for chave, valor in ctx["totalizadores"].items():
-        if not valor:
-            continue
-        assert valor in impressos, f"{nome}/{modelo}: {chave} ({valor!r}) não saiu inteiro"
+    assert set(ctx["totalizadores"].values()) == {""}, (
+        f"{nome}/{modelo}: contexto de render trouxe encargo: {ctx['totalizadores']}"
+    )
+    assert "1.234.567,89" not in impressos, f"{nome}/{modelo}: encargo impresso no boleto"
     truncados = [s for s in impressos if s.endswith("…") and any(c.isdigit() for c in s[:-1])]
     assert not truncados, f"{nome}/{modelo}: número cortado: {truncados}"

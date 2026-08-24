@@ -2,6 +2,29 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.1.1] - 2026-08-24
+
+### Corrigido
+
+- **DAC do nosso número errado nas carteiras escriturais do Itaú** (104, 112, 115 e 188). O manual
+  (*Cobrança CNAB 400*, jan/2017, nota 23) compõe o DAC de `agência + conta + carteira + nosso
+  número` **"exceto as carteiras escriturais"**, que usam só `carteira + nosso número` — e a
+  tabela de carteiras do próprio manual (nota 5) classifica 104, 112, 115 e 188 como escriturais.
+  A composição longa era aplicada às sete carteiras aceitas, produzindo nas quatro escriturais um
+  código de barras **estruturalmente válido com o dígito errado**: o boleto imprime, e o banco
+  recusa ou credita em outro título. A 109 é direta e não muda.
+  [#40](https://github.com/Maxwbh/pyCobranca/issues/40)
+
+- **A faixa de encargos do boleto era impressa, e o total, calculado.** Desconto/abatimento,
+  outras deduções, mora/multa, outros acréscimos e valor cobrado são preenchidos **pelo caixa**, no
+  ato do pagamento — só ali se sabe se houve atraso, quanto rendeu de juros e se o desconto ainda
+  vale. A 1.1.0 imprimia o que o emissor informasse e **somava o `(=) Valor cobrado`** a partir dos
+  outros quatro: um total impresso antes do pagamento leva o pagador a pagar o valor errado, e nada
+  no PDF denuncia. As molduras continuam desenhadas, para o caixa preencher; o conteúdo não sai
+  mais, nos dois modelos. A regra do título vai em `instrucoes`. Os cinco campos seguem no
+  `BancoBase` e no contrato REST, para trafegar o encargo entre sistemas —
+  `contexto_render()["totalizadores"]` e `BoletoEmitido.totalizadores` passam a vir sempre vazios.
+
 ## [1.1.0] - 2026-08-23
 
 ### Alterado

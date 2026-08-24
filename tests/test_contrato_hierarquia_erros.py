@@ -196,12 +196,15 @@ def test_zero_informado_de_proposito_sobrevive() -> None:
     assert data["desconto_abatimento"] == 0.0
 
 
-def test_valor_cobrado_serializa_o_informado_e_nao_o_calculado() -> None:
-    """``boleto_para_api`` é projeção do que o chamador montou, não do que sai impresso.
+def test_o_contrato_trafega_o_encargo_que_o_papel_nao_imprime() -> None:
+    """As duas pontas divergem de propósito, e é essa a linha entre elas.
 
-    O total calculado é decisão de renderização e vive em ``contexto_render()``;
-    emiti-lo aqui viraria override explícito num eventual caminho de volta.
+    O contrato REST é troca de dados entre sistemas: o encargo informado viaja
+    nele. O boleto é documento de pagamento: a faixa de desconto/mora/total é
+    preenchida pelo caixa no ato, então nada disso chega ao papel.
     """
     b = _boleto(desconto_abatimento="150.00")
-    assert b.contexto_render()["totalizadores"]["valor_cobrado"] == "1.129,50"
+    assert boleto_para_api(b)["data"]["desconto_abatimento"] == 150.0
+    assert set(b.contexto_render()["totalizadores"].values()) == {""}
+    # O total nunca foi serializado, e agora também não é calculado.
     assert "valor_cobrado" not in boleto_para_api(b)["data"]
