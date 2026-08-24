@@ -56,6 +56,51 @@ def test_dacs_e_campo_livre() -> None:
     assert len(b.campo_livre()) == 25
 
 
+# --- DAC do nosso número: a composição muda por carteira ---------------------
+#
+# Manual *Cobrança CNAB 400* (jan/2017), nota 23: o DAC sai de
+# agência+conta+carteira+nosso número, "exceto as carteiras escriturais e na
+# modalidade direta as carteiras 126, 131, 145, 150 e 168, cujo DAC do 'Nosso
+# Número' é composto apenas dos campos: Carteira e Nosso Número".
+#
+# Pela tabela de carteiras do próprio manual (nota 5), 104, 112, 115 e 188 são
+# ESCRITURAIS e 109 é DIRETA. A biblioteca aplicava a composição longa nas sete,
+# o que dava boleto válido em estrutura e com o dígito errado nas quatro
+# escriturais (issue #40, confirmada contra boletos emitidos pelo próprio Itaú).
+
+
+@pytest.mark.parametrize(
+    ("carteira", "dac"),
+    [("104", 2), ("112", 5), ("115", 8), ("188", 5)],
+)
+def test_carteira_escritural_usa_so_carteira_e_nosso_numero(carteira, dac) -> None:
+    b = boleto_exemplo(carteira=carteira)
+    assert b.dac_nosso_numero == dac
+    assert b.campo_livre().startswith(f"{carteira}12345678{dac}")
+
+
+def test_carteira_direta_usa_agencia_e_conta_no_dac() -> None:
+    """A 109 é direta: nada muda para quem já emitia — e o vetor de referência prova."""
+    assert boleto_exemplo(carteira="109").dac_nosso_numero == 0
+
+
+@pytest.mark.parametrize("carteira", ["104", "112", "115", "188"])
+def test_o_dac_escritural_nao_depende_de_agencia_nem_de_conta(carteira) -> None:
+    """É o que distingue as duas composições: mudar a conta não pode mexer no dígito."""
+    a = boleto_exemplo(carteira=carteira, agencia="0057", conta="12345")
+    b = boleto_exemplo(carteira=carteira, agencia="9999", conta="99999")
+    assert a.dac_nosso_numero == b.dac_nosso_numero
+
+
+def test_o_dac_direto_depende_de_agencia_e_conta() -> None:
+    """O par é escolhido a dedo: o dígito tem só 10 valores, e ``9999/99999``
+    colide com ``0057/12345`` na 109 — o que faria o teste passar por sorte."""
+    a = boleto_exemplo(carteira="109", agencia="0057", conta="12345")
+    b = boleto_exemplo(carteira="109", agencia="1234", conta="56789")
+    assert a.dac_nosso_numero == 0
+    assert b.dac_nosso_numero == 4
+
+
 def test_codigo_barras_estrutura() -> None:
     b = boleto_exemplo()
     cb = b.codigo_barras

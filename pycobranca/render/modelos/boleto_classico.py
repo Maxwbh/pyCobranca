@@ -183,22 +183,24 @@ def ficha_classica(tela, info) -> None:
     util_instr = (142 - 2.4) * mm
     for i, ln in enumerate(info.instrucoes[:cabem]):
         texto(x_(1.2), y_topo - (7.0 + 4.0 * i) * mm, tela.cabe(ln, util_instr), tam=8.5)
+    # Só os rótulos: o valor é do caixa, no ato do pagamento.
     lados = [
-        ("(-) DESCONTO / ABATIMENTOS", "desconto_abatimento"),
-        ("(-) OUTRAS DEDUÇÕES", "outras_deducoes"),
-        ("(+) MORA / MULTA", "mora_multa"),
-        ("(+) OUTROS ACRÉSCIMOS", "outros_acrescimos"),
-        ("(=) VALOR COBRADO", "valor_cobrado"),
+        "(-) DESCONTO / ABATIMENTOS",
+        "(-) OUTRAS DEDUÇÕES",
+        "(+) MORA / MULTA",
+        "(+) OUTROS ACRÉSCIMOS",
+        "(=) VALOR COBRADO",
     ]
     h_lado = h_instr / len(lados)
-    for i, (rot_c, chave) in enumerate(lados):
+    for i, rot_c in enumerate(lados):
         canvas.setStrokeColor(tela.borda)
         canvas.rect(x_(142), y_topo - (i + 1) * h_lado * mm, 48 * mm, h_lado * mm, stroke=1, fill=0)
         texto(x_(143.2), y_topo - (i * h_lado + 2.8) * mm, rot_c, tam=5.5, cor=tela.rotulo)
+        # Sem valor: quem preenche esta faixa é o caixa, no ato do pagamento.
         texto(
             0,
             y_topo - (i * h_lado + h_lado - 1.6) * mm,
-            info.total(chave),
+            "",
             fonte="Helvetica-Bold",
             tam=8.5,
             dir_x=x_(188.5),

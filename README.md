@@ -107,6 +107,9 @@ PDFs gerados pela própria PyCobrança (dados fictícios, saída real do backend
 | **Boleto com logo do banco** | **Carnê (3 por A4)** |
 | <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/boleto-logo.png" alt="Boleto com o logo do banco no cabeçalho (recibo e ficha)" width="330"> | <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/carne.png" alt="Carnê com 3 parcelas por página A4" width="330"> |
 | Logo no cabeçalho do recibo e da ficha (`logo_do_banco`) | Canhoto à esquerda, uma A4 a cada 3 parcelas |
+| **Faixa de marca (`tema`)** | |
+| <img src="https://raw.githubusercontent.com/Maxwbh/pyCobranca/main/docs/images/screenshots/boleto-tema.png" alt="Boleto com faixa de marca, marca d'água e rodapé de contato" width="330"> | |
+| Faixa de 12 mm, marca d'água na diagonal e rodapé | |
 
 </div>
 

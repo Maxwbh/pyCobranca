@@ -278,30 +278,15 @@ class BancoBase:
             },
             "sacador_avalista": self.sacador_avalista,
             "demonstrativo": self.demonstrativo,
-            "totalizadores": {
-                "desconto_abatimento": moeda(self.desconto_abatimento),
-                "outras_deducoes": moeda(self.outras_deducoes),
-                "mora_multa": moeda(self.mora_multa),
-                "outros_acrescimos": moeda(self.outros_acrescimos),
-                "valor_cobrado": moeda(self._valor_cobrado()),
-            },
+            # Sempre em branco: a faixa de desconto/mora/acréscimo e o total são
+            # preenchidos **pelo caixa** no momento do pagamento, não pelo
+            # beneficiário. A regra de encargo do título vai em ``instrucoes``
+            # ("após o vencimento, multa de 2% e juros de 1% ao mês"), que é o que
+            # o caixa lê para calcular. Imprimir valor aqui antecipa uma conta que
+            # não é do emissor e induz o pagador a erro.
+            "totalizadores": dict.fromkeys(_TOTALIZADORES_OPCIONAIS, ""),
             "pix": self._contexto_pix(),
         }
-
-    def _valor_cobrado(self) -> Decimal | None:
-        """Valor do documento menos deduções, mais acréscimos.
-
-        Devolve ``None`` — campo em branco — quando nenhum totalizador foi
-        informado: no boleto comum quem preenche essa faixa é o caixa, e imprimir
-        um total antecipado induziria o pagador a erro.
-        """
-        if self.valor_cobrado is not None:
-            return Decimal(str(self.valor_cobrado))
-        parcelas = [getattr(self, campo) for campo in _TOTALIZADORES_OPCIONAIS[:4]]
-        if all(p is None for p in parcelas):
-            return None
-        desconto, deducoes, mora, acrescimos = (p or Decimal(0) for p in parcelas)
-        return Decimal(str(self.valor)) - desconto - deducoes + mora + acrescimos
 
     def _contexto_pix(self) -> dict[str, Any]:
         """Bolepix real: payload EMV + QR quando há chave PIX e o banco suporta."""

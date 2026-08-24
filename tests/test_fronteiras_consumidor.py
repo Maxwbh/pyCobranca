@@ -269,10 +269,15 @@ def test_pix_copia_cola_so_quando_ha_pix() -> None:
     assert com.pix_copia_cola and com.pix_copia_cola.startswith("0002")
 
 
-def test_totalizadores_acompanham_a_saida() -> None:
+def test_totalizadores_saem_vazios_porque_a_faixa_e_do_caixa() -> None:
+    """``BoletoEmitido`` descreve o papel, e no papel a faixa vai em branco.
+
+    Devolver ``"150,00"`` aqui faria o consumidor exibir, na tela ou no e-mail,
+    um encargo que o boleto impresso não traz — e o total de um cálculo que
+    ainda não aconteceu.
+    """
     _, saida = _emite(desconto_abatimento="150.00", mora_multa="8.00")
-    assert saida.totalizadores["desconto_abatimento"] == "150,00"
-    assert saida.totalizadores["valor_cobrado"] == "1.137,50"
+    assert set(saida.totalizadores.values()) == {""}
 
 
 def test_tema_chega_ao_desenho() -> None:
