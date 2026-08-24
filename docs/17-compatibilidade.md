@@ -11,7 +11,7 @@ e que você pode executar localmente.
 
 | Camada | O que responde | Onde |
 |---|---|---|
-| **Paridade com a BrCobrança** | "o resultado é o mesmo de uma referência consagrada?" | [`test_validacao_cruzada.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tests/test_validacao_cruzada.py) |
+| **Vetores de referência** | "o resultado bate com o de implementações já em produção?" | [`test_validacao_cruzada.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tests/test_validacao_cruzada.py) |
 | **Verificador FEBRABAN independente** | "um sistema externo aceitaria este título?" | [`test_validacao_externa.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tests/test_validacao_externa.py) |
 | **Remessa byte a byte** | "o arquivo enviado ao banco é idêntico?" | [`test_cnab_remessa.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tests/test_cnab_remessa.py) |
 
@@ -25,29 +25,24 @@ Dois projetos influenciaram esta biblioteca, em momentos diferentes. Ambos estã
 | Projeto | Licença | Papel |
 |---|---|---|
 | [**pyboleto**](https://github.com/eduardocereto/pyboleto) (Python) | BSD, © 2011 Eduardo Cereto Carvalho e contribuidores | **A inspiração original** — mostrou que emitir boleto brasileiro em Python puro era possível |
-| [**BrCobrança**](https://github.com/kivanio/brcobranca) (Ruby) | MIT · © 2009 Kivanio Barbosa | **Elo adicional** — ampliou o escopo (CNAB, mais bancos e layouts), simplificou soluções e virou a **referência de verificação** |
+| [**BrCobrança**](https://github.com/kivanio/brcobranca) (Ruby) | MIT · © 2009 Kivanio Barbosa | **Elo adicional** — ampliou o escopo (CNAB, mais bancos e layouts) e simplificou soluções |
 
 A **pyboleto** veio primeiro: é dela a ideia de que o problema merecia uma biblioteca Python
-dedicada. A PyCobrança nasceu desse caminho.
+dedicada. A PyCobrança nasceu desse caminho. A **BrCobrança** entrou depois, para ampliar o
+alcance.
 
-A **BrCobrança** entrou depois, para ampliar o alcance — e é contra ela que a paridade é medida,
-por ser a implementação ativa e mais completa da categoria.
-
-!!! note "Por que a pyboleto não é usada como vetor de conferência"
-    Por um motivo prático, não de mérito: o último lançamento é de **2016** e o pacote **não
-    instala em Python moderno** — a geração de metadados falha com
-    `error: invalid command 'dist_info'`. Não há como executá-la para comparar saídas.
-
-    Ela cobre **9 bancos** (um deles o 356, Banco Real, extinto em 2009); a BrCobrança cobre 16 e
-    segue ativa.
+O crédito acima é obrigação das licenças BSD e MIT, e está no
+[`NOTICE`](https://github.com/Maxwbh/pyCobranca/blob/main/NOTICE) distribuído no pacote. Nada aqui
+descreve a verificação: os vetores da seção 1 vêm de implementações em produção, e quais são elas
+não muda o que o teste prova.
 
 ---
 
-## 1. Paridade com a BrCobrança (Ruby)
+## 1. Vetores de referência
 
-Para cada um dos **18 bancos**, os valores esperados dos testes foram
-**gerados pela BrCobrança** (Ruby 3.3) com **exatamente os mesmos dados de entrada** e conferidos
-campo a campo:
+Para cada um dos **18 bancos**, os valores esperados dos testes foram **gerados por implementações
+de cobrança já em produção**, com **exatamente os mesmos dados de entrada**, e conferidos campo a
+campo:
 
 - **código de barras** (44 posições)
 - **linha digitável** (47 posições)
@@ -57,18 +52,17 @@ Esses valores vivem em
 [`tests/exemplos_boletos.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tests/exemplos_boletos.py)
 como fixtures permanentes: qualquer regressão futura que altere um código de barras quebra o teste.
 
-!!! info "Divergência conhecida — Santander (033)"
-    O nosso número do Santander é impresso com **13 posições** (12 dígitos + DV) no layout oficial.
-    A PyCobrança segue o manual; a BrCobrança omite os zeros à esquerda (`1234567-9`). É uma
-    diferença **cosmética de exibição** — o **código de barras é idêntico** nos dois sistemas, e é
-    ele que o banco lê. A divergência está documentada, não é um bug silencioso.
+!!! info "Vetor não é prova de correção"
+    Duas implementações concordarem prova que concordam, não que ambas estejam certas. É por isso
+    que existe a camada seguinte, que não usa nenhum código do núcleo, e por isso que divergência
+    contra **manual oficial** é tratada como bug mesmo quando o vetor externo concorda com a saída
+    atual.
 
 ---
 
 ## 2. Verificador FEBRABAN independente
 
-Paridade com outra biblioteca prova que duas implementações concordam — não que ambas estejam
-certas. Por isso existe uma segunda camada que **não usa nenhum código do núcleo**
+Esta camada **não usa nenhum código do núcleo**
 (`pycobranca.core.dv`, `pycobranca.boleto`): ela reimplementa do zero o que um sistema externo faz
 ao **receber** um boleto — um app de banco lendo a linha digitável, um PSP conferindo o código de
 barras.
@@ -121,11 +115,11 @@ pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
 # remessa byte a byte
 pytest tests/test_cnab_remessa.py -v
 
-# a suíte completa (967 testes)
+# a suíte completa (976 testes)
 pytest
 ```
 
-A CI roda os 967 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
+A CI roda os 976 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
 [exemplos executáveis](https://github.com/Maxwbh/pyCobranca/tree/main/examples), que instalam o
 pacote **sem** as dependências de desenvolvimento — o que também valida o conteúdo do wheel.
 
@@ -133,9 +127,8 @@ pacote **sem** as dependências de desenvolvimento — o que também valida o co
 
 ## 5. Escopo da PyCobrança
 
-Paridade de saída não significa paridade de escopo — e a BrCobrança é usada aqui como **referência
-de verificação**, não como alvo de comparação. Ela tem 17 anos de campo e uma comunidade grande;
-é exatamente por isso que serve de vetor de conferência.
+Paridade de saída não significa paridade de escopo: as implementações usadas como vetor servem para
+**conferir o número que sai**, não como alvo de comparação de recursos.
 
 O que a PyCobrança entrega, para você avaliar contra a sua solução atual (seja qual for):
 
@@ -162,5 +155,9 @@ o container fica pequeno e o deploy não quebra por biblioteca nativa faltando.
 
 Se algum banco gerar saída diferente do que o seu sistema atual produz,
 [abra uma issue](https://github.com/Maxwbh/pyCobranca/issues) com os dados de entrada e a saída
-esperada. Divergência com manual oficial é tratada como bug; divergência cosmética documentada
-(como a do Santander) fica registrada nesta página.
+esperada — de preferência com o boleto que o **banco** emitiu, que é o único árbitro quando o
+manual é ambíguo.
+
+Divergência contra manual oficial é tratada como bug. Divergência cosmética conhecida fica
+registrada na página do banco em [`docs/bancos/`](bancos/README.md) — é o caso do nosso número do
+Santander, impresso com 13 posições conforme o layout oficial.
