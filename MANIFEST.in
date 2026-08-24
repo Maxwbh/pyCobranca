@@ -1,0 +1,4 @@
+# O backend de build (pyproject: backend-path = ["tools"]) precisa viajar no
+# sdist: sem ele, construir um wheel a partir do sdist falha por backend ausente.
+include tools/_backend_readme.py
+include tools/_readme_urls.py
