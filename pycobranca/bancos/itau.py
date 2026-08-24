@@ -14,11 +14,12 @@ Campo livre (25 posições):
 
 **DAC do nosso número.** O manual (*Cobrança CNAB 400*, jan/2017, nota 23) manda compor
 ``agência + conta + carteira + nosso número``, *"exceto as carteiras escriturais e na modalidade
-direta as carteiras 126, 131, 145, 150 e 168, cujo DAC do 'Nosso Número' é composto apenas dos
-campos: Carteira e Nosso Número"*.
+direta as carteiras 126, 131, 145, 150 e 168"*. Mas o anexo 4 do **mesmo manual**, sobre "boletos
+emitidos pelo próprio cliente", omite a cláusula das escriturais e lista só as diretas — e ainda
+troca ``145`` por ``146``.
 
-Das sete carteiras aceitas aqui, **quatro são escriturais** pela tabela do próprio manual
-(nota 5): 104, 112, 115 e 188 — todas na composição curta. A 109 é direta e usa a longa.
+Das aceitas aqui, só a **112** usa a composição curta, e por lastro externo, não por leitura.
+Ver :data:`Itau._DAC_SEM_AGENCIA_CONTA` para por que 104, 115, 147 e 188 ficam de fora.
 """
 
 from __future__ import annotations
@@ -56,27 +57,35 @@ class Itau(BancoBase):
     def _nosso_numero8(self) -> str:
         return so_digitos(self.nosso_numero).zfill(8)
 
-    #: Carteiras **escriturais** (manual, nota 5): o Itaú mantém o registro e devolve o
-    #: nosso número. Todas entram na composição curta do DAC.
-    _ESCRITURAIS: ClassVar[frozenset[str]] = frozenset({"104", "112", "115", "147", "188"})
-
-    #: Carteiras **diretas** que o manual excetua. A nota 23 lista ``145`` e o anexo 4 lista
-    #: ``146`` — a contradição é do próprio manual. Nenhuma das duas está em
-    #: :data:`carteiras`, então as duas ficam aqui até que um vetor de referência decida.
-    _DIRETAS_DAC_CURTO: ClassVar[frozenset[str]] = frozenset(
-        {"126", "131", "145", "146", "150", "168"}
+    #: Carteiras cujo DAC sai de ``carteira + nosso número``, sem agência nem conta.
+    #:
+    #: A ``112`` é a única das aceitas aqui que entra, e entra com lastro: **duas de três
+    #: implementações independentes conferidas** a tratam assim, e dois relatos de campo a
+    #: verificaram contra boletos emitidos pelo próprio Itaú. As demais são as diretas que
+    #: o manual excetua — a nota 23 escreve ``145`` e o anexo 4 escreve ``146``,
+    #: contradição do próprio manual, e nenhuma das duas está em :data:`carteiras`.
+    #:
+    #: **Não** entram 104, 115, 147 e 188, embora a nota 23 diga "exceto as carteiras
+    #: escriturais" e a tabela de carteiras (nota 5) classifique as quatro assim. O anexo
+    #: 4, que trata de "boletos emitidos pelo próprio cliente", contradiz a nota 23 e lista
+    #: só as diretas; e das três implementações conferidas, nenhuma coloca 115 e 188 na
+    #: composição curta. Sem vetor de referência que decida, mudar o código de barras
+    #: dessas carteiras pela leitura de um trecho que o próprio manual contradiz seria
+    #: quebrar a paridade sem prova.
+    _DAC_SEM_AGENCIA_CONTA: ClassVar[frozenset[str]] = frozenset(
+        {"112", "126", "131", "145", "146", "150", "168"}
     )
 
     @property
     def dac_nosso_numero(self) -> int:
         """DAC do nosso número (módulo 10), na composição que a carteira exige.
 
-        Escriturais e as diretas excetuadas usam ``carteira + nosso número``; as demais,
-        ``agência + conta + carteira + nosso número``. Aplicar a composição longa numa
-        carteira escritural produz um código de barras **estruturalmente válido e com o
-        dígito errado** — o boleto imprime, o banco recusa ou credita em outro título.
+        As carteiras de :data:`_DAC_SEM_AGENCIA_CONTA` usam ``carteira + nosso número``;
+        as demais, ``agência + conta + carteira + nosso número``. Errar a composição
+        produz um código de barras **estruturalmente válido e com o dígito errado** — o
+        boleto imprime, o banco recusa ou credita em outro título.
         """
-        if self.carteira in self._ESCRITURAIS or self.carteira in self._DIRETAS_DAC_CURTO:
+        if self.carteira in self._DAC_SEM_AGENCIA_CONTA:
             return modulo10(f"{self.carteira}{self._nosso_numero8}")
         return modulo10(f"{self._agencia4}{self._conta5}{self.carteira}{self._nosso_numero8}")
 

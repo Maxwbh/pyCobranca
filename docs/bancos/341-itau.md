@@ -41,25 +41,44 @@ O manual (*Cobrança CNAB 400*, jan/2017, nota 23) manda usar
 modalidade direta as carteiras 126, 131, 145, 150 e 168, cujo DAC do 'Nosso Número' é composto
 apenas dos campos: Carteira e Nosso Número"*.
 
-| Carteira | Modalidade (nota 5 do manual) | Composição do DAC |
-|:--:|---|---|
-| 104 | Escritural eletrônica – carnê | `carteira + nosso número` |
-| **112** | **Escritural eletrônica – simples** | `carteira + nosso número` |
-| 115 | Escritural eletrônica – simples, faixa livre | `carteira + nosso número` |
-| 188 | Escritural eletrônica – cobrança inteligente (B2B) | `carteira + nosso número` |
-| 109 | Direta eletrônica sem emissão – simples | `agência + conta + carteira + nosso número` |
-| 175, 177 | não constam na tabela do manual de 2017 | `agência + conta + carteira + nosso número` |
+| Carteira | Composição do DAC |
+|:--:|---|
+| **112** | `carteira + nosso número` |
+| 104, 109, 115, 175, 177, 188 | `agência + conta + carteira + nosso número` |
 
-!!! warning "Corrigido na 1.1.1"
-    Até a 1.1.0 a composição longa era aplicada às sete carteiras. Nas quatro escriturais isso
-    produzia um código de barras **estruturalmente válido com o dígito errado** — o boleto imprime
-    e o banco recusa ou credita em outro título. Reportado na
-    [issue #40](https://github.com/Maxwbh/pyCobranca/issues/40), com conferência contra boletos
-    emitidos pelo próprio Itaú.
+!!! warning "Corrigido na 1.1.1 — carteira 112"
+    Até a 1.1.0 a composição longa valia para as sete carteiras. Na 112 isso produzia um código de
+    barras **estruturalmente válido com o dígito errado** — o boleto imprime e o banco recusa ou
+    credita em outro título. Reportado na
+    [issue #40](https://github.com/Maxwbh/pyCobranca/issues/40), conferido contra boletos emitidos
+    pelo próprio Itaú.
 
-O manual se contradiz num número: a nota 23 lista `145` e o anexo 4 lista `146`. Nenhuma das duas
-está entre as carteiras aceitas aqui; ambas ficam na composição curta até que um vetor de
-referência decida.
+### Por que só a 112
+
+O manual **se contradiz**. A nota 23 excetua "as carteiras escriturais", e a tabela de carteiras
+(nota 5) classifica 104, 112, 115 e 188 como escriturais — o que colocaria as quatro na composição
+curta. Mas o **anexo 4 do mesmo manual**, que trata de *"boletos emitidos pelo próprio cliente"*,
+omite a cláusula das escriturais e lista só as diretas. Ainda troca `145` por `146`.
+
+Diante da contradição, a decisão foi tomada por medição: os mesmos dados foram gerados em
+**três outras implementações de cobrança**, e o resultado comparado com as duas leituras do manual.
+
+| Carteira | Nota 23 | Anexo 4 | Implementações que usam a composição curta | Campo (Itaú real) |
+|:--:|:--:|:--:|:--:|:--:|
+| **112** | curto | longo | **2 de 3** | **curto** (2 relatos) |
+| 104 | curto | longo | 1 de 3 | — |
+| 115 | curto | longo | 0 de 3 | — |
+| 188 | curto | longo | 0 de 3 | — |
+
+Só a **112** tem lastro: duas das três implementações a tratam assim, e dois relatos independentes
+a verificaram contra boletos emitidos pelo próprio Itaú — um deles a
+[issue #40](https://github.com/Maxwbh/pyCobranca/issues/40) deste repositório. Para 104, 115 e 188
+há apenas a leitura de um trecho que o próprio manual contradiz, e mudar o código de barras delas
+por isso quebraria a paridade sem prova. **Um vetor real dessas carteiras reabre a questão**; sem
+ele, elas seguem na composição longa.
+
+As sete carteiras são conferidas **byte a byte contra vetores externos** em
+[`tests/test_bancos_itau.py`](../../tests/test_bancos_itau.py).
 
 ## Carteiras suportadas
 
