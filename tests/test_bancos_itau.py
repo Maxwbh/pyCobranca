@@ -60,36 +60,58 @@ def test_dacs_e_campo_livre() -> None:
 #
 # Manual *Cobrança CNAB 400* (jan/2017), nota 23: o DAC sai de
 # agência+conta+carteira+nosso número, "exceto as carteiras escriturais e na
-# modalidade direta as carteiras 126, 131, 145, 150 e 168, cujo DAC do 'Nosso
-# Número' é composto apenas dos campos: Carteira e Nosso Número".
+# modalidade direta as carteiras 126, 131, 145, 150 e 168". O anexo 4 do MESMO
+# manual, sobre boletos emitidos pelo próprio cliente, omite as escriturais e
+# lista só as diretas — trocando ainda 145 por 146.
 #
-# Pela tabela de carteiras do próprio manual (nota 5), 104, 112, 115 e 188 são
-# ESCRITURAIS e 109 é DIRETA. A biblioteca aplicava a composição longa nas sete,
-# o que dava boleto válido em estrutura e com o dígito errado nas quatro
-# escriturais (issue #40, confirmada contra boletos emitidos pelo próprio Itaú).
+# Diante da contradição, vale o que as implementações em produção fazem. Foram
+# conferidas três, além do manual: a 112 é a única das carteiras aceitas aqui com
+# lastro para a composição curta — duas das três a tratam assim, e dois relatos
+# independentes verificaram contra boletos emitidos pelo próprio Itaú.
+#
+# Os valores abaixo saíram de uma dessas implementações, executada com os mesmos
+# dados — é o vetor que impede a regra de voltar a depender de leitura de manual.
+
+#: ``carteira -> (DAC do nosso número, código de barras)`` gerados pela implementação
+#: de referência, com agência 0057, conta 12345, nosso número 12345678, R$ 127,50 e
+#: vencimento em 15/08/2026.
+VETORES_EXTERNOS = {
+    "104": (1, "34195153900000127501041234567810057123457000"),
+    "109": (0, "34195153900000127501091234567800057123457000"),
+    "112": (5, "34196153900000127501121234567850057123457000"),
+    "115": (7, "34191153900000127501151234567870057123457000"),
+    "175": (1, "34191153900000127501751234567810057123457000"),
+    "177": (7, "34198153900000127501771234567870057123457000"),
+    "188": (4, "34191153900000127501881234567840057123457000"),
+}
 
 
 @pytest.mark.parametrize(
-    ("carteira", "dac"),
-    [("104", 2), ("112", 5), ("115", 8), ("188", 5)],
+    ("carteira", "dac", "codigo_barras"),
+    [(c, dac, cb) for c, (dac, cb) in VETORES_EXTERNOS.items()],
 )
-def test_carteira_escritural_usa_so_carteira_e_nosso_numero(carteira, dac) -> None:
+def test_paridade_externa_nas_sete_carteiras(carteira, dac, codigo_barras) -> None:
+    """As sete carteiras aceitas, byte a byte contra a implementação de referência."""
     b = boleto_exemplo(carteira=carteira)
     assert b.dac_nosso_numero == dac
-    assert b.campo_livre().startswith(f"{carteira}12345678{dac}")
+    assert b.codigo_barras == codigo_barras
 
 
-def test_carteira_direta_usa_agencia_e_conta_no_dac() -> None:
-    """A 109 é direta: nada muda para quem já emitia — e o vetor de referência prova."""
-    assert boleto_exemplo(carteira="109").dac_nosso_numero == 0
+def test_so_a_112_usa_a_composicao_curta() -> None:
+    """A lista é curta de propósito: cada entrada precisa de lastro externo.
+
+    Incluir as demais escriturais (104, 115, 188) só pela nota 23 do manual
+    divergiria da referência em três carteiras, sem vetor que sustentasse.
+    """
+    curtas = {c for c in Itau.carteiras if c in Itau._DAC_SEM_AGENCIA_CONTA}
+    assert curtas == {"112"}
 
 
-@pytest.mark.parametrize("carteira", ["104", "112", "115", "188"])
-def test_o_dac_escritural_nao_depende_de_agencia_nem_de_conta(carteira) -> None:
+def test_o_dac_da_112_nao_depende_de_agencia_nem_de_conta() -> None:
     """É o que distingue as duas composições: mudar a conta não pode mexer no dígito."""
-    a = boleto_exemplo(carteira=carteira, agencia="0057", conta="12345")
-    b = boleto_exemplo(carteira=carteira, agencia="9999", conta="99999")
-    assert a.dac_nosso_numero == b.dac_nosso_numero
+    a = boleto_exemplo(carteira="112", agencia="0057", conta="12345")
+    b = boleto_exemplo(carteira="112", agencia="9999", conta="99999")
+    assert a.dac_nosso_numero == b.dac_nosso_numero == 5
 
 
 def test_o_dac_direto_depende_de_agencia_e_conta() -> None:

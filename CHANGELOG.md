@@ -6,14 +6,16 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Corrigido
 
-- **DAC do nosso número errado nas carteiras escriturais do Itaú** (104, 112, 115 e 188). O manual
-  (*Cobrança CNAB 400*, jan/2017, nota 23) compõe o DAC de `agência + conta + carteira + nosso
-  número` **"exceto as carteiras escriturais"**, que usam só `carteira + nosso número` — e a
-  tabela de carteiras do próprio manual (nota 5) classifica 104, 112, 115 e 188 como escriturais.
-  A composição longa era aplicada às sete carteiras aceitas, produzindo nas quatro escriturais um
-  código de barras **estruturalmente válido com o dígito errado**: o boleto imprime, e o banco
-  recusa ou credita em outro título. A 109 é direta e não muda.
+- **DAC do nosso número errado na carteira 112 do Itaú.** O manual (*Cobrança CNAB 400*,
+  jan/2017) compõe o DAC de `agência + conta + carteira + nosso número`, com exceções que usam só
+  `carteira + nosso número`. A 112 é uma delas, e a composição longa era aplicada às sete
+  carteiras aceitas — produzindo um código de barras **estruturalmente válido com o dígito
+  errado**: o boleto imprime, e o banco recusa ou credita em outro título. As demais não mudam.
   [#40](https://github.com/Maxwbh/pyCobranca/issues/40)
+- **Paridade do Itaú presa por vetor**: as sete carteiras aceitas passam a ser conferidas byte a
+  byte contra vetores externos. O manual se contradiz sobre as carteiras escriturais (a nota 23 as
+  excetua, o anexo 4 não), e a decisão saiu da comparação com **três outras implementações de
+  cobrança** — o vetor é o que impede a regra de oscilar conforme a leitura.
 
 - **A faixa de encargos do boleto era impressa, e o total, calculado.** Desconto/abatimento,
   outras deduções, mora/multa, outros acréscimos e valor cobrado são preenchidos **pelo caixa**, no
