@@ -43,7 +43,48 @@ fonte:
 | `conta_corrente` | `conta` |
 | `documento_cedente` | `cedente_documento` |
 | `chave_pix` | `pix_chave` |
+| `pix_copia_cola` | `pix_copia_cola` |
 | `txid` | `pix_txid` |
+| `pix_observacao` | `pix_observacao` |
+
+## Publicando o seu OpenAPI
+
+A PyCobrança **não tem endpoints** — é biblioteca, por escolha de projeto. O que ela publica são
+os **schemas de dados**, versionados junto do código que os implementa. Quem tem paths, auth e
+respostas é a sua API.
+
+`openapi_de()` cola os dois lados sem cópia de schema, que é onde a divergência começa: um
+arquivo copiado envelhece em silêncio quando a biblioteca sobe de versão.
+
+```python
+import yaml
+from pycobranca.contracts import openapi_de
+
+doc = openapi_de(
+    {"/boletos": {"post": {...}}},  # seus paths
+    info={"title": "cobranca_api", "version": "1.0.0"},
+    servers=[{"url": "https://api.exemplo.com.br"}],
+)
+Path("openapi.yaml").write_text(yaml.safe_dump(doc, sort_keys=False))
+```
+
+Nos paths, aponte para os schemas daqui com `{"$ref": "#/components/schemas/BoletoData"}`.
+
+| Detalhe | Comportamento |
+|---|---|
+| Versão da engine | carimbada em `info["x-pycobranca"]` e na `description` — quem abre o Swagger sabe de qual PyCobrança veio o contrato |
+| `schemas=` | schemas seus são somados; **colidir com um nome da biblioteca levanta `ErroDeContrato`** |
+| Cópia | os schemas são copiados: mutar o documento não corrompe o `CONTRATO` do processo |
+| Formato | devolve `dict`. Serializar em JSON ou YAML é com você — a biblioteca não escolhe |
+
+> **Guarda sugerida do lado da API:** um teste que compare o `openapi.yaml` publicado com
+> `openapi_de(...)` recém-gerado. Se alguém subir a PyCobrança sem regerar o YAML, o teste acusa —
+> mesmo padrão que aqui impede o mapa de nomes e o schema de divergirem.
+
+> **Dois caminhos de PIX, e o contrato expressa os dois.** `pix_copia_cola` é o payload que o
+> **banco** devolveu ao registrar a cobrança — o QR que liquida o título. `chave_pix` monta um BR
+> Code estático, que credita a chave mas deixa o boleto em aberto. Quando os dois vêm, vale o do
+> banco. A resposta traz `pix_vinculado` dizendo qual foi usado — ver [07 — PIX](07-pix.md).
 
 > **`additionalProperties` é permissivo — mas só na validação.** `valida_contrato` ignora campo
 > desconhecido em vez de recusá-lo, então um `data` com `banco` dentro **passa** por ele, e o banco

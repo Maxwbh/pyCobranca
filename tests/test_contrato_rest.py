@@ -151,3 +151,33 @@ def test_validador_rejeita_tipo_incorreto() -> None:
     }
     with pytest.raises(ErroDeContrato):
         valida_contrato(dados, "BoletoData")
+
+
+def test_todo_alias_do_contrato_existe_no_schema() -> None:
+    """O mapa de nomes e o schema OpenAPI têm de descrever o mesmo contrato.
+
+    São dois lugares distintos — ``NOMES_DO_CONTRATO`` traduz nome externo para atributo,
+    o JSON descreve o que a API aceita. Um campo novo em só um dos dois passa
+    despercebido: ou o cliente gerado do schema não conhece o campo, ou a API
+    aceita algo que a documentação não anuncia.
+    """
+    from pycobranca.contracts.contrato_rest import CONTRATO, NOMES_DO_CONTRATO
+
+    propriedades = set(CONTRATO["schemas"]["BoletoData"]["properties"])
+    ausentes = sorted(set(NOMES_DO_CONTRATO) - propriedades)
+    assert ausentes == [], f"aliases fora do schema OpenAPI: {ausentes}"
+
+
+def test_campos_de_pix_do_boleto_estao_no_contrato() -> None:
+    """Os dois caminhos do QR precisam trafegar por JSON.
+
+    Sem ``pix_copia_cola`` no contrato, quem expõe a biblioteca por REST não
+    consegue receber o payload que o banco devolveu — sobra só o QR estático,
+    que não liquida o título.
+    """
+    from pycobranca.contracts.contrato_rest import CONTRATO
+
+    propriedades = CONTRATO["schemas"]["BoletoData"]["properties"]
+    assert "pix_copia_cola" in propriedades
+    assert "pix_observacao" in propriedades
+    assert propriedades["txid"]["maxLength"] == 25  # limite do padrão EMV

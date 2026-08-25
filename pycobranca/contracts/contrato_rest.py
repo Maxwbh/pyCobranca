@@ -12,6 +12,7 @@ sincronia manual com o domínio — o próprio arquivo é a referência.
 
 from __future__ import annotations
 
+import copy
 import json
 import re
 from datetime import date
@@ -35,6 +36,7 @@ __all__ = [
     "remessa_para_api",
     "retorno_item_para_api",
     "valida_contrato",
+    "openapi_de",
     "ErroDeContrato",
 ]
 
@@ -101,7 +103,9 @@ NOMES_DO_CONTRATO: dict[str, str] = {
     "conta_corrente": "conta",
     "documento_cedente": "cedente_documento",
     "chave_pix": "pix_chave",
+    "pix_copia_cola": "pix_copia_cola",
     "txid": "pix_txid",
+    "pix_observacao": "pix_observacao",
 }
 
 #: ``nome no contrato -> chave do bloco ``tema`` no contexto de render``. O
@@ -175,6 +179,8 @@ def boleto_para_api(banco) -> dict[str, Any]:
         valor = getattr(banco, campo, None)
         data[campo] = _data_iso(valor) if isinstance(valor, date) else (valor or None)
     # Bolepix: quando o banco suporta PIX e há chave configurada.
+    if getattr(banco, "pix_copia_cola", ""):
+        data["pix_copia_cola"] = banco.pix_copia_cola
     if getattr(banco, "suporta_pix", False) and getattr(banco, "pix_chave", ""):
         data["chave_pix"] = banco.pix_chave
         if getattr(banco, "pix_txid", ""):
@@ -490,3 +496,77 @@ def valida_contrato(dados: dict, schema_nome: str) -> None:
             raise ErroDeContrato(
                 f"{schema_nome}.{chave}: valor {valor!r} não casa com o padrão {padrao!r}"
             )
+
+
+def openapi_de(
+    paths: dict[str, Any],
+    *,
+    info: dict[str, Any] | None = None,
+    servers: list[dict[str, Any]] | None = None,
+    schemas: dict[str, Any] | None = None,
+    versao: str = "3.0.3",
+) -> dict[str, Any]:
+    """Monta um documento OpenAPI com **os seus paths** e **os schemas daqui**.
+
+    A PyCobrança é biblioteca e não tem endpoints: publicar um OpenAPI completo
+    aqui exigiria inventar rotas que ela não serve. Quem tem paths é a sua API —
+    e quem tem os schemas de dados é esta biblioteca, que os versiona junto com
+    o código que os implementa.
+
+    Este helper cola os dois lados sem que ninguém precise copiar schema, que é
+    onde a divergência começa: um arquivo copiado envelhece em silêncio quando a
+    biblioteca sobe de versão.
+
+    Args:
+        paths: o bloco ``paths`` da sua API, no formato OpenAPI. Use
+            ``{"$ref": "#/components/schemas/BoletoData"}`` para apontar aos
+            schemas daqui.
+        info: bloco ``info``. O título e a versão são seus; a **versão da
+            PyCobrança é carimbada** em ``x-pycobranca`` e na ``description``,
+            para quem lê o Swagger saber de qual engine veio o contrato.
+        servers: bloco ``servers``, opcional.
+        schemas: schemas seus, somados aos da biblioteca. **Colidir com um nome
+            existente levanta** ``ErroDeContrato`` — sobrescrever ``BoletoData``
+            em silêncio devolveria o problema que este helper evita.
+        versao: versão do OpenAPI declarada no documento.
+
+    :returns: ``dict`` pronto para virar JSON ou YAML. Os schemas são **copiados**,
+        então mutar o resultado não afeta :data:`CONTRATO`.
+
+    Exemplo::
+
+        from pycobranca.contracts import openapi_de
+
+        doc = openapi_de(
+            {"/boletos": {"post": {...}}},
+            info={"title": "cobranca_api", "version": "1.0.0"},
+            servers=[{"url": "https://api.exemplo.com.br"}],
+        )
+        yaml.safe_dump(doc, sort_keys=False)  # sirva no Swagger UI
+    """
+    from .. import __version__
+
+    do_pacote = copy.deepcopy(CONTRATO["schemas"])
+    if schemas:
+        colisoes = sorted(set(schemas) & set(do_pacote))
+        if colisoes:
+            raise ErroDeContrato(
+                "schemas colidem com os da PyCobrança (renomeie os seus): " + ", ".join(colisoes)
+            )
+        do_pacote.update(copy.deepcopy(schemas))
+
+    bloco_info: dict[str, Any] = dict(info or {})
+    bloco_info.setdefault("title", "API de cobrança")
+    bloco_info.setdefault("version", "1.0.0")
+    bloco_info["x-pycobranca"] = __version__
+    origem = f"Schemas de dados da PyCobrança {__version__}."
+    bloco_info["description"] = (
+        f"{bloco_info['description']}\n\n{origem}" if bloco_info.get("description") else origem
+    )
+
+    documento: dict[str, Any] = {"openapi": versao, "info": bloco_info}
+    if servers:
+        documento["servers"] = list(servers)
+    documento["paths"] = paths
+    documento["components"] = {"schemas": do_pacote}
+    return documento

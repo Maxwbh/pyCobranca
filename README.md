@@ -84,7 +84,8 @@ PyCobrança, não vai encontrar um concorrente nesta página. A dependência é 
 - 📥 **Retorno CNAB** 400/240 com parsing por banco e tradução dos códigos de ocorrência.
 - 🧮 **Extrato OFX** (v1/v2) com extração de nosso número e **conciliação** contra os boletos
   emitidos — fecha o ciclo emissão → retorno → extrato.
-- 🟢 **PIX / Bolepix**: BR Code (EMV) copia-e-cola com CRC16, QR Code embutido no PDF e **segmento
+- 🟢 **PIX / Bolepix**: aceita o payload que o banco devolve (`pix_copia_cola` — o QR que
+  **liquida** o título) ou monta um BR Code (EMV) da chave, com CRC16, QR no PDF e **segmento
   PIX na remessa** (registro tipo 8 no CNAB 400; segmento Y-03 no CNAB 240).
 - 🆕 **CNPJ alfanumérico** (IN RFB 2.229/2024): validação, formatação e gravação no CNAB já
   preparadas para as 12 primeiras posições com letras — o CPF segue numérico.

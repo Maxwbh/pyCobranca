@@ -21,9 +21,27 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
   layout do Inter e ignorados pelos demais.
 - **`tools/demo_gif.py`** — gera o GIF do README com os valores calculados pelo pacote. O
   anterior não tinha gerador e anunciava a versão 1.0.0.
+- **`pix_copia_cola`** — payload EMV devolvido pelo banco ao registrar a cobrança. É o Bolepix de
+  verdade: QR dinâmico, vinculado ao título, com baixa automática. Vai para o QR como veio, tem
+  precedência sobre `pix_chave` e funciona em qualquer banco.
+- **O QR avulso passa a sair identificado.** Sem `pix_txid`, o campo 62-05 recebe o nosso número —
+  antes ia `***` e o crédito chegava órfão na conciliação por OFX. Sem nosso número o txid sai
+  ausente, não derivado: zeros produziriam um identificador plausível e sem significado.
+- **`pix_observacao`** — texto livre no campo 26-02 do BR Code (até 40), para descrever a cobrança
+  a quem paga.
+- **`openapi_de(paths, *, info, servers, schemas)`** — monta um documento OpenAPI com os paths de
+  quem consome e os schemas daqui, sem cópia. A versão fica carimbada em `info["x-pycobranca"]` e
+  colisão de nome levanta `ErroDeContrato`. `pix_copia_cola` e `pix_observacao` entram no
+  `BoletoData`, e a resposta traz `pix_vinculado`.
 
 ### Corrigido
 
+- **O QR do PIX montado da chave não liquida o boleto, e a documentação o chamava de Bolepix.**
+  O payload de `pix_chave` é **estático**: paga a chave, mas o banco não sabe que aquele PIX quita
+  este título — que fica em aberto, com risco de segunda cobrança ou protesto de título já pago.
+  O Bolepix exige QR **dinâmico**, gerado pelo banco no registro. O comportamento antigo continua,
+  agora nomeado pelo que é, e `contexto_render()["pix"]["vinculado"]` e
+  `BoletoEmitido.pix_vinculado` dizem qual dos dois está no boleto.
 - **Imagem do README invisível fora da `main`.** As referências ao repositório estavam fixadas em
   `.../main/...`, então uma captura nova só aparecia depois de promovida. O README passa a usar
   caminho relativo, e a conversão para URL absoluta — que o PyPI exige — acontece no
