@@ -6,6 +6,15 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ### Corrigido
 
+- **Imagem do README invisível fora da `main`.** As 16 referências ao próprio repositório
+  estavam fixadas em `.../main/...`, então uma captura nova só aparecia **depois** de promovida —
+  justamente o contrário do que a revisão precisa. Foi o que aconteceu com a
+  `boleto-tema.png`. O README passa a usar **caminho relativo**, que o GitHub resolve contra o
+  commit em que está sendo lido, e a conversão para URL absoluta — que o PyPI exige, por
+  renderizar o `long_description` fora do repositório — acontece no empacotamento
+  (`tools/_readme_urls.py`, ligado por `backend-path`). A árvore de trabalho não muda: o arquivo
+  é restaurado ao fim do build.
+
 - **DAC do nosso número errado na carteira 112 do Itaú.** O manual (*Cobrança CNAB 400*,
   jan/2017) compõe o DAC de `agência + conta + carteira + nosso número`, com exceções que usam só
   `carteira + nosso número`. A 112 é uma delas, e a composição longa era aplicada às sete
