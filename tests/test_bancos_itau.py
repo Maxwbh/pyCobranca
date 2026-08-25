@@ -97,30 +97,58 @@ def test_paridade_externa_nas_sete_carteiras(carteira, dac, codigo_barras) -> No
     assert b.codigo_barras == codigo_barras
 
 
-def test_so_a_112_usa_a_composicao_curta() -> None:
-    """A lista é curta de propósito: cada entrada precisa de lastro externo.
+@pytest.mark.parametrize("carteira", Itau.carteiras)
+def test_so_a_112_ignora_agencia_e_conta_no_dac(carteira) -> None:
+    """A regra medida pelo comportamento, não pela constante que a implementa.
 
-    Incluir as demais escriturais (104, 115, 188) só pela nota 23 do manual
-    divergiria da referência em três carteiras, sem vetor que sustentasse.
+    O que separa as duas composições é observável de fora: na curta o dígito não
+    pode mudar quando a conta muda; na longa, tem de mudar. Ler
+    ``_DAC_SEM_AGENCIA_CONTA`` provaria só que a constante é o que ela é — e
+    quebraria num rename sem que nada no boleto mudasse.
+
+    O par de contas é escolhido a dedo: o dígito tem 10 valores, e um par que
+    colidisse faria a carteira parecer usar a composição curta. Conferido que
+    ``0057/12345`` e ``1234/56789`` dão dígitos diferentes nas sete carteiras.
     """
-    curtas = {c for c in Itau.carteiras if c in Itau._DAC_SEM_AGENCIA_CONTA}
-    assert curtas == {"112"}
-
-
-def test_o_dac_da_112_nao_depende_de_agencia_nem_de_conta() -> None:
-    """É o que distingue as duas composições: mudar a conta não pode mexer no dígito."""
-    a = boleto_exemplo(carteira="112", agencia="0057", conta="12345")
-    b = boleto_exemplo(carteira="112", agencia="9999", conta="99999")
-    assert a.dac_nosso_numero == b.dac_nosso_numero == 5
+    a = boleto_exemplo(carteira=carteira, agencia="0057", conta="12345")
+    b = boleto_exemplo(carteira=carteira, agencia="1234", conta="56789")
+    usa_composicao_curta = a.dac_nosso_numero == b.dac_nosso_numero
+    assert usa_composicao_curta == (carteira == "112")
 
 
 def test_o_dac_direto_depende_de_agencia_e_conta() -> None:
-    """O par é escolhido a dedo: o dígito tem só 10 valores, e ``9999/99999``
-    colide com ``0057/12345`` na 109 — o que faria o teste passar por sorte."""
-    a = boleto_exemplo(carteira="109", agencia="0057", conta="12345")
-    b = boleto_exemplo(carteira="109", agencia="1234", conta="56789")
-    assert a.dac_nosso_numero == 0
-    assert b.dac_nosso_numero == 4
+    """Valores fixos, para o teste acima não poder passar com os dois lados errados."""
+    assert boleto_exemplo(carteira="109", agencia="0057", conta="12345").dac_nosso_numero == 0
+    assert boleto_exemplo(carteira="109", agencia="1234", conta="56789").dac_nosso_numero == 4
+    assert boleto_exemplo(carteira="112", agencia="0057", conta="12345").dac_nosso_numero == 5
+
+
+# --- preenchimento com zeros: entra no DAC, então é regra, não formatação -----
+
+
+@pytest.mark.parametrize(
+    ("nosso_numero", "preenchido", "dac"),
+    [("12345678", "12345678", 5), ("123", "00000123", 3), ("1", "00000001", 1)],
+)
+def test_nosso_numero_curto_e_preenchido_antes_do_dac(nosso_numero, preenchido, dac) -> None:
+    """O dígito sai do número com 8 posições, não do que o chamador digitou.
+
+    Quem "simplificar" o preenchimento muda em silêncio o DAC de todo cliente
+    que usa nosso número curto — e o boleto continua imprimindo.
+    """
+    b = boleto_exemplo(carteira="112", nosso_numero=nosso_numero)
+    assert b._nosso_numero8 == preenchido
+    assert b.dac_nosso_numero == dac
+    assert b.nosso_numero_formatado() == f"112/{preenchido}-{dac}"
+
+
+def test_agencia_curta_e_preenchida_antes_do_dac() -> None:
+    """``57`` e ``0057`` são a mesma agência: o dígito não pode divergir."""
+    curta = boleto_exemplo(carteira="109", agencia="57")
+    longa = boleto_exemplo(carteira="109", agencia="0057")
+    assert curta._agencia4 == longa._agencia4 == "0057"
+    assert curta.dac_nosso_numero == longa.dac_nosso_numero
+    assert curta.codigo_barras == longa.codigo_barras
 
 
 def test_codigo_barras_estrutura() -> None:
@@ -159,14 +187,23 @@ def test_formatadores() -> None:
 # --- validação ---------------------------------------------------------------
 
 
-def test_validacoes() -> None:
+def test_valor_zero_barra_a_composicao() -> None:
     with pytest.raises(BoletoInvalido):
         boleto_exemplo(valor="0").codigo_barras  # noqa: B018
+
+
+def test_carteira_fora_do_conjunto_e_recusada() -> None:
     with pytest.raises(BoletoInvalido):
         boleto_exemplo(carteira="999").validar()
+
+
+def test_cpf_com_digito_errado_e_recusado() -> None:
     with pytest.raises(BoletoInvalido):
         boleto_exemplo(sacado_documento="111.111.111-11").validar()
-    boleto_exemplo().validar()  # dados válidos não levantam
+
+
+def test_dados_validos_nao_levantam() -> None:
+    boleto_exemplo().validar()
 
 
 # --- serialização e render ---------------------------------------------------
