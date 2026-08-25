@@ -9,7 +9,12 @@ determinados códigos — na dúvida, consulte o manual do banco (ver
 
 from __future__ import annotations
 
-__all__ = ["OCORRENCIAS_400", "OCORRENCIAS_240", "descreve_ocorrencia"]
+__all__ = [
+    "OCORRENCIAS_400",
+    "OCORRENCIAS_240",
+    "OCORRENCIAS_400_POR_BANCO",
+    "descreve_ocorrencia",
+]
 
 #: Códigos de ocorrência do retorno CNAB 400 (padrão CBR643/FEBRABAN).
 OCORRENCIAS_400: dict[str, str] = {
@@ -79,9 +84,36 @@ OCORRENCIAS_240: dict[str, str] = {
 }
 
 
-def descreve_ocorrencia(codigo: str | None, layout: str = "400") -> str | None:
-    """Rótulo legível para um código de ocorrência (``None`` se desconhecido)."""
+#: Bancos que redefinem códigos do CNAB 400. Consultado **antes** do mapa padrão.
+#:
+#: O Inter usa só quatro códigos, e um deles colide de frente com a FEBRABAN: o
+#: ``07``, que no padrão é *Liquidação por conta/parcial* e no Inter é
+#: **Cancelado**. Descrever um título cancelado como parcialmente liquidado é o
+#: tipo de erro que passa despercebido numa conciliação.
+OCORRENCIAS_400_POR_BANCO: dict[str, dict[str, str]] = {
+    "077": {  # Banco Inter — manual CNAB400 v2.2, seção 5.2, item 13
+        "02": "Em aberto",
+        "03": "Erro",
+        "06": "Pago",
+        "07": "Cancelado",
+    },
+}
+
+
+def descreve_ocorrencia(
+    codigo: str | None, layout: str = "400", banco: str | None = None
+) -> str | None:
+    """Rótulo legível para um código de ocorrência (``None`` se desconhecido).
+
+    ``banco`` permite que instituições com códigos próprios sobreponham o mapa
+    padrão. Sem ele, o comportamento é o de sempre.
+    """
     if not codigo:
         return None
+    codigo = str(codigo).strip()
+    if banco and str(layout) != "240":
+        proprio = OCORRENCIAS_400_POR_BANCO.get(str(banco).zfill(3))
+        if proprio and codigo in proprio:
+            return proprio[codigo]
     mapa = OCORRENCIAS_240 if str(layout) == "240" else OCORRENCIAS_400
-    return mapa.get(str(codigo).strip())
+    return mapa.get(codigo)

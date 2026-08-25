@@ -2,7 +2,7 @@
 
     python tools/screenshots.py
 
-As quatro imagens de ``docs/images/screenshots/`` mostram a saída real do
+As imagens de ``docs/images/screenshots/`` mostram a saída real do
 renderizador. Sem um gerador versionado elas envelhecem em silêncio: as que
 estavam no repositório eram do layout moderno anterior e sobreviveram ao
 redesenho inteiro sem que nada apontasse a divergência — quem chegava pelo
@@ -53,6 +53,22 @@ def _itau(**extra):
         instrucoes=INSTRUCOES,
         **COMUM,
         **extra,
+    )
+
+
+def _inter():
+    """Inter (077) — carteira 110, o único caminho componível fora de linha."""
+    return Bancos.find("077")(
+        valor="1234.56",
+        agencia="0001",
+        conta="123456",
+        carteira="110",
+        convenio="1234567",
+        nosso_numero="0004309540",
+        numero_documento="2026-0004",
+        instrucoes=INSTRUCOES,
+        logo=logo_do_banco("077"),
+        **COMUM,
     )
 
 
@@ -124,6 +140,10 @@ def _capturas() -> dict[str, tuple[str, bytes]]:
         ),
         "boleto-tema.png": ("faixa de marca, marca d'água e rodapé", _com_tema()),
         "carne.png": ("carnê — 3 parcelas por página A4", _carne()),
+        "boleto-inter.png": (
+            "Banco Inter (077) — carteira 110",
+            render_boleto_pdf(_inter().contexto_render(), modelo="moderno"),
+        ),
     }
 
 

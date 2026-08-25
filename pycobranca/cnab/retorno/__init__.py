@@ -22,9 +22,9 @@ from ...exceptions import RetornoInvalido
 from .base import RegistroRetorno
 from .cnab240 import banco_do_arquivo_240, parse_cnab240
 from .cnab400 import banco_do_arquivo_400, parse_cnab400
-from .ocorrencias import descreve_ocorrencia
+from .ocorrencias import OCORRENCIAS_400_POR_BANCO, descreve_ocorrencia
 
-__all__ = ["Retorno", "RegistroRetorno", "descreve_ocorrencia"]
+__all__ = ["Retorno", "RegistroRetorno", "descreve_ocorrencia", "OCORRENCIAS_400_POR_BANCO"]
 
 
 @dataclass
@@ -84,7 +84,7 @@ class Retorno:
 
     def descricao_ocorrencia(self, registro: RegistroRetorno) -> str | None:
         """Rótulo legível da ocorrência do ``registro`` (indicativo — ver docs)."""
-        return descreve_ocorrencia(registro.codigo_ocorrencia, self.layout)
+        return descreve_ocorrencia(registro.codigo_ocorrencia, self.layout, self.codigo_banco)
 
     def __iter__(self):
         return iter(self.registros)

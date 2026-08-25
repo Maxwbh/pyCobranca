@@ -8,6 +8,20 @@ pacote — os nomes de classes, métodos e arquivos citados existem e podem ser 
 > esperada de código de barras/linha digitável. Sem vetor de referência não há como fechar o
 > ciclo de testes descrito na seção 5.
 
+> **Pré-requisito de escopo — o título tem de ser componível offline.** A PyCobrança monta o
+> boleto inteiro a partir de dados que o chamador já tem. Se alguma posição do código de barras
+> depende de uma resposta do banco — nosso número atribuído no processamento da remessa, número
+> de contrato devolvido por API, faixa alocada sob demanda —, **essa modalidade não entra**, por
+> mais bem documentado que o layout esteja. Não é limitação de implementação: falta o dado, não
+> o algoritmo.
+>
+> O corte costuma ser **por carteira, não por banco**. É comum a mesma instituição oferecer uma
+> carteira em que o cliente numera a partir de uma faixa entregue antes (entra) e outra em que o
+> banco numera depois de receber o arquivo (não entra). Quando for o caso, aceite **só** a
+> carteira componível e **recuse a outra em `carteiras`** — aceitá-la em silêncio produziria um
+> boleto que imprime, passa em conferência estrutural e carrega um nosso número que o banco
+> nunca emitiu.
+
 ## 1. O que compõe "um banco"
 
 | Camada | Obrigatório? | Onde vive |

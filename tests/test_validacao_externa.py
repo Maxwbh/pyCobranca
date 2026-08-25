@@ -7,7 +7,7 @@ digitável, um PSP conferindo o código de barras, um leitor de arquivo de
 pagamento. Se a PyCobrança e este verificador independente concordam, o título
 seria aceito por qualquer sistema conforme à FEBRABAN.
 
-Para cada um dos 18 bancos, a partir do que a PyCobrança emitiu, verificamos:
+Para cada um dos 19 bancos, a partir do que a PyCobrança emitiu, verificamos:
 
 1. o código de barras tem 44 dígitos e o **DV geral (módulo 11)** confere;
 2. a linha digitável tem 47 dígitos e os **três DVs de campo (módulo 10)** conferem;
@@ -142,3 +142,31 @@ def test_carteiras_do_itau_validadas_por_sistema_externo(carteira: str) -> None:
         sacado_documento="52998224725",
     )
     _confere(f"itau/{carteira}", boleto)
+
+
+# --- Inter: sem vetor cruzado, esta é a única verificação externa da saída -----
+#
+# Os demais bancos têm a saída conferida contra uma implementação de produção
+# independente. O Inter não existe em nenhuma implementação aberta conhecida,
+# então esse cruzamento não existe para ele — e este verificador, que não usa
+# nada do núcleo, deixa de ser camada extra para ser a única. Ver o docstring de
+# ``test_bancos_inter.py`` para a hierarquia completa da evidência.
+
+
+def test_inter_validado_por_sistema_externo() -> None:
+    from pycobranca.bancos import Bancos
+
+    boleto = Bancos.find("077")(
+        valor="1234.56",
+        cedente="Empresa Exemplo LTDA",
+        cedente_documento="11222333000181",
+        agencia="0001",
+        conta="123456",
+        carteira="110",
+        convenio="1234567",
+        nosso_numero="0004309540",
+        data_vencimento=date(2026, 8, 15),
+        sacado="Cliente Final da Silva",
+        sacado_documento="52998224725",
+    )
+    _confere("inter/110", boleto)

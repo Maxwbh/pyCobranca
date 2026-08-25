@@ -114,7 +114,7 @@ def test_nenhum_nome_de_banco_atravessa_a_regua_do_cabecalho(modelo) -> None:
 
     O nome é desenhado da margem para a direita, então quem tem nome comprido
     invade a régua vertical e escreve por cima do código-DV — os dois ficam
-    ilegíveis. Percorre os 18 bancos: o teste é sobre o registro, não sobre um
+    ilegíveis. Percorre os 19 bancos: o teste é sobre o registro, não sobre um
     nome escolhido a dedo.
     """
     import io

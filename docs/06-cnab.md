@@ -209,6 +209,7 @@ O `Pagamento` sempre aceita os campos; eles entram no arquivo onde o layout tem 
 | Banco (CNAB 400) | Mora | Multa | Desc. 1º | Desc. 2º | IOF | Abat. |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|
 | Santander (033) | ✅ | ✅ | ✅ | 📅² | ✅ | ✅ |
+| Inter (077) | ✅ | ✅ | ✅ | — | — | — |
 | Bradesco (237) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
 | Sicoob (756) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
 | Banrisul (041) | ✅ | ✅ | ✅ | — | ✅ | ✅ |
@@ -226,6 +227,16 @@ Legenda: ✅ campo posicional na remessa · — sem campo no layout · **Desc. 3
 📅² Santander (400): 2º desconto só a **data**. ³ CrediSIS: 1º desconto **sem** campo de data.
 ⁴ Ailos (240): segmento R (multa + 2º/3º desconto) emitido só quando há multa.
 Banestes (021), HSBC (399) e Safra (422) só emitem boleto (sem remessa CNAB).
+
+O **Inter (077)** aceita multa e juros em **valor fixo ou percentual**, escolhidos por um código
+próprio, e desconto em valor fixo ou percentual do nominal — cada um com data limite obrigatória.
+Não tem campo de IOF nem de abatimento no layout, e **não tem CNAB 240 de cobrança**: o manual
+oferece CNAB 400 ou API, e o CNAB 240 que o banco publica é de *pagamentos*.
+
+!!! note "Códigos de juros do Inter divergem da FEBRABAN"
+    A biblioteca segue a FEBRABAN, onde `tipo_mora="3"` é *isento*; o Inter usa `"0"` para sem
+    juros. A tradução é automática — quem informa `tipo_mora` não precisa saber disso. Sem ela, o
+    valor padrão sairia no arquivo como um código que o banco não define.
 
 ## Retorno — API
 

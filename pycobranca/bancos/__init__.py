@@ -25,6 +25,7 @@ from .caixa import Caixa
 from .citibank import Citibank
 from .credisis import CrediSIS
 from .hsbc import HSBC
+from .inter import Inter
 from .itau import Itau
 from .safra import Safra
 from .santander import Santander
@@ -47,6 +48,7 @@ __all__ = [
     "Citibank",
     "CrediSIS",
     "HSBC",
+    "Inter",
     "Itau",
     "Safra",
     "Santander",

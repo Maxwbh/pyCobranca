@@ -1,6 +1,6 @@
 """O boleto impresso, banco a banco: o que está no papel e onde está.
 
-``test_boletos_todos`` já garante que cada um dos 18 bancos **gera** um PDF; o
+``test_boletos_todos`` já garante que cada um dos 19 bancos **gera** um PDF; o
 que ele não vê é o papel. Os defeitos desta camada não levantam exceção e não
 mudam um byte do que o banco lê — aparecem só na impressão:
 
