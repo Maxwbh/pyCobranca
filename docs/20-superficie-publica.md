@@ -52,7 +52,7 @@ Os campos do título, em quatro grupos:
 | **Identificação da conta** | `agencia`, `conta`, `carteira`, `convenio`, `digito_agencia`, `digito_conta`, `digito_convenio` |
 | **Impressão** | `numero_documento`, `data_documento`, `cedente_endereco`, `cedente_cidade`, `sacado_endereco`, `sacador_avalista`, `especie_documento`, `especie_moeda`, `aceite`, `quantidade`, `local_pagamento`, `instrucoes`, `demonstrativo`, `logo` |
 | **Encargos** (contrato; não saem impressos) | `desconto_abatimento`, `outras_deducoes`, `mora_multa`, `outros_acrescimos`, `valor_cobrado` |
-| **PIX** | `pix_chave`, `pix_txid` |
+| **PIX** | `pix_copia_cola` (payload do banco), `pix_chave`, `pix_txid`, `pix_observacao` |
 | **Específicos de banco** | `variacao`, `posto`, `byte_idt`, `portfolio`, `incremento`, `numero_contrato` |
 
 Quais são obrigatórios **por banco** — e quais carteiras cada um aceita — está em
@@ -70,7 +70,7 @@ Quais são obrigatórios **por banco** — e quais carteiras cada um aceita — 
 | `.valor_centavos` | `int` | valor sem separador, para o código de barras |
 | `.fator_vencimento` | `int` | fator FEBRABAN da data |
 | `.digito_banco` | `str` | DV do código FEBRABAN |
-| `.suporta_pix` | `bool` | se o banco tem Bolepix implementado |
+| `.suporta_pix` | `bool` | se o **segmento PIX do CNAB** daquele banco está implementado |
 | `.carteiras` | `tuple` | carteiras aceitas pelo banco |
 | `.regras_campos` | `dict` | tamanhos mín./máx. por campo, para validação prévia |
 | `.validar()` | — | levanta `BoletoInvalido` com `.erros` (lista) |
@@ -120,6 +120,7 @@ garantia de que os dois descrevem o mesmo boleto:
 | `.vencimento` | `str` (`dd/mm/aaaa`) |
 | `.valor_documento` | `str` (`1.279,50`) |
 | `.pix_copia_cola` | `str \| None` |
+| `.pix_vinculado` | `bool \| None` — `True` se o QR liquida o título; `False` se é PIX avulso |
 | `.totalizadores` | `dict[str, str]` — sempre vazios: a faixa é do caixa |
 | `.to_dict()` | `dict` — tudo, menos o PDF |
 
@@ -146,8 +147,17 @@ Python puro; só o QR em SVG precisa de `qrcode`.
 | `qr_svg(payload, *, escala, cor)` | `str` |
 | `PixInvalido` | erro de payload |
 
-No boleto, basta preencher `pix_chave` (e opcionalmente `pix_txid`): o QR entra no PDF e o
-EMV sai em `contexto_render()["pix"]`. Ver [07 — PIX/Bolepix](07-pix.md).
+No boleto há **dois caminhos**, e eles não são equivalentes:
+
+| Campo | QR gerado | Ao pagar |
+|---|---|---|
+| `pix_copia_cola` | o payload que o **banco** devolveu | credita **e dá baixa** no boleto |
+| `pix_chave` | BR Code estático, montado aqui | credita, mas o **título fica em aberto** |
+
+O primeiro tem precedência. `contexto_render()["pix"]["vinculado"]` e
+`BoletoEmitido.pix_vinculado` dizem qual está no boleto. Sem `pix_txid`, o identificador é
+derivado do nosso número (`txid_do_titulo()`), que é o que permite conciliar o QR avulso pelo
+OFX. Ver [07 — PIX/Bolepix](07-pix.md).
 
 ---
 
@@ -246,6 +256,7 @@ inventar o formato do payload nem repetir a validação.
 | `pagamento_para_api(pagamento)` | `Pagamento` → `dict` |
 | `remessa_para_api(remessa)` | remessa → `dict` |
 | `retorno_item_para_api(registro, layout="400")` | `RegistroRetorno` → `dict` |
+| `openapi_de(paths, *, info, servers, schemas)` | `dict` | documento OpenAPI com **seus paths** e os schemas daqui |
 | `valida_contrato(dados, schema)` | valida contra o schema; levanta `ErroDeContrato` |
 | `CONTRATO` | o documento OpenAPI 3.0, como `dict` |
 

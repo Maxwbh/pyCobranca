@@ -120,8 +120,12 @@ class BoletoEmitido:
     nosso_numero: str
     vencimento: str
     valor_documento: str
-    #: Copia-e-cola do Bolepix, ou ``None`` quando o boleto não tem PIX.
+    #: Copia-e-cola do PIX, ou ``None`` quando o boleto não tem PIX.
     pix_copia_cola: str | None = None
+    #: ``True`` quando o payload veio do banco e o QR **liquida o título**;
+    #: ``False`` quando foi montado da chave e é um PIX avulso, que credita mas
+    #: deixa o título em aberto. ``None`` sem PIX.
+    pix_vinculado: bool | None = None
     #: Os cinco campos da faixa FEBRABAN, já formatados; vazios quando não informados.
     totalizadores: dict[str, str] = field(default_factory=dict)
 
@@ -134,6 +138,7 @@ class BoletoEmitido:
             "vencimento": self.vencimento,
             "valor_documento": self.valor_documento,
             "pix_copia_cola": self.pix_copia_cola,
+            "pix_vinculado": self.pix_vinculado,
             "totalizadores": dict(self.totalizadores),
         }
 
@@ -174,6 +179,7 @@ def emite_boleto(
         vencimento=contexto["vencimento"],
         valor_documento=contexto["valor_documento"],
         pix_copia_cola=pix.get("copia_cola") if pix.get("habilitado") else None,
+        pix_vinculado=pix.get("vinculado") if pix.get("habilitado") else None,
         totalizadores=contexto.get("totalizadores") or {},
     )
 

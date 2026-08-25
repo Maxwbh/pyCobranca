@@ -125,7 +125,8 @@
           "type": "string"
         },
         "chave_pix": {
-          "type": "string"
+          "type": "string",
+          "description": "Chave PIX do recebedor. Monta um BR Code estático: credita a chave, mas NÃO liquida o título no banco. Ignorado quando pix_copia_cola é informado."
         },
         "tipo_chave_pix": {
           "type": "string",
@@ -138,7 +139,18 @@
           ]
         },
         "txid": {
-          "type": "string"
+          "type": "string",
+          "description": "Identificador da transação (campo 62-05), até 25 caracteres A-Za-z0-9. Vazio, é derivado do nosso número; \"***\" declara ausente.",
+          "maxLength": 25
+        },
+        "pix_copia_cola": {
+          "type": "string",
+          "description": "Payload EMV devolvido pelo banco ao registrar a cobrança (Bolepix). Vai no QR como veio; tem precedência sobre chave_pix e funciona em qualquer banco. É o QR que liquida o título."
+        },
+        "pix_observacao": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Texto livre no campo 26-02 do BR Code, para descrever a cobrança."
         },
         "logo_empresa": {
           "type": "string"
