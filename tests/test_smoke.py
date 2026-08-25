@@ -21,7 +21,7 @@ def test_versao_exposta() -> None:
 def test_bancos_deriva_do_registro_e_cobre_todos() -> None:
     """``BANCOS`` é derivado do ``REGISTRO`` (fonte única) e cobre todos os bancos."""
     assert pycobranca.BANCOS == {codigo: cls.nome for codigo, cls in REGISTRO.items()}
-    assert len(pycobranca.BANCOS) == 18
+    assert len(pycobranca.BANCOS) == 19
     # os prioritários continuam presentes
     assert {"001", "033", "104", "237", "341"} <= pycobranca.BANCOS.keys()
 

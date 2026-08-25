@@ -42,6 +42,10 @@ class Pagamento:
     cod_segunda_instrucao: str = "00"
     codigo_multa: str = "0"
     percentual_multa: float = 0.0
+    #: Multa em **valor fixo**. A maioria dos layouts só expressa multa em
+    #: percentual; o Inter tem os dois campos (itens 10 e 11 do tipo 1) e
+    #: escolhe entre eles pelo código da multa.
+    valor_multa: float = 0.0
     data_multa: date | None = None
     tipo_mora: str = "3"
     valor_mora: float = 0.0
@@ -53,6 +57,10 @@ class Pagamento:
     cod_desconto: str = "0"
     data_desconto: date | None = None
     valor_desconto: float = 0.0
+    #: Desconto em **percentual** do valor nominal (Inter, item 31 do tipo 1,
+    #: com ``cod_desconto == "4"``). Layouts que só expressam desconto em valor
+    #: ignoram este campo.
+    percentual_desconto: float = 0.0
     cod_segundo_desconto: str = "0"
     data_segundo_desconto: date | None = None
     valor_segundo_desconto: float = 0.0
@@ -66,6 +74,9 @@ class Pagamento:
     codigo_baixa: str = "0"
     dias_baixa: str = "000"
     parcela: str = "01"
+    #: Mensagem livre impressa no boleto (Inter, item 40 do tipo 1). Não volta
+    #: no arquivo retorno.
+    mensagem: str = ""
 
     def __post_init__(self) -> None:
         if self.data_emissao is None:

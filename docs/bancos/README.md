@@ -22,6 +22,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 033 — Santander | [033-santander.md](033-santander.md) | "Layout de Cobrança — Santander" (ficha de compensação/CNAB) |
 | 041 — Banrisul | [041-banrisul.md](041-banrisul.md) | "Layout de Cobrança CNAB 400 — Banrisul" |
 | 070 — BRB (Banco de Brasília) | [070-brb.md](070-brb.md) | "Layout de Remessa DCB — BRB" |
+| 077 — Banco Inter | [077-inter.md](077-inter.md) | "Manual CNAB400 — Emissão boletos de cobrança" (v2.2) |
 | 085 — Ailos | [085-ailos.md](085-ailos.md) | "Manual de Cobrança CNAB 240 — Ailos" |
 | 097 — CrediSIS | [097-credisis.md](097-credisis.md) | "Layout de Cobrança CNAB 400 — CrediSIS" |
 | 104 — Caixa | [104-caixa.md](104-caixa.md) | "Especificações Técnicas Boleto de Cobrança CAIXA" (SIGCB) |
@@ -35,7 +36,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 748 — Sicredi | [748-sicredi.md](748-sicredi.md) | "Manual de Cobrança CNAB 240 — Sicredi" |
 | 756 — Sicoob | [756-sicoob.md](756-sicoob.md) | "Manual de Cobrança Sicoob (CNAB 400/240)" |
 
-## Todos os bancos suportados (18) — boleto validado por comparação cruzada
+## Todos os bancos suportados (19)
 
 | Código | Banco | Particularidade principal |
 |:------:|-------|---------------------------|
@@ -45,6 +46,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 033 | Santander | IOS + código do cedente; DV 2..9 (>9→0) |
 | 041 | Banrisul | Dígito duplo (módulo 10+11) com regra de recálculo |
 | 070 | BRB (Banco de Brasília) | Incremento(3) + dígito duplo |
+| 077 | Banco Inter | Nosso número(10) + DV módulo 10 de agência+carteira+NN |
 | 085 | Ailos | Conta com DV (7+1) + nosso número 9 |
 | 097 | CrediSIS | DV do documento do cedente no campo livre |
 | 104 | Caixa | SIGCB: intercalação do nosso número 17 |
@@ -120,8 +122,14 @@ linha de origem.
 
 ## Validação cruzada
 
-**Os 18 bancos** foram validados gerando **os mesmos dados nos dois sistemas** (PyCobrança ×
+**18 dos 19 bancos** foram validados gerando **os mesmos dados nos dois sistemas** (PyCobrança ×
 implementação de referência independente): **código de barras e linha digitável idênticos em 18/18**.
+
+O **Inter (077)** fica fora desta camada — ele não existe em nenhuma implementação aberta
+conhecida, então não há segundo gerador com que comparar. A saída dele vem do manual do próprio
+banco, com o dígito do nosso número conferido contra o exemplo resolvido da seção 7.3, e a
+remessa aprovada pelo **validador de layout do próprio Inter**. Detalhe em
+[077-inter.md](077-inter.md).
 Os vetores estão congelados em
 [`tests/test_validacao_cruzada.py`](../../tests/test_validacao_cruzada.py).
 Divergência encontrada e arbitrada durante o porte: o layout do **Ailos** (conta 7+DV e nosso

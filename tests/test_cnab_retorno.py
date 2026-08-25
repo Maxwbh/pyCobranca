@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from pycobranca.cnab.retorno import Retorno, descreve_ocorrencia
+from pycobranca.cnab.retorno.cnab400 import LAYOUTS_400, parse_cnab400
 
 FIXTURES = Path(__file__).parent / "fixtures" / "retorno"
 
@@ -99,3 +100,77 @@ def test_arquivo_generico_400_usa_layout_itau() -> None:
     # code path de fallback: banco não mapeado cai no layout base (Itaú)
     retorno = Retorno.ler(FIXTURES / "CNAB400ITAU.RET", layout="400")
     assert retorno.registros[0].sequencial == "000002"
+
+
+# --- Inter (077): layout de retorno bem distante do comum --------------------
+#
+# O retorno do Inter põe a ocorrência em 90-91 e o vencimento em 119-124, onde a
+# maioria dos bancos usa 109-110 e 147-152. Sem layout próprio, ``parse_cnab400``
+# cai no fallback do Itaú e lê "seu número" como código de ocorrência: o arquivo
+# inteiro parece válido e os campos saem trocados, sem exceção nenhuma.
+#
+# A fixture foi montada pelas posições do manual (v2.2, seção 5.2) — não há
+# arquivo real do banco. Ela prova o mapeamento, não a realidade do arquivo que o
+# Inter emite.
+
+RETORNO_INTER = Path(__file__).parent / "fixtures" / "retorno_inter_cnab400.ret"
+
+
+def _linhas_inter() -> list[str]:
+    return RETORNO_INTER.read_text(encoding="ascii").replace("\r\n", "\n").rstrip("\n").split("\n")
+
+
+def test_retorno_inter_le_os_campos_nas_posicoes_do_manual() -> None:
+    retorno = Retorno.ler(str(RETORNO_INTER))
+    assert retorno.codigo_banco == "077"
+    assert len(retorno) == 2  # header e trailer não viram registro
+
+    pago, cancelado = retorno.registros
+    assert pago.codigo_ocorrencia == "06"  # 090-091
+    assert pago.nosso_numero == "00043095401"  # 071-081, com DV
+    assert pago.documento_numero == "2026-0003"  # 098-107 "seu número"
+    assert pago.data_vencimento == "150826"  # 119-124
+    assert pago.valor_titulo == "0000000012750"  # 125-137
+    assert pago.valor_recebido == "0000000012750"  # 160-172 valor pago
+    assert pago.data_credito == "170826"  # 173-178
+    assert pago.carteira == "110"  # 021-023
+    assert cancelado.codigo_ocorrencia == "07"
+
+
+def test_ocorrencia_07_do_inter_e_cancelado_nao_liquidacao_parcial() -> None:
+    """O código que colide de frente com a FEBRABAN.
+
+    No padrão, ``07`` é *Liquidação por conta/parcial*; no Inter é **Cancelado**.
+    Descrever um título cancelado como parcialmente liquidado inverte o sentido
+    numa conciliação — e é exatamente o que aconteceria sem a sobreposição.
+    """
+    retorno = Retorno.ler(str(RETORNO_INTER))
+    _, cancelado = retorno.registros
+    assert retorno.descricao_ocorrencia(cancelado) == "Cancelado"
+    assert descreve_ocorrencia("07", "400") == "Liquidação por conta/parcial"
+    assert descreve_ocorrencia("07", "400", "077") == "Cancelado"
+
+
+def test_sem_o_layout_proprio_o_inter_seria_lido_errado() -> None:
+    """Mede o valor da entrada ``077`` em vez de só afirmar que ela existe.
+
+    Lido com o layout de fallback, o mesmo arquivo devolve outro código de
+    ocorrência — sem erro, sem aviso. É a forma de falha que este projeto trata
+    como bug: saída plausível e errada.
+    """
+    linhas = _linhas_inter()
+    correto = parse_cnab400(linhas, "077")[0]
+    fallback = parse_cnab400(linhas, "999")[0]  # banco sem layout -> cai no do Itaú
+
+    assert correto.codigo_ocorrencia == "06"
+    assert fallback.codigo_ocorrencia != correto.codigo_ocorrencia
+    assert fallback.data_vencimento != correto.data_vencimento
+
+
+def test_o_layout_do_inter_cobre_as_25_posicoes_uteis() -> None:
+    """Nenhuma faixa pode escapar das 400 posições nem se sobrepor ao sequencial."""
+    layout = LAYOUTS_400["077"]
+    for atributo, faixa in layout.items():
+        inicio, fim = faixa[0], faixa[1]
+        assert 0 <= inicio <= fim <= 399, f"{atributo}: faixa {faixa} fora do registro"
+    assert layout["sequencial"] == (394, 399)

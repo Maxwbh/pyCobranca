@@ -7,7 +7,7 @@ Este módulo fecha o que eles pressupõem:
 1. ``EXEMPLOS`` cobre **exatamente** o ``REGISTRO`` — se um banco novo entrar no
    registro sem exemplo, ele escaparia silenciosamente daquelas validações;
    aqui isso vira uma falha explícita.
-2. Cada um dos 18 bancos gera um título estruturalmente válido (código de barras
+2. Cada um dos 19 bancos gera um título estruturalmente válido (código de barras
    de 44, linha digitável de 47) e **renderiza** em PDF nos dois modelos.
 """
 
@@ -31,7 +31,7 @@ def test_exemplos_cobrem_todo_o_registro() -> None:
         f"faltam exemplos para {sorted(do_registro - dos_exemplos)}; "
         f"exemplos sem banco no registro: {sorted(dos_exemplos - do_registro)}"
     )
-    assert len(EXEMPLOS) == len(REGISTRO) == 18
+    assert len(EXEMPLOS) == len(REGISTRO) == 19
 
 
 @pytest.mark.parametrize("nome", sorted(EXEMPLOS))

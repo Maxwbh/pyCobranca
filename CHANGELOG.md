@@ -4,39 +4,44 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [1.1.1] - 2026-08-24
 
+### Adicionado
+
+- **Banco Inter (077)** — 19º banco: boleto, remessa e retorno CNAB 400, e logo empacotado.
+  Conforme o *Manual CNAB400* do banco (v2.2). **Só a carteira 110**: na 112 quem numera é o
+  Inter, e o nosso número só existe no retorno — a 112 é recusada em `validar()`.
+- **`RemessaInter400`** — remessa aprovada no **validador de layout do próprio Inter**.
+  `nome_arquivo()` devolve `CI400_001_<sequencial>.REM`, que o manual exige igual ao header.
+  Multa, juros e desconto em valor ou percentual; sem IOF e sem abatimento no layout.
+  Não há CNAB 240 de cobrança no Inter — o que o banco publica em 240 é de *pagamentos*.
+- **Retorno do Inter** — layout `077`: ocorrência em 90–91 e vencimento em 119–124, longe do
+  comum. Sem ele o parser lia o "seu número" como código de ocorrência, sem aviso.
+  `descreve_ocorrencia` passa a aceitar o banco: o `07` do Inter é *Cancelado*, não
+  *Liquidação parcial*.
+- **`Pagamento`**: `valor_multa`, `percentual_desconto` e `mensagem` — opcionais, exigidos pelo
+  layout do Inter e ignorados pelos demais.
+- **`tools/demo_gif.py`** — gera o GIF do README com os valores calculados pelo pacote. O
+  anterior não tinha gerador e anunciava a versão 1.0.0.
+
 ### Corrigido
 
-- **Imagem do README invisível fora da `main`.** As 16 referências ao próprio repositório
-  estavam fixadas em `.../main/...`, então uma captura nova só aparecia **depois** de promovida —
-  justamente o contrário do que a revisão precisa. Foi o que aconteceu com a
-  `boleto-tema.png`. O README passa a usar **caminho relativo**, que o GitHub resolve contra o
-  commit em que está sendo lido, e a conversão para URL absoluta — que o PyPI exige, por
-  renderizar o `long_description` fora do repositório — acontece no empacotamento
-  (`tools/_readme_urls.py`, ligado por `backend-path`). A árvore de trabalho não muda: o arquivo
-  é restaurado ao fim do build.
-
-- **DAC do nosso número errado na carteira 112 do Itaú.** O manual (*Cobrança CNAB 400*,
-  jan/2017) compõe o DAC de `agência + conta + carteira + nosso número`, com exceções que usam só
-  `carteira + nosso número`. A 112 é uma delas, e a composição longa era aplicada às sete
-  carteiras aceitas — produzindo um código de barras **estruturalmente válido com o dígito
-  errado**: o boleto imprime e passa em conferência estrutural, e a inconsistência pode permanecer
-  invisível em validadores estruturais, só sendo detectada quando o título é validado segundo as
-  regras específicas do Itaú. As demais não mudam.
+- **Imagem do README invisível fora da `main`.** As referências ao repositório estavam fixadas em
+  `.../main/...`, então uma captura nova só aparecia depois de promovida. O README passa a usar
+  caminho relativo, e a conversão para URL absoluta — que o PyPI exige — acontece no
+  empacotamento (`tools/_readme_urls.py`).
+- **Matriz de bancos do README errada em três linhas**: dizia que Banco do Brasil e C6 não têm
+  parser de retorno próprio (têm) e que o HSBC tem (não tem). Passou a ser derivada do código.
+- **DAC do nosso número errado na carteira 112 do Itaú.** A composição longa era aplicada às sete
+  carteiras aceitas, produzindo um código de barras estruturalmente válido com o dígito errado —
+  passa em validador estrutural e só é detectado nas regras do Itaú. As demais não mudam.
   [#40](https://github.com/Maxwbh/pyCobranca/issues/40)
-- **Paridade do Itaú presa por vetor**: as sete carteiras aceitas passam a ser conferidas byte a
-  byte contra vetores externos. O manual se contradiz sobre as carteiras escriturais (a nota 23 as
-  excetua, o anexo 4 não), e a decisão saiu da comparação com **três outras implementações de
-  cobrança** — o vetor é o que impede a regra de oscilar conforme a leitura.
-
-- **A faixa de encargos do boleto era impressa, e o total, calculado.** Desconto/abatimento,
-  outras deduções, mora/multa, outros acréscimos e valor cobrado são preenchidos **pelo caixa**, no
-  ato do pagamento — só ali se sabe se houve atraso, quanto rendeu de juros e se o desconto ainda
-  vale. A 1.1.0 imprimia o que o emissor informasse e **somava o `(=) Valor cobrado`** a partir dos
-  outros quatro: um total impresso antes do pagamento leva o pagador a pagar o valor errado, e nada
-  no PDF denuncia. As molduras continuam desenhadas, para o caixa preencher; o conteúdo não sai
-  mais, nos dois modelos. A regra do título vai em `instrucoes`. Os cinco campos seguem no
-  `BancoBase` e no contrato REST, para trafegar o encargo entre sistemas —
-  `contexto_render()["totalizadores"]` e `BoletoEmitido.totalizadores` passam a vir sempre vazios.
+- **Paridade do Itaú presa por vetor**: as sete carteiras passam a ser conferidas byte a byte.
+  O manual se contradiz sobre as escriturais; a decisão saiu da comparação com três outras
+  implementações.
+- **A faixa de encargos do boleto era impressa, e o total, calculado.** Desconto, deduções,
+  mora/multa, acréscimos e valor cobrado são preenchidos **pelo caixa** no ato do pagamento. A
+  1.1.0 imprimia o que o emissor informasse e somava o total, levando o pagador a pagar errado.
+  As molduras continuam; o conteúdo não sai mais. `contexto_render()["totalizadores"]` e
+  `BoletoEmitido.totalizadores` passam a vir sempre vazios.
 
 ## [1.1.0] - 2026-08-23
 

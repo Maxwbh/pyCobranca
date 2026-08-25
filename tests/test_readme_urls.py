@@ -70,12 +70,23 @@ def test_todo_caminho_relativo_existe_no_repositorio() -> None:
     assert ausentes == [], f"caminhos que não existem: {ausentes}"
 
 
-def test_o_readme_referencia_as_cinco_capturas() -> None:
-    """As capturas do README são a vitrine do projeto: some uma e ninguém nota."""
+def test_o_readme_referencia_todas_as_capturas() -> None:
+    """As capturas do README são a vitrine do projeto: some uma e ninguém nota.
+
+    A lista espelha o que ``tools/screenshots.py`` gera — se as duas divergirem,
+    ou o README ficou com imagem morta, ou o gerador produz arquivo que ninguém vê.
+    """
     capturas = {a for a in RELATIVOS if a.startswith("docs/images/screenshots/")}
     assert capturas == {
         f"docs/images/screenshots/{n}.png"
-        for n in ("boleto-moderno", "boleto-pix", "boleto-logo", "boleto-tema", "carne")
+        for n in (
+            "boleto-moderno",
+            "boleto-pix",
+            "boleto-logo",
+            "boleto-tema",
+            "carne",
+            "boleto-inter",
+        )
     }
 
 

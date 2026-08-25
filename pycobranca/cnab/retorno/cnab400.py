@@ -16,6 +16,30 @@ __all__ = ["parse_cnab400", "banco_do_arquivo_400", "LAYOUTS_400"]
 # Mapa posicional por banco: {atributo: (inicio, fim)} com faixas inclusivas.
 # ``motivo_ocorrencia`` recebe uma tupla extra (inicio, fim, modo).
 LAYOUTS_400: dict[str, dict[str, tuple]] = {
+    "077": {  # Banco Inter — manual CNAB400 v2.2, seção 5.2 (posições 1-based no manual)
+        # Layout bem distante do comum: a ocorrência fica em 90-91, não em 109-110,
+        # e o vencimento em 119-124, não em 147-152. Sem esta entrada o parser cairia
+        # no fallback do Itaú e leria "seu número" como código de ocorrência — erro
+        # silencioso, com o arquivo inteiro parecendo válido.
+        "codigo_registro": (0, 0),
+        "cedente_com_dv": (3, 16),  # 004-017 inscrição da empresa
+        "carteira": (20, 22),  # 021-023
+        "agencia_sem_dv": (23, 26),  # 024-027 — agência única 0001
+        "convenio": (27, 36),  # 028-037 conta corrente
+        "nosso_numero": (70, 80),  # 071-081 nosso número + DV
+        "codigo_ocorrencia": (89, 90),  # 090-091
+        "data_ocorrencia": (91, 96),  # 092-097
+        "documento_numero": (97, 106),  # 098-107 "seu número"
+        "data_vencimento": (118, 123),  # 119-124
+        "valor_titulo": (124, 136),  # 125-137
+        "banco_recebedor": (137, 139),  # 138-140
+        "agencia_recebedora_com_dv": (140, 143),  # 141-144
+        "especie_documento": (144, 145),  # 145-146
+        "valor_recebido": (159, 171),  # 160-172 valor pago
+        "data_credito": (172, 177),  # 173-178
+        "motivo_ocorrencia": (240, 379, "raw"),  # 241-380 motivo da rejeição
+        "sequencial": (394, 399),  # 395-400
+    },
     "341": {  # Itaú
         "codigo_registro": (0, 0),
         "agencia_com_dv": (17, 20),

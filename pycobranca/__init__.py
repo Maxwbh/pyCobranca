@@ -1,7 +1,7 @@
 """PyCobrança — plataforma de cobrança bancária brasileira em Python.
 
 Uma única biblioteca para boleto (código de barras, linha digitável e PDF),
-CNAB 240/400 (remessa e retorno) e PIX/Bolepix, para 18 bancos, em Python puro.
+CNAB 240/400 (remessa e retorno) e PIX/Bolepix, para 19 bancos, em Python puro.
 """
 
 from __future__ import annotations

@@ -34,6 +34,7 @@ from .cnab400 import (
     RemessaBradesco400,
     RemessaCitibank400,
     RemessaCredisis400,
+    RemessaInter400,
     RemessaItau400,
     RemessaSantander400,
     RemessaSicoob400,
@@ -75,6 +76,7 @@ __all__ = [
     "RemessaBancoBrasilia400",
     "RemessaCitibank400",
     "RemessaCredisis400",
+    "RemessaInter400",
     "RemessaBancoC6_400",
     # CNAB 240
     "RemessaAilos240",

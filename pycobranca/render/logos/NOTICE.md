@@ -21,7 +21,7 @@ Os arquivos vêm de três origens (a licença listada cobre o **arquivo**; ela *
 concede direitos sobre as **marcas**, que permanecem de seus titulares):
 
 - **Wikimedia Commons — Domínio Público** (alta resolução, com transparência):
-  `001`, `004`, `021`, `033`, `041`, `136`, `341`, `748`. Renderizados em PNG a partir
+  `001`, `004`, `021`, `033`, `041`, `077`, `136`, `341`, `748`. Renderizados em PNG a partir
   dos SVGs em Domínio Público (logotipos abaixo do limiar de originalidade / `PD-textlogo`).
 - **[laravel-boleto](https://github.com/eduardokum/laravel-boleto)** (diretório
   `logos/`, **licença MIT**): `085`, `104`, `336`, `399`, `756`. A licença MIT cobre o

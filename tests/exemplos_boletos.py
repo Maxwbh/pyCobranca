@@ -12,6 +12,15 @@ Divergência conhecida (cosmética, arbitrada pela documentação oficial): o
 Santander imprime o nosso número com 13 posições (12 dígitos + DV) no layout
 oficial — a PyCobrança segue o manual; a BrCobrança omite os zeros à esquerda
 (``1234567-9``). O código de barras é idêntico nos dois sistemas.
+
+**Exceção de procedência — Inter (077).** O Inter não existe na BrCobrança nem em
+nenhuma outra implementação aberta conhecida, então a entrada dele **não tem vetor
+cruzado**: a saída foi derivada do *Manual CNAB400* do próprio banco (v2.2, 26/08/2024),
+posição a posição, com o DV do nosso número conferido contra o exemplo resolvido da
+seção 7.3. Aqui o valor congelado é **guarda de regressão**, não concordância entre dois
+sistemas — prende a saída de hoje, e prenderia igual se estivesse errada. O que continua
+valendo para o Inter como verificação independente é ``test_validacao_externa.py``, que
+não usa nada do núcleo. Ver ``test_bancos_inter.py`` para o detalhe da evidência.
 """
 
 from __future__ import annotations
@@ -33,6 +42,7 @@ from pycobranca.bancos import (
     Caixa,
     Citibank,
     CrediSIS,
+    Inter,
     Itau,
     Safra,
     Santander,
@@ -251,6 +261,20 @@ EXEMPLOS: dict[str, Exemplo] = {
         "codigo_barras": "39998153900000127501122334000001234567822762",
         "linha_digitavel": "39991.12232 34000.001239 45678.227625 8 15390000012750",
         "nosso_numero": "0000012345678945",
+    },
+    # Sem vetor cruzado: derivado do manual do próprio banco. Ver o docstring do módulo.
+    "inter": {
+        "boleto": lambda: Inter(
+            **COMUM,
+            agencia="0001",
+            conta="123456",
+            carteira="110",
+            convenio="1234567",
+            nosso_numero="0004309540",
+        ),
+        "codigo_barras": "07796153900000127500001110123456700043095401",
+        "linha_digitavel": "07790.00116 10123.456708 00430.954016 6 15390000012750",
+        "nosso_numero": "0004309540-1",
     },
     "safra": {
         "boleto": lambda: Safra(

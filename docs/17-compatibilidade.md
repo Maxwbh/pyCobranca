@@ -40,7 +40,7 @@ não muda o que o teste prova.
 
 ## 1. Vetores de referência
 
-Para cada um dos **18 bancos**, os valores esperados dos testes foram **gerados por implementações
+Para **18 dos 19 bancos**, os valores esperados dos testes foram **gerados por implementações
 de cobrança já em produção**, com **exatamente os mesmos dados de entrada**, e conferidos campo a
 campo:
 
@@ -67,7 +67,7 @@ Esta camada **não usa nenhum código do núcleo**
 ao **receber** um boleto — um app de banco lendo a linha digitável, um PSP conferindo o código de
 barras.
 
-Para cada um dos 18 bancos, a partir do que a PyCobrança emitiu:
+Para cada um dos 19 bancos, a partir do que a PyCobrança emitiu:
 
 1. o código de barras tem 44 dígitos e o **DV geral (módulo 11)** confere;
 2. a linha digitável tem 47 dígitos e os **três DVs de campo (módulo 10)** conferem;
@@ -79,6 +79,12 @@ Para cada um dos 18 bancos, a partir do que a PyCobrança emitiu:
 Se a PyCobrança e esse verificador independente concordam, o título é aceito por qualquer sistema
 conforme à FEBRABAN.
 
+O **Inter (077)** é a exceção da camada 1: ele não existe em nenhuma implementação aberta
+conhecida, então não há vetor cruzado para ele. A saída do boleto vem do manual do próprio banco —
+com o dígito do nosso número conferido contra o exemplo resolvido da seção 7.3 — e a **remessa foi
+submetida ao validador de layout do próprio Inter**, que a aprovou. Para esse banco, portanto, a
+verificação externa está nas camadas 2 e 3, não na 1.
+
 O Itaú entra aqui com **as sete carteiras aceitas**, não só a do exemplo: a composição do dígito do
 nosso número muda por carteira, e conferir uma só deixaria as outras seis apoiadas apenas no vetor
 externo — que prova concordância, não correção.
@@ -88,16 +94,20 @@ externo — que prova concordância, não correção.
 ## 3. Remessa CNAB byte a byte
 
 A remessa é onde o risco é maior: posição fixa, sem tolerância. A suíte compara o arquivo gerado
-com **26 fixtures** de referência, **byte a byte**:
+com **27 fixtures** de referência, **byte a byte**:
 
 | Layout | Fixtures |
 |---|---|
-| CNAB 400 | 16 |
+| CNAB 400 | 17 |
 | CNAB 240 | 10 |
 
-Cobrindo 15 bancos — Ailos, Banco do Brasil, BRB/Brasília, C6, Banco do Nordeste, Banrisul,
-Bradesco, Caixa, Citibank, CrediSIS, Itaú, Santander, Sicoob, Sicredi e Unicred — incluindo as
-variantes **com segmento PIX**.
+Cobrindo 16 bancos — Ailos, Banco do Brasil, BRB/Brasília, C6, Banco do Nordeste, Banrisul,
+Bradesco, Caixa, Citibank, CrediSIS, Inter, Itaú, Santander, Sicoob, Sicredi e Unicred — incluindo
+as variantes **com segmento PIX**.
+
+A fixture do Inter é a única **auto-gerada** — não existe implementação de referência que produza
+remessa dele. Em compensação, o arquivo foi submetido ao **validador de layout do próprio banco**,
+que o aprovou; ali a verificação externa vem do emissor, não de um segundo gerador.
 
 Essas fixtures atravessaram todas as refatorações do projeto (reorganização do `render`, mudança de
 piso do Python, CNPJ alfanumérico) **sem alteração de um único byte**.
@@ -119,11 +129,11 @@ pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
 # remessa byte a byte
 pytest tests/test_cnab_remessa.py -v
 
-# a suíte completa (995 testes)
+# a suíte completa (1056 testes)
 pytest
 ```
 
-A CI roda os 995 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
+A CI roda os 1056 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
 [exemplos executáveis](https://github.com/Maxwbh/pyCobranca/tree/main/examples), que instalam o
 pacote **sem** as dependências de desenvolvimento — o que também valida o conteúdo do wheel.
 
@@ -138,8 +148,8 @@ O que a PyCobrança entrega, para você avaliar contra a sua solução atual (se
 
 | Recurso | Status |
 |---|---|
-| Boleto — código de barras, linha digitável, PDF | 18 bancos |
-| CNAB 400 — remessa · retorno | 12 · parsing por banco |
+| Boleto — código de barras, linha digitável, PDF | 19 bancos |
+| CNAB 400 — remessa · retorno | 13 · parsing por banco |
 | CNAB 240 — remessa · retorno | 7 · parsing por banco |
 | Encargos na remessa | mora (valor/dia ou % mensal), multa, desconto 1º/2º/3º, IOF, abatimento |
 | PIX / Bolepix | BR Code EMV + CRC16, QR no PDF e segmento PIX na remessa |
