@@ -25,6 +25,10 @@ class Sicredi(BancoBase):
         "posto": (0, 2),
         "convenio": (1, 5),
         "nosso_numero": (1, 5),
+        # Entra no campo livre em 1 posição, interpolado cru: sem limite
+        # declarado, dois caracteres estouram as 25 posições e o erro só aparecia
+        # na montagem do código de barras, sem dizer qual campo o causou.
+        "byte_idt": (1, 1),
     }
 
     @property

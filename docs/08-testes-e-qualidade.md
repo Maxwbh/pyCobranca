@@ -10,6 +10,7 @@ A qualidade da PyCobrança é sustentada por dois pilares: **testes automatizado
 | Unitário | dígitos verificadores, datas, documentos, linha/barra | `pytest` |
 | Por banco | valores conhecidos de linha digitável e código de barras | `pytest` + parametrização |
 | CNAB | remessa byte-a-byte, parsing de retorno | `pytest` + fixtures |
+| Valores-limite | cada campo de cada banco sem dados, com 1 caractere, no máximo declarado e máximo+1; agência, conta e nosso número em todos os tamanhos — no boleto **e** na remessa | `pytest` + parametrização |
 | PIX | payload EMV, CRC16, QR Code | `pytest` |
 | Contrato | artefatos vs. OpenAPI (contrato REST) | `pytest` |
 | Renderização | geração de PDF sem erro, presença de elementos | `pytest` |
@@ -27,6 +28,14 @@ primária de fixtures. Cada banco portado deve trazer ao menos:
 - Um caso de boleto com **linha digitável e código de barras conhecidos**.
 - Fixtures de **remessa** (quando houver CNAB) para comparação byte-a-byte.
 - Fixtures de **retorno** para validar o mapeamento de ocorrências.
+
+> **Fixture prova menos do que parece.** Ela prende a saída de hoje para um conjunto de dados; se
+> a implementação de referência erra, a fixture congela o erro junto — foi o que aconteceu com
+> quatro remessas que saíam fora de 400/240 posições. Por isso cada camada é conferida também
+> contra algo que não vem da referência: o **manual do banco** (posição a posição), o **invariante
+> do formato** (25 posições no campo livre, 400/240 no registro) e um **verificador FEBRABAN
+> independente**, que reimplementa as regras do zero. A procedência de cada fixture está em
+> [`docs/bancos/README.md`](bancos/README.md).
 
 ## Ferramentas de qualidade
 

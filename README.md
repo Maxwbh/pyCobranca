@@ -77,9 +77,10 @@ PyCobrança, não vai encontrar um concorrente nesta página. A dependência é 
   digitável com DVs e regras de carteira/nosso número por banco).
 - 📄 **PDF em Python puro** via ReportLab — dois modelos visuais (*clássico* e *moderno*), **carnê**
   (3 parcelas por A4) e **tema** (marca da empresa, cor, marca d'água, rodapé).
-- 🖼️ **Logo no cabeçalho** (opt-in): use o seu próprio arquivo (`banco.logo`) ou os **logos de 18
-  bancos já empacotados** (`logo_do_banco`), em alta resolução com transparência.
-- 🧾 **Remessa CNAB** 400 (13 bancos) e 240 (7 bancos), com agrupamento por convênio/carteira e
+- 🖼️ **Logo no cabeçalho** (opt-in): use o seu próprio arquivo (`banco.logo`) ou os **logos de 19
+  bancos já empacotados** (`logo_do_banco`) — 17 em alta resolução com transparência; Ailos e
+  HSBC seguem em 150×40, e **pixelam na impressão**.
+- 🧾 **Remessa CNAB** 400 (14 bancos) e 240 (7 bancos), com agrupamento por convênio/carteira e
   **juros, multa e desconto** (1º/2º/3º, IOF e abatimento).
 - 📥 **Retorno CNAB** 400/240 com parsing por banco e tradução dos códigos de ocorrência.
 - 🧮 **Extrato OFX** (v1/v2) com extração de nosso número e **conciliação** contra os boletos
@@ -269,12 +270,15 @@ tem posição.
 | Banco do Brasil (001) | ✅ | 📝¹ | ✅ | — | ✅ | ✅ |
 | Citibank (745) | ✅ | — | ✅ | ✅ | ✅ | ✅ |
 | BRB/Brasília (070) | ✅ | — | ✅ | — | — | ✅ |
+| Safra (422) | ✅ | 🔀⁵ | ✅ | — | ✅ | 🔀⁵ |
 
 <sub>✅ campo posicional na remessa · — sem campo no layout · **Desc. 3º**: apenas CNAB 240.
 📝¹ Itaú/BB (400): multa vai por **instrução** (código), não como percentual posicional.
 📅² Santander (400): 2º desconto só a **data**. ³ CrediSIS: 1º desconto **sem** campo de data.
 ⁴ Ailos (240): segmento R (multa + 2º/3º desconto) emitido só quando há multa.
-Banestes (021), HSBC (399) e Safra (422) só emitem boleto (sem remessa CNAB).</sub>
+🔀⁵ Safra (400): multa e abatimento **dividem** as posições 206–218 — a multa vai só em
+percentual, exige o código 16 na 1ª instrução e não convive com abatimento no mesmo título.
+Banestes (021) e HSBC (399) só emitem boleto (sem remessa CNAB).</sub>
 
 > Detalhes por layout (posições 240/400, valor × percentual por banco) em
 > [`docs/06-cnab.md`](https://maxwbh.github.io/pyCobranca/06-cnab/); via API REST, o objeto `encargos` em
@@ -384,8 +388,8 @@ Funcionalidade por banco (✅ = disponível/validado):
 | 336 | C6 Bank | ✅ | ✅ |  | ✅ | ✅ | ✅ |
 | 341 | Itaú | ✅ | ✅ |  | ✅ | ✅ | ✅ |
 | 399 | HSBC | ✅ |  |  |  |  | ✅ |
-| 422 | Safra | ✅ |  |  |  |  | ✅ |
-| 745 | Citibank | ✅ | ✅ |  |  |  |  |
+| 422 | Safra | ✅ | ✅ |  | ✅ |  | ✅ |
+| 745 | Citibank | ✅ | ✅ |  |  |  | ✅ |
 | 748 | Sicredi | ✅ |  | ✅ | ✅ |  | ✅ |
 | 756 | Sicoob | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Σ 19** | | **19** | **13** | **7** | **15** | **7** | **18** |

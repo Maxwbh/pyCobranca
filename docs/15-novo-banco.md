@@ -166,6 +166,14 @@ O que `BancoBase.validar()` **já cobre**, sem uma linha a mais no banco:
 Todos os problemas são acumulados e levantados de uma vez em `BoletoInvalido.erros` (lista). O
 contrato completo está em [`14-validacao-campos.md`](14-validacao-campos.md).
 
+> **Todo campo que entra no campo livre precisa de regra — inclusive os de uma posição.** As 25
+> posições são fixas: um caractere a mais em qualquer um deles quebra o boleto inteiro. Sem regra
+> declarada, `validar()` passa e o erro só aparece na montagem do código de barras, dizendo que o
+> campo livre tem 26 dígitos — sem dizer qual campo o causou. Foi o que aconteceu com
+> `digito_conta`, `digito_agencia`, `variacao`, `byte_idt` e a parcela do Sicoob. Interpolação
+> crua e `zfill` **preenchem mas não cortam**, então nenhum dos dois substitui a regra. A
+> varredura de `tests/test_limites_campos.py` recusa um banco novo que deixe essa lacuna.
+
 **Rótulos das mensagens.** `base.py` tem um mapa `_ROTULOS_CAMPOS` com os nomes amigáveis
 (`agencia` → "agência", `nosso_numero` → "nosso número", …). Se o seu banco validar um campo que
 não está lá, a mensagem sai com o nome cru do atributo — inclua o rótulo no mapa.
@@ -207,9 +215,16 @@ Ganchos **opcionais** detectados por `hasattr` em `_monta_registros()`:
 `monta_detalhe_pix(pagamento, sequencial)` (emitido para um `PagamentoPix`).
 
 A base já entrega header (`01REMESSA01COBRANCA…`), trailer (tipo 9), validação dos pagamentos,
-CRLF, `upper()` e remoção de acentos. Quando o layout do banco não tem 400 posições no detalhe,
-declare `tamanho_registro: int | None = None` para desligar a checagem estrita — a garantia passa a
-ser a comparação byte a byte com a fixture (é o caso de Banco do Nordeste, CrediSIS e BRB).
+CRLF, `upper()` e remoção de acentos.
+
+> **Não desligue a conferência de tamanho.** Quando o layout mistura tamanhos, declare a tupla —
+> `tamanho_registro = (39, 400)` é o que o BRB usa, pelo header DCB. O que **não** se faz é pôr
+> `None`: quatro remessas fizeram isso, cada uma justificando que *o layout do banco* usava 401,
+> 402 ou 241 posições, e nenhuma usava — era `rjust` preenchendo sem cortar, com um valor maior
+> que o campo atravessando para a posição seguinte. O `None` transformou o sintoma em documentação
+> e desligou a única conferência que pegaria. Hoje um teste
+> (`test_nenhuma_remessa_desliga_a_conferencia_de_tamanho`) recusa o `None`. Registro fora do
+> tamanho é campo estourando: encontre o campo e passe-o por `campo_numerico`.
 
 Exporte a classe em `cnab400/__init__.py` **e** em `pycobranca/cnab/__init__.py`.
 

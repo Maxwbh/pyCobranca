@@ -23,7 +23,13 @@ class Sicoob(BancoBase):
         "agencia": (1, 4),
         "convenio": (0, 7),
         "numero_contrato": (0, 7),
+        # ``zfill(2)`` no campo livre preenche mas não corta: três dígitos
+        # estouram as 25 posições.
+        "variacao": (0, 2),
         "nosso_numero": (1, 7),
+        # Parcela, 3 posições (23–25 do campo livre): ``zfill(3)`` preenche mas
+        # não corta, e o quarto dígito estourava as 25 posições.
+        "quantidade": (0, 3),
     }
 
     @property

@@ -74,16 +74,19 @@ Linha digitável:  09790.00007 09780.123122 34561.234567 1 15390000012750
 **Implementação:** [`pycobranca/cnab/cnab400/credisis.py`](../../pycobranca/cnab/cnab400/credisis.py) ·
 fixture: [`tests/fixtures/remessa_credisis_cnab400.rem`](../../tests/fixtures/remessa_credisis_cnab400.rem)
 
-> **Quirk documentado:** o **registro detalhe tem 402 posições** (header e trailer têm 400) —
-> conforme o layout do banco. Mantida a paridade byte a byte; por isso
-> `tamanho_registro=None`.
+> **Correção de um registro anterior.** Esta página dizia que o detalhe tinha **402 posições**
+> *conforme o layout do banco*, e que por isso `tamanho_registro` ficava em `None`. Não era o
+> layout: o nosso número tem **6 posições** aqui, e um valor de 8 dígitos atravessava para a
+> posição seguinte, porque `rjust` preenche e não corta. A fixture não pegava — vem da
+> implementação de referência, que estoura igual. Hoje o nosso número maior que o campo é
+> **recusado**, os três registros saem em 400, e a conferência de tamanho está ligada.
 
 Estrutura do arquivo (CRLF, maiúsculas sem acentos):
 
 | Registro | Tam. | Conteúdo principal |
 |----------|:----:|--------------------|
 | Header (`01REMESSA01COBRANCA`) | 400 | info da conta (agência 4 + espaço + conta 8 + dígito) · empresa(30) · `097` + `CENTRALCRED` · data (DDMMAA) · sequencial(7) |
-| Detalhe (tipo 1) | **402** | tipo/CPF-CNPJ da empresa · agência(4) + conta(8) + dígito · uso da empresa(25) · **nosso número** (`0` + código do cedente 4 + nosso número 6) · nº documento(10) · vencimento (DDMMAA) · valor(13) · emissão · valor de mora(6) · percentual de multa(6) · desconto · sacado (doc/nome 40/endereço 37/bairro 15/CEP/cidade 15/UF) · avalista(25) · dias de protesto · sequencial(6) |
+| Detalhe (tipo 1) | 400 | tipo/CPF-CNPJ da empresa · agência(4) + conta(8) + dígito · uso da empresa(25) · **nosso número** (`0` + código do cedente 4 + nosso número 6) · nº documento(10) · vencimento (DDMMAA) · valor(13) · emissão · valor de mora(6) · percentual de multa(6) · desconto · sacado (doc/nome 40/endereço 37/bairro 15/CEP/cidade 15/UF) · avalista(25) · dias de protesto · sequencial(6) |
 | Trailer (tipo 9) | 400 | 393 brancos + sequencial(6) |
 
 **Nosso número:** `0` + código do cedente(4) + nosso número(6, zeros à esquerda).

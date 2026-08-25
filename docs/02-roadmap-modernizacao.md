@@ -47,62 +47,54 @@ A lacuna foi identificada comparando a cobertura com a
 ### `conta_corrente` sem ajuste de largura em parte dos layouts CNAB 400
 
 Alguns layouts concatenam `conta_corrente` cru no registro, em vez de ajustá-lo à largura do
-campo. Qualquer tamanho diferente do previsto desloca todas as posições seguintes:
+campo. Qualquer tamanho diferente do previsto desloca todas as posições seguintes — o registro que
+o layout montaria fica assim:
 
-| `conta_corrente` no Sicoob 400 | Registro de detalhe |
-|---|---|
-| `"1"` | 393 posições |
-| `"12345"` | 397 posições |
-| `"12345678"` | **400 posições** |
-| `"123456789012"` | 404 posições |
+| `conta_corrente` no Sicoob 400 | Registro que seria montado | Hoje |
+|---|---|---|
+| `"1"` | 393 posições | recusado |
+| `"12345"` | 397 posições | recusado |
+| `"12345678"` | **400 posições** | emitido |
+| `"123456789012"` | 404 posições | recusado |
 
-Medindo os 12 layouts de 400 com a conferência de tamanho desligada — que é o que revela o
-deslocamento cru —, o registro de detalhe sai assim:
+**Estado atual — nenhum layout emite mais registro deslocado.** A varredura de valores-limite
+(`tests/test_limites_campos.py`) percorre agência, conta e nosso número em todos os tamanhos de 0
+a 20 dígitos, nos 14 layouts de 400 e nos 7 de 240, e o resultado é sempre um dos dois: registro
+de 400/240 posições, ou recusa com `BoletoInvalido`. O arquivo malformado deixou de ser uma saída
+possível.
 
-| Layout | Conta curta (`"1"`) | Conta longa (12 dígitos) |
-|---|:---:|:---:|
-| Itaú | 400 | **407** |
-| Bradesco | 400 | **405** |
-| Banco do Brasil | 400 | **404** |
-| Sicoob | **393** | **404** |
-| Santander | 400 | **399** |
-| Banrisul, Citibank, C6, Unicred | 400 | 400 |
+Três coisas mudaram desde a medição original:
 
-Três coisas que a medição mostra e a leitura do código não sugeria:
+- **Os quatro layouts que saíam fora de 400/240 voltaram ao tamanho do formato.** Banco de
+  Brasília, Banco do Nordeste, CrediSIS e o segmento P do Santander 240 saíam com 401, 402 e 241
+  posições **com os dados da própria fixture**, e cada módulo anotava isso como desvio do layout
+  do banco, com `tamanho_registro = None`. Não era desvio de layout: era `rjust` estourando o
+  campo, e o `None` desligava a única conferência que pegaria. Hoje os quatro conferem o tamanho
+  (o BRB com `(39, 400)`, pelo header DCB) e um teste exige que nenhuma remessa desligue a
+  checagem.
+- **Agência, conta e nosso número passaram por `campo_numerico`** onde o valor podia não caber, e
+  a recusa **nomeia o campo**: `conta_corrente: '999999999999' não cabe em 7 posições`.
+- **A conferência de tamanho guarda todos os layouts**, inclusive os quatro que antes escapavam.
 
-- **Só o Sicoob quebra com conta curta.** O Itaú aplica `zfill(5)`, o que resolve a conta curta e
-  não a longa; o Sicoob concatena sem ajuste algum. Banrisul e Citibank não usam
-  `conta_corrente` no detalhe.
-- **O Santander encolhe em vez de crescer**, e por outro motivo: acima de 8 posições ele entra no
-  ramo de "conta padrão novo", que grava `conta[8] + digito_conta`. Com `digito_conta` vazio o
-  campo sai com um caractere em vez de dois. Não é largura da conta, é um ramo que pressupõe o
-  dígito preenchido.
-- **Banco de Brasília (402), Banco do Nordeste (401) e CrediSIS (402)** já saem fora de 400 com a
-  conta da própria fixture: é o desvio de layout anotado com `tamanho_registro=None`. Eles também
-  deslocam com conta longa, mas a conferência de tamanho nunca os guardou.
+O que continua aberto: nos campos que ainda não passam por `campo_numerico`, a recusa vem da
+conferência de tamanho, cuja mensagem informa o registro (`registro 2 com 393 posições`) **sem
+apontar o campo responsável**. O arquivo errado não sai — a mensagem é que é pior do que poderia.
+Fechar isso é uma varredura por vinte módulos, e cada campo precisa do layout do banco para saber
+a largura; entra por banco, junto com o manual.
 
-Dois atenuantes, que é por isso que o item está aqui e não como falha crítica: nos layouts com
-`tamanho_registro` declarado, a conferência **detecta e recusa** gerar o arquivo malformado, então
-nada inválido chega ao banco; e as fixtures usam contas na largura correta, de modo que a suíte
-atual não cobre o caso.
-
-O que a correção exigiria: normalizar `conta_corrente` nos layouts que não normalizam — com
-truncamento ou erro explícito para conta longa demais —, preencher o dígito no ramo novo do
-Santander e enriquecer a mensagem da conferência, que hoje informa o registro
-(`registro 2 com 393 posições`) sem apontar o campo responsável. Nenhuma delas quebra as fixtures
-existentes.
-
-Enquanto não for corrigido, a orientação para quem integra está em
+A orientação para quem integra está em
 [19 — Integração](19-integracao.md#contrato-de-erros).
 
 ## Fora de escopo, por decisão
 
 ### Bancos que emitem o boleto do próprio lado
 
-Os **18 bancos** cobertos são aqueles cujo campo livre é reproduzível fora do banco. O **Inter
-(077)** é o exemplo do que fica de fora: a remessa vai **sem** nosso número e o campo livre
-(número de operação de 7 dígitos) é atribuído pela instituição — não há o que calcular
-*client-side*, nem vetor oficial recalculável para conferir.
+Os **19 bancos** cobertos são aqueles cujo campo livre é reproduzível fora do banco. O corte é
+**por carteira, não por banco** — o Inter (077) é o exemplo: a carteira **110** entra, porque o
+cliente numera a partir de uma faixa recebida antes; a **112** fica de fora, porque ali o nosso
+número é atribuído pela instituição depois de receber a remessa. Não há o que calcular
+*client-side* numa carteira assim, e a PyCobrança **recusa** a 112 na validação em vez de gerar um
+título com um número que o banco nunca emitiu.
 
 Banco novo entra sob demanda, pelo [critério de entrada](#o-criterio-de-entrada).
 

@@ -45,6 +45,8 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 | Agência | 1–4 dígitos |
 | Convênio | até 7 dígitos (opcional) |
 | Número do contrato | até 7 dígitos (opcional) |
+| Variação (modalidade) | até 2 dígitos, `01` quando ausente |
+| Quantidade de parcelas | até 3 dígitos, `001` quando ausente |
 | Nosso número | 1–7 dígitos |
 | Carteira | conjunto: 1, 3, 9, 09 |
 
@@ -98,3 +100,71 @@ layout de arquivo `081`, de lote `040`. `forma_cadastramento` = `0`.
 | Trailer de Arquivo (9) | contadores de lotes/registros (variante Sicoob com `0*6` + brancos) |
 
 **DVs (módulo 11):** agência `{10: "0"}`; conta `{10: "0"}`.
+
+## Remessa CNAB 400 — auditada contra o layout oficial
+
+As **54 posições** do registro de detalhe são conferidas uma a uma contra a aba
+*03.Remessa - CNAB400* do `Layout_Cobranca_CNAB400.xls` (portal do banco, 19/05/2025), em
+`test_remessa_sicoob_posicoes_do_layout_oficial` — um caso de teste por campo, com a máscara
+que a planilha declara. A auditoria encontrou dois problemas que a paridade byte a byte **não
+pegava**, porque a implementação de referência os reproduzia igual:
+
+**1. As posições 111–120 são `X(10)`, e levavam zeros à esquerda.**
+
+O campo é *Seu Número*, alfanumérico. Preencher com zero um valor que tem letras produz outro
+valor: `DOC0001` virava `000DOC0001` — e é `000DOC0001` que o banco devolve no retorno. Quem
+guardou `DOC0001` não reencontra o título ao conciliar por esse campo.
+
+Valor só de dígitos continua alinhado à direita com zeros: ali as duas convenções coincidem, e
+o comportamento anterior se mantém.
+
+Por isso `remessa_sicoob_cnab400.rem` **deixou de ser vetor de paridade**. Onde manual e
+implementação de referência discordam, vale o manual. A diferença é **só naquelas dez
+posições** — 20 bytes nos dois registros de detalhe, nada mais se moveu.
+
+**2. Não existe "tipo de formulário" no layout 400.**
+
+O `RemessaSicoob400` aceitava `tipo_formulario` e nunca o gravava: quem o informava mudava
+nada. É campo do **CNAB 240**, onde segue em uso. Foi removido — aceitar um parâmetro inerte é
+pior que recusá-lo.
+
+!!! note "`modalidade_carteira` aponta para o campo vizinho"
+    Ela grava a posição **106**, que a planilha chama de *Tipo de Emissão* (`1` cooperativa,
+    `2` cliente). Quem ocupa *Carteira/Modalidade* (107–108) é `carteira`. O nome ficou por
+    compatibilidade; a documentação diz o que ele faz.
+
+!!! warning "A planilha oficial tem um erro de posição"
+    O campo 53 declara início **394**, fim **395** e tamanho **1** — os três não fecham entre
+    si, e o campo 54 começa em 395. A transcrição segue o tamanho declarado (394–394), e um
+    teste exige que a tabela cubra 1 a 400 sem buraco nem sobreposição.
+
+## Retorno CNAB 400 — implementado
+
+**Layout:** `LAYOUTS_400["756"]` em
+[`pycobranca/cnab/retorno/cnab400.py`](../../pycobranca/cnab/retorno/cnab400.py) ·
+fixture: [`tests/fixtures/retorno_sicoob_cnab400.ret`](../../tests/fixtures/retorno_sicoob_cnab400.ret)
+
+Conforme a aba **04.Retorno - CNAB400** do `Layout_Cobranca_CNAB400.xls` publicado no portal do
+banco (19/05/2025). Dois desvios grandes em relação ao layout de reserva:
+
+| Campo | Sicoob | Layout de reserva (Itaú) |
+|---|:--:|:--:|
+| **Nosso número** | **063–073** + DV em **074** (12) | 063–070 (8) |
+| **Data de crédito** | **176–181** | 296–301 |
+| Carteira/modalidade | 107–108 (duas posições) | 108 (uma) |
+| Valor da tarifa | 182–188 (sete) | 176–188 (treze) |
+| Motivo | 081–082 (código de baixa/recusa) | 378–385 |
+
+Sem a entrada `756`, o nosso número saía **truncado em oito posições** — três dígitos e o DV
+perdidos — e a data de crédito vinha de 296–301, devolvendo zeros: indistinguível de *"ainda não
+creditado"*. `test_sem_o_layout_proprio_o_sicoob_perdia_o_dv_e_a_data_de_credito` mede as duas.
+
+!!! warning "Correção de um diagnóstico anterior"
+    A documentação chegou a registrar que o Sicoob não teria CNAB 400 de cobrança, porque o
+    **validador** do banco só oferece CNAB240. Era inferência a partir de uma ausência, não
+    fonte: o portal publica o layout 400 com data de 2025. O validador não aceitar o 400 e o
+    layout continuar publicado são fatos compatíveis — e só o segundo diz o que o banco emite.
+
+!!! note "A fixture foi montada a partir do XLS"
+    Não há arquivo de retorno 400 real do Sicoob aqui. A fixture prova o **mapeamento**, não o
+    arquivo que o banco emite. Um retorno real fecharia essa lacuna.

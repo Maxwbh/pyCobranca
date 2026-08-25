@@ -20,11 +20,11 @@ Para o que a biblioteca **não** faz — rede, disco, estado, numeração, agend
 
 | Módulo | Entrega |
 |---|---|
-| `pycobranca` | registro dos 18 bancos, versão, `banco_info` |
-| `pycobranca.bancos` | as 18 classes de boleto e a base `BancoBase` |
+| `pycobranca` | registro dos 19 bancos, versão, `banco_info` |
+| `pycobranca.bancos` | as 19 classes de boleto e a base `BancoBase` |
 | `pycobranca.render` | PDF (boleto, carnê, fatura), `emite_boleto`, logos, código de barras SVG |
 | `pycobranca.pix` | BR Code EMV, CRC16, QR em SVG/matriz |
-| `pycobranca.cnab` | remessa 400/240 (26 classes) e `Pagamento`/`PagamentoPix` |
+| `pycobranca.cnab` | remessa 400/240 (28 classes) e `Pagamento`/`PagamentoPix` |
 | `pycobranca.cnab.retorno` | leitura de retorno 400/240 e rótulos de ocorrência |
 | `pycobranca.ofx` | leitura de extrato OFX v1/v2 e conciliação |
 | `pycobranca.contracts` | contrato REST: ida, volta e validação |
@@ -163,13 +163,13 @@ OFX. Ver [07 — PIX/Bolepix](07-pix.md).
 
 ## 4. Remessa CNAB — `pycobranca.cnab`
 
-**26 classes de remessa**, cobrindo 12 bancos em CNAB 400 e 7 em CNAB 240 (as variantes `*Pix`
+**28 classes de remessa**, cobrindo 14 bancos em CNAB 400 e 7 em CNAB 240 (as variantes `*Pix`
 acrescentam o segmento PIX):
 
 - **400:** `RemessaItau400`, `RemessaBradesco400`, `RemessaBancoBrasil400`, `RemessaSantander400`,
   `RemessaSicoob400`, `RemessaUnicred400`, `RemessaBanrisul400`, `RemessaBancoNordeste400`,
-  `RemessaBancoBrasilia400`, `RemessaCitibank400`, `RemessaCredisis400`, `RemessaBancoC6_400`
-  — com PIX: Itaú, Bradesco, Santander e C6.
+  `RemessaBancoBrasilia400`, `RemessaCitibank400`, `RemessaCredisis400`, `RemessaBancoC6_400`,
+  `RemessaInter400`, `RemessaSafra400` — com PIX: Itaú, Bradesco, Santander e C6.
 - **240:** `RemessaAilos240`, `RemessaBancoBrasil240`, `RemessaCaixa240`, `RemessaSantander240`,
   `RemessaSicoob240`, `RemessaSicredi240`, `RemessaUnicred240`
   — com PIX: Banco do Brasil, Caixa e Sicoob.
@@ -217,8 +217,9 @@ reconhecível levanta `RetornoInvalido`.
 `juros_mora`, `valor_tarifa`, `desconto`, `valor_abatimento`, `banco_recebedor`, além dos campos
 PIX (`tipo_chave_dict`, `codigo_chave_dict`, `txid`) — e `.to_dict()`.
 
-**14 dos 18 bancos** têm layout de retorno próprio (10 em 400, 5 em 240, com sobreposição); os
-demais caem no layout genérico, que lê o arquivo mas pode divergir em campos específicos.
+**16 dos 19 bancos** têm layout de retorno próprio (14 em 400, 5 em 240, com sobreposição); os
+demais — Banestes (021), HSBC (399) e Citibank (745) — caem no layout de reserva, que lê o arquivo
+mas pode divergir em campos específicos e emite o aviso `LayoutGenerico` dizendo isso.
 
 ---
 
@@ -268,7 +269,7 @@ inventar o formato do payload nem repetir a validação.
 (código FEBRABAN → slug do payload), `TOTALIZADORES`, `CAMPOS_POR_BANCO`, `NOMES_DO_CONTRATO`
 (nomes que divergem entre domínio e contrato) e `TEMA_DO_CONTRATO`.
 
-A ida e volta `boleto_para_api` → `boleto_de_api` é testada nos **18 bancos**, com o código de
+A ida e volta `boleto_para_api` → `boleto_de_api` é testada nos **19 bancos**, com o código de
 barras conferido nas duas pontas. Ver [04 — Contrato REST](04-api-rest.md).
 
 ---

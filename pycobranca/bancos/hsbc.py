@@ -1,4 +1,12 @@
-"""HSBC (399) — carteiras CNR (com data juliana) e CSB. Legado."""
+"""HSBC (399) — carteira CNR, com data juliana. Legado.
+
+A **CSB foi retirada** de ``carteiras``: o campo livre dela montava 27 posições
+onde a FEBRABAN reserva 25, então nunca gerou boleto válido. Corrigir precisa do
+manual do HSBC, que o banco não publica mais — encerrou no Brasil em 2016,
+absorvido pelo Bradesco. Anunciá-la como suportada era promessa que sempre
+falhava; o código da composição fica em :meth:`campo_livre` para quem tiver o
+manual, mas a carteira é recusada na validação.
+"""
 
 from __future__ import annotations
 
@@ -22,7 +30,7 @@ class HSBC(BancoBase):
     codigo: ClassVar[str] = "399"
     nome: ClassVar[str] = "HSBC"
     digito_banco: ClassVar[str] = "9"
-    carteiras: ClassVar[tuple[str, ...]] = ("CNR", "CSB")
+    carteiras: ClassVar[tuple[str, ...]] = ("CNR",)
     suporta_pix: ClassVar[bool] = False
     regras_campos: ClassVar[dict[str, tuple[int, int]]] = {
         "conta": (1, 7),

@@ -37,13 +37,13 @@ CNAB e PIX variam por banco, e a matriz mostra exatamente onde.
 | 336 | C6 Bank | ✅ | ✅ | ✅ | — | ✅ |
 | 341 | Itaú | ✅ | ✅ | ✅ | — | ✅ |
 | 399 | HSBC | ✅ | — | — | — | — |
-| 422 | Safra | ✅ | — | — | — | — |
+| 422 | Safra | ✅ | — | ✅ | — | ✅ |
 | 745 | Citibank | ✅ | — | ✅ | — | — |
 | 748 | Sicredi | ✅ | — | — | ✅ | ✅ |
 | 756 | Sicoob | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-Totais: **19** com boleto, **7** com PIX, **13** com remessa 400, **7** com remessa 240,
-**15** com layout de retorno próprio.
+Totais: **19** com boleto, **7** com PIX, **14** com remessa 400, **7** com remessa 240,
+**16** com layout de retorno próprio.
 
 Cada banco tem uma página com carteiras, formato do nosso número, composição do campo livre e
 fontes oficiais: [`docs/bancos/`](bancos/README.md).
@@ -51,8 +51,12 @@ fontes oficiais: [`docs/bancos/`](bancos/README.md).
 ## Sobre as lacunas
 
 Um traço na matriz significa que o layout ainda não foi portado, não que o banco não aceite
-aquele meio. Banestes, HSBC e Safra emitem boleto mas ainda não têm CNAB; Citibank tem remessa
-400 sem layout de retorno próprio.
+aquele meio. Banestes e HSBC emitem boleto mas ainda não têm CNAB; o Citibank tem remessa 400
+sem layout de **retorno 400** próprio.
+
+Ler um retorno sem layout próprio **não falha em silêncio desde a 1.1.2**: sai um aviso
+`LayoutGenerico` dizendo que os campos podem estar em outras posições — ver
+[06 — Quando o banco não tem layout próprio](06-cnab.md#quando-o-banco-nao-tem-layout-proprio).
 
 O critério para fechar uma lacuna é o mesmo de sempre: manual oficial do banco e arquivo de
 referência para comparação byte a byte. Sem os dois, o layout não entra — ver

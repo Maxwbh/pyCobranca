@@ -25,6 +25,7 @@ import pytest
 from exemplos_boletos import EXEMPLOS
 
 from pycobranca.bancos.base import BancoBase
+from pycobranca.exceptions import PyCobrancaError
 
 # --- Verificador independente (reimplementação limpa das regras FEBRABAN) -----
 
@@ -170,3 +171,70 @@ def test_inter_validado_por_sistema_externo() -> None:
         sacado_documento="52998224725",
     )
     _confere("inter/110", boleto)
+
+
+# --- Toda carteira declarada, em todo banco ----------------------------------
+#
+# ``carteiras`` é promessa pública: quem lê a matriz acredita que aquelas
+# carteiras funcionam. Os exemplos exercitavam **uma** por banco — as demais
+# nunca tinham sido geradas, e uma delas nunca funcionou.
+
+#: Carteiras declaradas que **não produzem boleto válido**. Não é lista de
+#: tolerância: é defeito registrado, com o teste abaixo garantindo que ninguém
+#: some com a evidência nem acrescente outra sem perceber.
+#:
+#: - **399/CSB**: ``campo_livre`` monta nosso número(13) + agência(4) +
+#:   conta(7) + ``"001"`` = **27 posições**, onde a FEBRABAN exige 25. É
+#:   aritmético: a carteira nunca gerou boleto. A composição correta precisa do
+#:   manual do HSBC, que o banco não publica mais — encerrou no Brasil em 2016.
+CARTEIRAS_QUEBRADAS = {("399", "CSB")}
+
+
+def _um_boleto_por_banco():
+    """Um construtor válido por código de banco, tirado dos exemplos."""
+    return {ex["boleto"]().codigo: ex["boleto"] for ex in EXEMPLOS.values()}
+
+
+def _todas_as_carteiras():
+    from pycobranca.bancos import Bancos
+
+    construtores = _um_boleto_por_banco()
+    return [
+        (banco.codigo, carteira)
+        for banco in sorted(Bancos.todos(), key=lambda b: b.codigo)
+        if banco.codigo in construtores
+        for carteira in banco.carteiras
+    ]
+
+
+@pytest.mark.parametrize(("codigo", "carteira"), _todas_as_carteiras())
+def test_toda_carteira_declarada_gera_boleto_valido(codigo: str, carteira: str) -> None:
+    """Troca só a carteira sobre dados válidos do banco e roda o verificador.
+
+    O verificador é o mesmo dos outros testes deste módulo: não usa nada do
+    núcleo, reimplementa as regras FEBRABAN do zero.
+    """
+    boleto = _um_boleto_por_banco()[codigo]()
+    boleto.carteira = carteira
+    if (codigo, carteira) in CARTEIRAS_QUEBRADAS:
+        with pytest.raises((PyCobrancaError, AssertionError)):
+            _confere(f"{codigo}/{carteira}", boleto)
+        return
+    _confere(f"{codigo}/{carteira}", boleto)
+
+
+def test_a_lista_de_carteiras_quebradas_nao_cresceu() -> None:
+    """Prende o número: uma carteira nova que não funcione tem de aparecer aqui."""
+    assert CARTEIRAS_QUEBRADAS == {("399", "CSB")}
+
+
+def test_o_campo_livre_do_csb_tem_27_posicoes_onde_cabem_25() -> None:
+    """Nomeia a causa, para a correção não virar tentativa e erro.
+
+    Não é ajuste de dígito: sobram **duas** posições na composição. Sem o manual
+    do HSBC não dá para saber qual campo encolhe, então o defeito fica descrito
+    em vez de adivinhado.
+    """
+    boleto = _um_boleto_por_banco()["399"]()
+    boleto.carteira = "CSB"
+    assert len(boleto.campo_livre()) == 27

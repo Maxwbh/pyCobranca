@@ -8,6 +8,9 @@ linhas de detalhe (registro ``3``, segmento ``T``/``U``) são consideradas.
 
 from __future__ import annotations
 
+import warnings
+
+from ...exceptions import LayoutGenerico
 from .base import RegistroRetorno, extrai_campo, transforma_motivo
 
 __all__ = ["parse_cnab240", "banco_do_arquivo_240", "LAYOUTS_240"]
@@ -190,7 +193,17 @@ def _linha_de_detalhe(linha: str) -> bool:
 
 
 def parse_cnab240(linhas: list[str], codigo_banco: str) -> list[RegistroRetorno]:
-    layout = LAYOUTS_240.get(codigo_banco, LAYOUTS_240["default"])
+    layout = LAYOUTS_240.get(codigo_banco)
+    if layout is None:
+        # Mesmo caso do 400: lê tudo, não levanta nada, e os campos podem sair
+        # de posições que não são as deste banco.
+        layout = LAYOUTS_240["default"]
+        warnings.warn(
+            f"retorno CNAB 240 do banco {codigo_banco!r} lido com o layout genérico: "
+            "não há mapa próprio para ele, e os campos podem estar em outras posições",
+            LayoutGenerico,
+            stacklevel=2,
+        )
     ranges = layout["ranges"]
     detalhes = [linha for linha in linhas if _linha_de_detalhe(linha)]
 

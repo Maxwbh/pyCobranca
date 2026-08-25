@@ -41,6 +41,7 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 |-------|-------|
 | Agência | 1–4 dígitos |
 | Conta | 1–9 dígitos |
+| Dígito da conta | 1 dígito — entra no campo livre em 1 posição |
 | Nosso número | 1–10 dígitos |
 | Carteira | conjunto: 21 |
 

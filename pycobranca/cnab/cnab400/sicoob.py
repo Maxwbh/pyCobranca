@@ -1,4 +1,19 @@
-"""Remessa CNAB 400 — Sicoob (756)."""
+"""Remessa CNAB 400 — Sicoob (756).
+
+Layout do ``Layout_Cobranca_CNAB400.xls`` publicado no portal do banco
+(19/05/2025), aba *03.Remessa - CNAB400*. As posições foram conferidas uma a uma
+contra essa planilha em ``test_remessa_sicoob_posicoes_do_layout_oficial``.
+
+Duas coisas que a planilha esclareceu:
+
+- **Não existe "tipo de formulário" no layout 400.** O atributo homônimo existia
+  aqui e nunca era gravado — quem o informava mudava nada. É campo do **CNAB
+  240**, onde segue em uso. Foi removido.
+- ``modalidade_carteira`` grava a posição **106**, que a planilha chama de
+  *Tipo de Emissão* (``1`` = cooperativa, ``2`` = cliente). Quem ocupa
+  *Carteira/Modalidade* (107–108) é ``carteira``. O nome do atributo aponta para
+  o campo vizinho; mantido por compatibilidade, documentado aqui.
+"""
 
 from __future__ import annotations
 
@@ -15,9 +30,10 @@ __all__ = ["RemessaSicoob400"]
 @dataclass
 class RemessaSicoob400(RemessaCnab400Base):
     convenio: str = ""
+    #: Posição 106 — *Tipo de Emissão*: ``1`` cooperativa, ``2`` cliente.
     modalidade_carteira: str = "2"
+    #: Posição 173 — *Tipo Distribuição*: ``1`` cooperativa, ``2`` cliente.
     distribuicao_boleto: str = "2"
-    tipo_formulario: str = "4"
     nome_banco_header: str = "BANCOOBCED"
 
     def cod_banco(self) -> str:
@@ -40,6 +56,24 @@ class RemessaSicoob400(RemessaCnab400Base):
 
     def info_conta(self) -> str:
         return f"{self._agencia()}{self._digito_agencia()}{self._convenio()}" + " " * 6
+
+    @staticmethod
+    def _seu_numero(pagamento: Pagamento) -> str:
+        """Posições 111–120: *Seu Número*, que a planilha declara **X(10)**.
+
+        Campo alfanumérico se alinha à esquerda e completa com brancos; numérico
+        se alinha à direita e completa com zeros. Preencher com zero um valor que
+        tem letras produz outro valor: ``DOC0001`` vira ``000DOC0001``, e é isso
+        que o banco devolve no retorno. Quem guardou ``DOC0001`` não reencontra o
+        título ao conciliar por esse campo.
+
+        Valor só de dígitos continua com zeros à esquerda — ali as duas
+        convenções coincidem e o comportamento anterior se mantém.
+        """
+        valor = str(pagamento.numero or "")
+        if valor.isdigit():
+            return valor.rjust(10, "0")[-10:]
+        return valor.ljust(10)[:10]
 
     def complemento(self) -> str:
         return " " * 287
@@ -89,7 +123,7 @@ class RemessaSicoob400(RemessaCnab400Base):
             + self.modalidade_carteira
             + so_digitos(self.carteira).rjust(2, "0")
             + pagamento.identificacao_ocorrencia
-            + str(pagamento.numero).rjust(10, "0")
+            + self._seu_numero(pagamento)
             + pagamento.data_vencimento.strftime("%d%m%y")
             + pagamento.formata_valor()
             + self.cod_banco()

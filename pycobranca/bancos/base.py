@@ -46,6 +46,11 @@ _ROTULOS_CAMPOS: dict[str, str] = {
     "portfolio": "portfolio",
     "incremento": "incremento",
     "numero_contrato": "número do contrato",
+    "digito_agencia": "dígito da agência",
+    "digito_conta": "dígito da conta",
+    "variacao": "variação",
+    "byte_idt": "byte de identificação",
+    "quantidade": "quantidade de parcelas",
 }
 
 

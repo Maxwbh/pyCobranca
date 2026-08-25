@@ -13,7 +13,7 @@ from datetime import date, datetime
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...exceptions import BoletoInvalido
-from ..formatacao import format_valor, remover_acentos
+from ..formatacao import confere_tamanhos, format_valor, remover_acentos
 from ..pagamento import Pagamento, PagamentoPix
 
 __all__ = ["RemessaCnab240Base"]
@@ -43,7 +43,7 @@ class RemessaCnab240Base:
     #: ``DDMMAAAA``/``HHMMSS`` — vazios usam data/hora atuais (não determinístico).
     data_geracao_fixa: str = ""
     hora_geracao_fixa: str = ""
-    tamanho_registro: int | None = 240
+    tamanho_registro: int | tuple[int, ...] | None = 240
 
     # ------------------------------------------------------------------ #
     # Ganchos por banco (obrigatórios)
@@ -371,13 +371,7 @@ class RemessaCnab240Base:
         # PIX. O ``+ 1`` é o próprio trailer de arquivo, ainda não anexado.
         total_linhas = len(arquivo) + 1
         arquivo.append(self.monta_trailer_arquivo(contador, total_linhas))
-        if self.tamanho_registro is not None:
-            for i, linha in enumerate(arquivo):
-                if len(linha) != self.tamanho_registro:
-                    raise BoletoInvalido(
-                        f"registro {i + 1} com {len(linha)} posições "
-                        f"(esperado {self.tamanho_registro})"
-                    )
+        confere_tamanhos(arquivo, self.tamanho_registro)
         conteudo = "\n".join(arquivo)
         conteudo = remover_acentos(conteudo).upper() + "\n"
         return conteudo.replace("\n", "\r\n")
