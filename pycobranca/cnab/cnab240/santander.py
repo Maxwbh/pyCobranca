@@ -10,6 +10,7 @@ corta. Corrigido o campo, o registro tem as 240 posições da FEBRABAN e
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
@@ -22,6 +23,8 @@ __all__ = ["RemessaSantander240"]
 
 @dataclass
 class RemessaSantander240(RemessaCnab240Base):
+    campo_de_carteira: ClassVar[str | None] = "codigo_carteira"
+
     codigo_transmissao: str = ""
 
     def __post_init__(self) -> None:

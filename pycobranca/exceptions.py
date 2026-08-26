@@ -6,6 +6,7 @@ __all__ = [
     "PyCobrancaError",
     "BoletoInvalido",
     "BancoNaoRegistrado",
+    "CampoIgnorado",
     "DadosInvalidos",
     "DependenciaAusente",
     "LayoutGenerico",
@@ -89,6 +90,29 @@ class LayoutGenerico(UserWarning):
     como erro::
 
         warnings.simplefilter("error", LayoutGenerico)
+
+    Não herda de :class:`PyCobrancaError`: avisos e erros são hierarquias
+    separadas em Python, e ``except PyCobrancaError`` não captura ``Warning``.
+    """
+
+
+class CampoIgnorado(UserWarning):
+    """Um campo informado não é gravado por este layout.
+
+    ``carteira`` existe em toda remessa porque está na base, mas nem todo layout
+    tem esse campo. Oito não têm: a CrediSIS e o Santander no 400, e seis dos
+    sete layouts 240, onde a FEBRABAN separa o **código da carteira** (posição 58
+    do segmento P, ``1`` a ``4``) da **modalidade** do banco. Nesses, informar
+    ``carteira`` não fazia nada — e não fazer nada em silêncio é o pior dos
+    resultados: quem monta a remessa com o mesmo dicionário do boleto acredita
+    ter escolhido a carteira, e o arquivo sai com a do padrão.
+
+    Recusar seria mais duro do que o defeito justifica — o arquivo gerado está
+    correto, só não é o que o chamador pensou ter pedido. Então sai um aviso,
+    nomeando o campo que aquele layout realmente grava. Para tratá-lo como
+    erro::
+
+        warnings.simplefilter("error", CampoIgnorado)
 
     Não herda de :class:`PyCobrancaError`: avisos e erros são hierarquias
     separadas em Python, e ``except PyCobrancaError`` não captura ``Warning``.

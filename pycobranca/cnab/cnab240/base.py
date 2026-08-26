@@ -10,10 +10,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from typing import ClassVar
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...exceptions import BoletoInvalido
-from ..formatacao import confere_tamanhos, format_valor, remover_acentos
+from ..formatacao import (
+    avisa_carteira_ignorada,
+    confere_tamanhos,
+    format_valor,
+    remover_acentos,
+)
 from ..pagamento import Pagamento, PagamentoPix
 
 __all__ = ["RemessaCnab240Base"]
@@ -353,11 +359,17 @@ class RemessaCnab240Base:
         lote.append(self.monta_trailer_lote(nro_lote, contador))
         return lote
 
+    #: Quando o layout **não** grava ``carteira``, o nome do campo que ele grava
+    #: no lugar — ou ``""`` quando o layout não tem campo de carteira nenhum.
+    #: ``None`` (o padrão) significa que este layout usa ``carteira``.
+    campo_de_carteira: ClassVar[str | None] = None
+
     def validar(self) -> None:
         if not self.pagamentos:
             raise BoletoInvalido("remessa sem pagamentos")
         if not self.empresa_mae:
             raise BoletoInvalido("empresa_mae obrigatória")
+        avisa_carteira_ignorada(self)
         for pagamento in self.pagamentos:
             pagamento.validar()
 

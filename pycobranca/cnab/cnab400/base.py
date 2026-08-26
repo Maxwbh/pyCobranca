@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import ClassVar
 
 from ...exceptions import BoletoInvalido
-from ..formatacao import confere_tamanhos, remover_acentos
+from ..formatacao import avisa_carteira_ignorada, confere_tamanhos, remover_acentos
 from ..pagamento import Pagamento, PagamentoPix
 
 __all__ = ["RemessaCnab400Base"]
@@ -69,9 +70,15 @@ class RemessaCnab400Base:
     def monta_trailer(self, sequencial: int) -> str:
         return "9" + " " * 393 + str(sequencial).rjust(6, "0")
 
+    #: Quando o layout **não** grava ``carteira``, o nome do campo que ele grava
+    #: no lugar — ou ``""`` quando o layout não tem campo de carteira nenhum.
+    #: ``None`` (o padrão) significa que este layout usa ``carteira``.
+    campo_de_carteira: ClassVar[str | None] = None
+
     def validar(self) -> None:
         if not self.pagamentos:
             raise BoletoInvalido("remessa sem pagamentos")
+        avisa_carteira_ignorada(self)
         for pagamento in self.pagamentos:
             pagamento.validar()
 

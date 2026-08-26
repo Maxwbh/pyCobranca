@@ -11,6 +11,7 @@ __all__ = [
     "format_valor",
     "campo_numerico",
     "confere_tamanhos",
+    "avisa_carteira_ignorada",
 ]
 
 
@@ -83,3 +84,29 @@ def confere_tamanhos(linhas, tamanho: int | tuple[int, ...] | None) -> None:
             raise BoletoInvalido(
                 f"registro {i + 1} com {len(linha)} posições (esperado {esperado})"
             )
+
+
+def avisa_carteira_ignorada(remessa) -> None:
+    """Avisa quando ``carteira`` foi informada e este layout não a grava.
+
+    O campo está na base, então **toda** remessa o aceita — mas oito layouts não
+    têm carteira: a CrediSIS e o Santander no 400, e seis dos sete 240, onde a
+    FEBRABAN separa o *código da carteira* (posição 58 do segmento P) da
+    *modalidade* do banco. Nesses, informar ``carteira`` não fazia nada, em
+    silêncio, e quem monta a remessa com o mesmo dicionário do boleto acreditava
+    ter escolhido a carteira.
+    """
+    import warnings
+
+    from ..exceptions import CampoIgnorado
+
+    alvo = getattr(remessa, "campo_de_carteira", None)
+    if alvo is None or not str(getattr(remessa, "carteira", "") or "").strip():
+        return
+    onde = f"use {alvo!r}" if alvo else "este layout não tem campo de carteira"
+    warnings.warn(
+        f"{type(remessa).__name__}: `carteira` não é gravada neste layout ({onde}). "
+        "O arquivo sai correto, mas sem a carteira que você informou.",
+        CampoIgnorado,
+        stacklevel=3,
+    )

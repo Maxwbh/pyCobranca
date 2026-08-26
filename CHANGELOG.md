@@ -4,6 +4,31 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [Não publicado]
 
+### Corrigido
+
+- **Sicoob: a carteira `09` gravava `0` no código de barras.** A posição 1 do campo livre era
+  montada com `so_digitos(carteira)[:1]`, que pega o **primeiro** caractere — e `"09"` virava
+  `"0"`, uma carteira que o Sicoob não tem. Como `carteiras` declara `"9"` e `"09"` como a mesma
+  coisa, o mesmo título saía com **dois códigos de barras diferentes** conforme a grafia. Nada
+  levantava: são 44 posições com o DV recalculado sobre o valor errado, então o boleto passa em
+  qualquer conferência estrutural e vai para a carteira errada — o mesmo modo de falha do
+  `portfolio` do Citibank. Agora vale o dígito **significativo**, e carteira que não cabe em uma
+  posição é **recusada** em vez de truncada. Um teste passa a exigir, de todo banco, que duas
+  grafias da mesma carteira produzam o mesmo boleto (o Ailos já declarava `"1"` e `"01"` e
+  acertava — o Sicoob era o único que divergia).
+- **Oito remessas aceitavam `carteira` e nunca a gravavam.** O campo está na base, então toda
+  remessa o aceita — mas a CrediSIS e o Santander no 400, e seis dos sete layouts 240, não têm
+  campo de carteira: a FEBRABAN separa o *código da carteira* (posição 58 do segmento P, `1` a
+  `4`) da *modalidade* do banco. Quem monta a remessa com o mesmo dicionário do boleto — o
+  caminho natural — acreditava ter escolhido a carteira, e o arquivo saía com a do padrão. Sai
+  agora o aviso **`CampoIgnorado`**, nomeando o campo que aquele layout realmente grava; o
+  arquivo não muda, porque sempre esteve correto — o que faltava era o sinal. O aviso encontrou,
+  na primeira execução, a própria fixture da CrediSIS passando uma carteira inerte.
+
+  Este **não** é o defeito do campo livre acima: no CNAB o Sicoob grava a carteira em duas
+  posições (`rjust(2, "0")`), e ali `9` e `09` sempre produziram o mesmo arquivo. São dois
+  defeitos diferentes no mesmo banco.
+
 ### Corrigido — contrato REST e encargos
 
 - **O Banco Inter não existia no contrato REST.** `SLUG_POR_CODIGO` é escrito à mão e o `"077"`
