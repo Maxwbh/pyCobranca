@@ -2,70 +2,7 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
-## [Não publicado]
-
-### Corrigido
-
-- **Sicoob: a carteira `09` gravava `0` no código de barras.** A posição 1 do campo livre era
-  montada com `so_digitos(carteira)[:1]`, que pega o **primeiro** caractere — e `"09"` virava
-  `"0"`, uma carteira que o Sicoob não tem. Como `carteiras` declara `"9"` e `"09"` como a mesma
-  coisa, o mesmo título saía com **dois códigos de barras diferentes** conforme a grafia. Nada
-  levantava: são 44 posições com o DV recalculado sobre o valor errado, então o boleto passa em
-  qualquer conferência estrutural e vai para a carteira errada — o mesmo modo de falha do
-  `portfolio` do Citibank. Agora vale o dígito **significativo**, e carteira que não cabe em uma
-  posição é **recusada** em vez de truncada. Um teste passa a exigir, de todo banco, que duas
-  grafias da mesma carteira produzam o mesmo boleto (o Ailos já declarava `"1"` e `"01"` e
-  acertava — o Sicoob era o único que divergia).
-- **Oito remessas aceitavam `carteira` e nunca a gravavam.** O campo está na base, então toda
-  remessa o aceita — mas a CrediSIS e o Santander no 400, e seis dos sete layouts 240, não têm
-  campo de carteira: a FEBRABAN separa o *código da carteira* (posição 58 do segmento P, `1` a
-  `4`) da *modalidade* do banco. Quem monta a remessa com o mesmo dicionário do boleto — o
-  caminho natural — acreditava ter escolhido a carteira, e o arquivo saía com a do padrão. Sai
-  agora o aviso **`CampoIgnorado`**, nomeando o campo que aquele layout realmente grava; o
-  arquivo não muda, porque sempre esteve correto — o que faltava era o sinal. O aviso encontrou,
-  na primeira execução, a própria fixture da CrediSIS passando uma carteira inerte.
-
-  Este **não** é o defeito do campo livre acima: no CNAB o Sicoob grava a carteira em duas
-  posições (`rjust(2, "0")`), e ali `9` e `09` sempre produziram o mesmo arquivo. São dois
-  defeitos diferentes no mesmo banco.
-
-### Corrigido — contrato REST e encargos
-
-- **O Banco Inter não existia no contrato REST.** `SLUG_POR_CODIGO` é escrito à mão e o `"077"`
-  ficou de fora: `boleto_para_api` devolvia `bank: "077"` onde os outros 18 devolviam o slug, e
-  `boleto_de_api({"bank": "inter"})` recusava. Remessa do Inter funcionava, boleto não. **O teste
-  que deveria pegar isso tinha um atalho** — `SLUG_POR_CODIGO.get(cls.codigo, cls.codigo)`, cujo
-  padrão devolve o código quando o slug falta, fazendo a asserção virar `"077" == "077"`. O
-  fallback foi removido dos dois lados: `boleto_para_api` agora **levanta** para banco sem slug, e
-  três testes novos exigem que o registro e o contrato conheçam os mesmos bancos.
-- **Multa em valor fixo e desconto em percentual eram inalcançáveis.** O validador comum aplicava
-  a regra FEBRABAN *"multa é sempre percentual"* e exigia `percentual_multa > 0` para qualquer
-  `codigo_multa`; o mesmo para desconto, que exigia `valor > 0`. Só que o Inter grava multa em
-  **valor** (`"1"` no item 09) e desconto em **percentual** (`"4"` no item 29) — campos que o
-  módulo do banco escreve e o validador recusava antes. Agora o código escolhe qual dos dois
-  campos vem preenchido. Passou despercebido porque os dois só apareciam em teste **negativo**.
-- **`retorno_item_para_api` não repassava o banco** a `descreve_ocorrencia`, então a API descrevia
-  o `40` do Safra como *"Baixa por ter sido liquidado"* quando o manual do banco diz **baixa de
-  título protestado** — título pago contra título protestado, numa conciliação, com o rótulo
-  plausível. A função ganhou o parâmetro `banco`, e o exemplo da documentação (de onde a chamada
-  costuma ser copiada) passa `banco=retorno.codigo_banco`.
-
-### Corrigido — Banco Inter conferido contra o manual V9
-
-O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posições do detalhe, as
-14 do header, o trailer, as 18 posições lidas do retorno, o campo livre e o DV do nosso número
-**batem sem exceção**. O que mudou:
-
-- **Três códigos de ocorrência novos, dois deles colidindo com a FEBRABAN.** O `15` do Inter é
-  *alteração do valor nominal* e no padrão é **liquidação em cartório**; o `16` é *alteração de
-  valor e vencimento* e no padrão é **confirmação de instrução de protesto**. Como o `07` que já
-  estava mapeado, o rótulo do padrão é plausível e diz o oposto do que aconteceu.
-- **Carteira `121`**, irmã da 112 na seção 6.1 (*"o Inter já realiza a emissão dos boletos e
-  registro dos nossos números"*): entra na **remessa** com o nosso número zerado e fica fora do
-  boleto, pelo mesmo critério da 112.
-- Registros **tipo 2, 3 e 4** da remessa (mensagens extras, e-mail do pagador, beneficiário final,
-  nota fiscal) e o **tipo 2 do retorno** seguem não implementados — são opcionais no manual, e
-  isso passou a estar dito no módulo em vez de omitido.
+## [1.1.1] - 2026-08-26
 
 ### Adicionado
 
@@ -99,7 +36,96 @@ O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posiç�
   `40` é *baixa de título protestado*, não *baixa por ter sido liquidado* — sentidos opostos
   numa conciliação.
 
+- **Banco Inter (077)** — 19º banco: boleto, remessa e retorno CNAB 400, e logo empacotado.
+  Conforme o *Manual CNAB400* do banco (v2.2). **Só a carteira 110**: na 112 quem numera é o
+  Inter, e o nosso número só existe no retorno — a 112 é recusada em `validar()`.
+- **`RemessaInter400`** — remessa aprovada no **validador de layout do próprio Inter**.
+  `nome_arquivo()` devolve `CI400_001_<sequencial>.REM`, que o manual exige igual ao header.
+  Multa, juros e desconto em valor ou percentual; sem IOF e sem abatimento no layout.
+  Não há CNAB 240 de cobrança no Inter — o que o banco publica em 240 é de *pagamentos*.
+- **Retorno do Inter** — layout `077`: ocorrência em 90–91 e vencimento em 119–124, longe do
+  comum. Sem ele o parser lia o "seu número" como código de ocorrência, sem aviso.
+  `descreve_ocorrencia` passa a aceitar o banco: o `07` do Inter é *Cancelado*, não
+  *Liquidação parcial*.
+- **`Pagamento`**: `valor_multa`, `percentual_desconto` e `mensagem` — opcionais, exigidos pelo
+  layout do Inter e ignorados pelos demais.
+- **`tools/demo_gif.py`** — gera o GIF do README com os valores calculados pelo pacote. O
+  anterior não tinha gerador e anunciava a versão 1.0.0.
+- **`pix_copia_cola`** — payload EMV devolvido pelo banco ao registrar a cobrança. É o Bolepix de
+  verdade: QR dinâmico, vinculado ao título, com baixa automática. Vai para o QR como veio, tem
+  precedência sobre `pix_chave` e funciona em qualquer banco.
+- **O QR avulso passa a sair identificado.** Sem `pix_txid`, o campo 62-05 recebe o nosso número —
+  antes ia `***` e o crédito chegava órfão na conciliação por OFX. Sem nosso número o txid sai
+  ausente, não derivado: zeros produziriam um identificador plausível e sem significado.
+- **`pix_observacao`** — texto livre no campo 26-02 do BR Code (até 40), para descrever a cobrança
+  a quem paga.
+- **`openapi_de(paths, *, info, servers, schemas)`** — monta um documento OpenAPI com os paths de
+  quem consome e os schemas daqui, sem cópia. A versão fica carimbada em `info["x-pycobranca"]` e
+  colisão de nome levanta `ErroDeContrato`. `pix_copia_cola` e `pix_observacao` entram no
+  `BoletoData`, e a resposta traz `pix_vinculado`.
+
 ### Corrigido
+
+- **Sicoob: a carteira `09` gravava `0` no código de barras.** A posição 1 do campo livre era
+  montada com `so_digitos(carteira)[:1]`, que pega o **primeiro** caractere — e `"09"` virava
+  `"0"`, uma carteira que o Sicoob não tem. Como `carteiras` declara `"9"` e `"09"` como a mesma
+  coisa, o mesmo título saía com **dois códigos de barras diferentes** conforme a grafia. Nada
+  levantava: são 44 posições com o DV recalculado sobre o valor errado, então o boleto passa em
+  qualquer conferência estrutural e vai para a carteira errada — o mesmo modo de falha do
+  `portfolio` do Citibank. Agora vale o dígito **significativo**, e carteira que não cabe em uma
+  posição é **recusada** em vez de truncada. Um teste passa a exigir, de todo banco, que duas
+  grafias da mesma carteira produzam o mesmo boleto (o Ailos já declarava `"1"` e `"01"` e
+  acertava — o Sicoob era o único que divergia).
+- **Oito remessas aceitavam `carteira` e nunca a gravavam.** O campo está na base, então toda
+  remessa o aceita — mas a CrediSIS e o Santander no 400, e seis dos sete layouts 240, não têm
+  campo de carteira: a FEBRABAN separa o *código da carteira* (posição 58 do segmento P, `1` a
+  `4`) da *modalidade* do banco. Quem monta a remessa com o mesmo dicionário do boleto — o
+  caminho natural — acreditava ter escolhido a carteira, e o arquivo saía com a do padrão. Sai
+  agora o aviso **`CampoIgnorado`**, nomeando o campo que aquele layout realmente grava; o
+  arquivo não muda, porque sempre esteve correto — o que faltava era o sinal. O aviso encontrou,
+  na primeira execução, a própria fixture da CrediSIS passando uma carteira inerte.
+
+  Este **não** é o defeito do campo livre acima: no CNAB o Sicoob grava a carteira em duas
+  posições (`rjust(2, "0")`), e ali `9` e `09` sempre produziram o mesmo arquivo. São dois
+  defeitos diferentes no mesmo banco.
+
+**Contrato REST e encargos.**
+
+- **O Banco Inter não existia no contrato REST.** `SLUG_POR_CODIGO` é escrito à mão e o `"077"`
+  ficou de fora: `boleto_para_api` devolvia `bank: "077"` onde os outros 18 devolviam o slug, e
+  `boleto_de_api({"bank": "inter"})` recusava. Remessa do Inter funcionava, boleto não. **O teste
+  que deveria pegar isso tinha um atalho** — `SLUG_POR_CODIGO.get(cls.codigo, cls.codigo)`, cujo
+  padrão devolve o código quando o slug falta, fazendo a asserção virar `"077" == "077"`. O
+  fallback foi removido dos dois lados: `boleto_para_api` agora **levanta** para banco sem slug, e
+  três testes novos exigem que o registro e o contrato conheçam os mesmos bancos.
+- **Multa em valor fixo e desconto em percentual eram inalcançáveis.** O validador comum aplicava
+  a regra FEBRABAN *"multa é sempre percentual"* e exigia `percentual_multa > 0` para qualquer
+  `codigo_multa`; o mesmo para desconto, que exigia `valor > 0`. Só que o Inter grava multa em
+  **valor** (`"1"` no item 09) e desconto em **percentual** (`"4"` no item 29) — campos que o
+  módulo do banco escreve e o validador recusava antes. Agora o código escolhe qual dos dois
+  campos vem preenchido. Passou despercebido porque os dois só apareciam em teste **negativo**.
+- **`retorno_item_para_api` não repassava o banco** a `descreve_ocorrencia`, então a API descrevia
+  o `40` do Safra como *"Baixa por ter sido liquidado"* quando o manual do banco diz **baixa de
+  título protestado** — título pago contra título protestado, numa conciliação, com o rótulo
+  plausível. A função ganhou o parâmetro `banco`, e o exemplo da documentação (de onde a chamada
+  costuma ser copiada) passa `banco=retorno.codigo_banco`.
+
+**Banco Inter conferido contra o manual V9.**
+
+O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posições do detalhe, as
+14 do header, o trailer, as 18 posições lidas do retorno, o campo livre e o DV do nosso número
+**batem sem exceção**. O que mudou:
+
+- **Três códigos de ocorrência novos, dois deles colidindo com a FEBRABAN.** O `15` do Inter é
+  *alteração do valor nominal* e no padrão é **liquidação em cartório**; o `16` é *alteração de
+  valor e vencimento* e no padrão é **confirmação de instrução de protesto**. Como o `07` que já
+  estava mapeado, o rótulo do padrão é plausível e diz o oposto do que aconteceu.
+- **Carteira `121`**, irmã da 112 na seção 6.1 (*"o Inter já realiza a emissão dos boletos e
+  registro dos nossos números"*): entra na **remessa** com o nosso número zerado e fica fora do
+  boleto, pelo mesmo critério da 112.
+- Registros **tipo 2, 3 e 4** da remessa (mensagens extras, e-mail do pagador, beneficiário final,
+  nota fiscal) e o **tipo 2 do retorno** seguem não implementados — são opcionais no manual, e
+  isso passou a estar dito no módulo em vez de omitido.
 
 - **Revisão dos 19 bancos.** Passou a existir uma varredura que gera boleto para **toda carteira
   declarada de todo banco** e roda o verificador FEBRABAN independente — 55 carteiras válidas, e
@@ -178,40 +204,6 @@ O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posiç�
   (quatro deles sem canal alfa). Não é defeito visível — o cabeçalho é branco e a faixa de marca
   não carrega o logo do banco —, mas pixelam na impressão. A frase passa a dizer quais, e um teste
   prende a lista ao que está em disco.
-
-## [1.1.1] - 2026-08-24
-
-### Adicionado
-
-- **Banco Inter (077)** — 19º banco: boleto, remessa e retorno CNAB 400, e logo empacotado.
-  Conforme o *Manual CNAB400* do banco (v2.2). **Só a carteira 110**: na 112 quem numera é o
-  Inter, e o nosso número só existe no retorno — a 112 é recusada em `validar()`.
-- **`RemessaInter400`** — remessa aprovada no **validador de layout do próprio Inter**.
-  `nome_arquivo()` devolve `CI400_001_<sequencial>.REM`, que o manual exige igual ao header.
-  Multa, juros e desconto em valor ou percentual; sem IOF e sem abatimento no layout.
-  Não há CNAB 240 de cobrança no Inter — o que o banco publica em 240 é de *pagamentos*.
-- **Retorno do Inter** — layout `077`: ocorrência em 90–91 e vencimento em 119–124, longe do
-  comum. Sem ele o parser lia o "seu número" como código de ocorrência, sem aviso.
-  `descreve_ocorrencia` passa a aceitar o banco: o `07` do Inter é *Cancelado*, não
-  *Liquidação parcial*.
-- **`Pagamento`**: `valor_multa`, `percentual_desconto` e `mensagem` — opcionais, exigidos pelo
-  layout do Inter e ignorados pelos demais.
-- **`tools/demo_gif.py`** — gera o GIF do README com os valores calculados pelo pacote. O
-  anterior não tinha gerador e anunciava a versão 1.0.0.
-- **`pix_copia_cola`** — payload EMV devolvido pelo banco ao registrar a cobrança. É o Bolepix de
-  verdade: QR dinâmico, vinculado ao título, com baixa automática. Vai para o QR como veio, tem
-  precedência sobre `pix_chave` e funciona em qualquer banco.
-- **O QR avulso passa a sair identificado.** Sem `pix_txid`, o campo 62-05 recebe o nosso número —
-  antes ia `***` e o crédito chegava órfão na conciliação por OFX. Sem nosso número o txid sai
-  ausente, não derivado: zeros produziriam um identificador plausível e sem significado.
-- **`pix_observacao`** — texto livre no campo 26-02 do BR Code (até 40), para descrever a cobrança
-  a quem paga.
-- **`openapi_de(paths, *, info, servers, schemas)`** — monta um documento OpenAPI com os paths de
-  quem consome e os schemas daqui, sem cópia. A versão fica carimbada em `info["x-pycobranca"]` e
-  colisão de nome levanta `ErroDeContrato`. `pix_copia_cola` e `pix_observacao` entram no
-  `BoletoData`, e a resposta traz `pix_vinculado`.
-
-### Corrigido
 
 - **O QR do PIX montado da chave não liquida o boleto, e a documentação o chamava de Bolepix.**
   O payload de `pix_chave` é **estático**: paga a chave, mas o banco não sabe que aquele PIX quita
