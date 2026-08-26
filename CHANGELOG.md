@@ -2,6 +2,27 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Alterado
+
+- **O sdist deixou de levar os testes.** O wheel já saía limpo — o setuptools só empacota o que
+  `packages` declara —, mas o sdist leva o repositório quase inteiro por padrão, e ali viajavam
+  `tests/` com 38 arquivos e 302 KB, quase tudo fixture `.rem`/`.RET`. Quem instala a biblioteca
+  não usa nada disso. O sdist cai de **177 para 139 arquivos** (758 → 655 KB); o wheel não muda.
+  O `MANIFEST.in` também passa a excluir `docs/`, `examples/`, `site/` e `.github/`, que hoje não
+  entram mas entrariam ao primeiro descuido — o padrão do sdist é incluir, não excluir.
+
+  **O custo, declarado:** quem empacota para uma distro (Debian, conda-forge) não consegue mais
+  rodar a suíte contra o arquivo publicado, prática comum entre eles; o caminho passa a ser clonar
+  o repositório na tag correspondente.
+
+  Um sdist gordo não quebra instalação nenhuma, e é por isso que passaria despercebido de novo.
+  `tests/test_distribuicao.py` passa a **construir as distribuições de verdade** e conferir o que
+  elas levam: falha quando algo indevido volta, e também quando falta ao sdist algo de que ele
+  precisa — `tools/` carrega o backend declarado em `backend-path`, e sem ele o wheel não constrói
+  a partir do sdist, o que um prune generoso demais quebraria em silêncio.
+
 ## [1.1.1] - 2026-08-26
 
 ### Adicionado
