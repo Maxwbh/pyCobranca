@@ -373,7 +373,7 @@ def test_pagamento_incompleto_levanta() -> None:
 #
 # A fixture do Inter é auto-gerada (ver o docstring do módulo), então ela sozinha
 # não prova nada sobre o layout. Este teste é a verificação de verdade: cada campo
-# na posição que o *Manual CNAB400* (v2.2, seção 4) documenta.
+# na posição que o *Manual CNAB 400* (V9, seção 4) documenta.
 
 
 def test_remessa_inter_posicoes_do_manual() -> None:

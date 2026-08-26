@@ -1,6 +1,6 @@
 """Remessa CNAB 400 do Banco Inter (077).
 
-Layout do *Manual CNAB400 — Emissão boletos de cobrança* (Inter, v2.2, 26/08/2024),
+Layout do *Manual CNAB 400 — Emissão boletos de cobrança* (Inter, **V9, 06/07/2026**),
 seção 4. Registros de 400 posições: header, N detalhes tipo 1 e trailer.
 
 **O Inter não tem CNAB 240 para cobrança.** O manual é explícito na apresentação:
@@ -15,9 +15,16 @@ Diferenças em relação ao layout comum dos outros bancos:
   no detalhe, não no header. :meth:`info_conta` devolve 20 espaços por isso.
 - **Trailer com a contagem de boletos** nas posições 2 a 7 — o trailer genérico da base
   leva brancos ali, então :meth:`monta_trailer` é redefinido.
-- **Nosso número zerado na carteira 112.** Ali quem numera é o banco (item 13 do tipo 1:
-  "Se carteira 112, envie zeros"). A biblioteca só emite boleto na 110, mas a remessa
-  aceita as duas: mandar o arquivo é justamente como se obtém o número na 112.
+- **Nosso número zerado nas carteiras 112 e 121.** Ali quem numera é o banco (item 13 do
+  tipo 1: "Se carteira 112 ou 121, envie zeros"). A biblioteca só emite boleto na 110, mas
+  a remessa aceita as três: mandar o arquivo é justamente como se obtém o número nas outras
+  duas. A **121** entrou no manual depois da v2.2 e é irmã da 112 — a seção 6.1 põe as duas
+  do mesmo lado: *"o Inter já realiza a emissão dos boletos e registro dos nossos números"*.
+
+Os registros **tipo 2** (mensagens 2ª a 5ª e descontos 2 e 3), **tipo 3** (e-mail do pagador
+e beneficiário final) e **tipo 4** (nota fiscal, para produtos de crédito com duplicata) são
+opcionais no manual e não são emitidos aqui — assim como o **tipo 2 do retorno**, que só
+aparece quando o tipo 4 foi enviado.
 """
 
 from __future__ import annotations
@@ -42,14 +49,14 @@ def _data(valor, padrao: str = "000000") -> str:
 class RemessaInter400(RemessaCnab400Base):
     """Remessa de cobrança do Inter.
 
-    ``carteira`` aceita ``110`` (nosso número da faixa reservada, informado no arquivo)
-    e ``112`` (nosso número zerado; o banco devolve no retorno).
+    ``carteira`` aceita ``110`` (nosso número da faixa reservada, informado no arquivo),
+    ``112`` e ``121`` (nosso número zerado; o banco devolve no retorno).
     """
 
     #: Dias após o vencimento em que o pagamento ainda é aceito (item 19, "01" a "60").
     dias_limite_pagamento: str = "60"
 
-    CARTEIRAS: tuple[str, ...] = ("110", "112")
+    CARTEIRAS: tuple[str, ...] = ("110", "112", "121")
 
     def cod_banco(self) -> str:
         return "077"

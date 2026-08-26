@@ -4,6 +4,44 @@ Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamen
 
 ## [Não publicado]
 
+### Corrigido — contrato REST e encargos
+
+- **O Banco Inter não existia no contrato REST.** `SLUG_POR_CODIGO` é escrito à mão e o `"077"`
+  ficou de fora: `boleto_para_api` devolvia `bank: "077"` onde os outros 18 devolviam o slug, e
+  `boleto_de_api({"bank": "inter"})` recusava. Remessa do Inter funcionava, boleto não. **O teste
+  que deveria pegar isso tinha um atalho** — `SLUG_POR_CODIGO.get(cls.codigo, cls.codigo)`, cujo
+  padrão devolve o código quando o slug falta, fazendo a asserção virar `"077" == "077"`. O
+  fallback foi removido dos dois lados: `boleto_para_api` agora **levanta** para banco sem slug, e
+  três testes novos exigem que o registro e o contrato conheçam os mesmos bancos.
+- **Multa em valor fixo e desconto em percentual eram inalcançáveis.** O validador comum aplicava
+  a regra FEBRABAN *"multa é sempre percentual"* e exigia `percentual_multa > 0` para qualquer
+  `codigo_multa`; o mesmo para desconto, que exigia `valor > 0`. Só que o Inter grava multa em
+  **valor** (`"1"` no item 09) e desconto em **percentual** (`"4"` no item 29) — campos que o
+  módulo do banco escreve e o validador recusava antes. Agora o código escolhe qual dos dois
+  campos vem preenchido. Passou despercebido porque os dois só apareciam em teste **negativo**.
+- **`retorno_item_para_api` não repassava o banco** a `descreve_ocorrencia`, então a API descrevia
+  o `40` do Safra como *"Baixa por ter sido liquidado"* quando o manual do banco diz **baixa de
+  título protestado** — título pago contra título protestado, numa conciliação, com o rótulo
+  plausível. A função ganhou o parâmetro `banco`, e o exemplo da documentação (de onde a chamada
+  costuma ser copiada) passa `banco=retorno.codigo_banco`.
+
+### Corrigido — Banco Inter conferido contra o manual V9
+
+O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posições do detalhe, as
+14 do header, o trailer, as 18 posições lidas do retorno, o campo livre e o DV do nosso número
+**batem sem exceção**. O que mudou:
+
+- **Três códigos de ocorrência novos, dois deles colidindo com a FEBRABAN.** O `15` do Inter é
+  *alteração do valor nominal* e no padrão é **liquidação em cartório**; o `16` é *alteração de
+  valor e vencimento* e no padrão é **confirmação de instrução de protesto**. Como o `07` que já
+  estava mapeado, o rótulo do padrão é plausível e diz o oposto do que aconteceu.
+- **Carteira `121`**, irmã da 112 na seção 6.1 (*"o Inter já realiza a emissão dos boletos e
+  registro dos nossos números"*): entra na **remessa** com o nosso número zerado e fica fora do
+  boleto, pelo mesmo critério da 112.
+- Registros **tipo 2, 3 e 4** da remessa (mensagens extras, e-mail do pagador, beneficiário final,
+  nota fiscal) e o **tipo 2 do retorno** seguem não implementados — são opcionais no manual, e
+  isso passou a estar dito no módulo em vez de omitido.
+
 ### Adicionado
 
 - **Retorno CNAB 400 do Sicoob (756)**, conforme a aba *04.Retorno* do

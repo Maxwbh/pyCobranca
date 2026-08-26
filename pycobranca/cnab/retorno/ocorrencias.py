@@ -86,20 +86,31 @@ OCORRENCIAS_240: dict[str, str] = {
 
 #: Bancos que redefinem códigos do CNAB 400. Consultado **antes** do mapa padrão.
 #:
-#: O Inter usa só quatro códigos, e um deles colide de frente com a FEBRABAN: o
-#: ``07``, que no padrão é *Liquidação por conta/parcial* e no Inter é
-#: **Cancelado**. Descrever um título cancelado como parcialmente liquidado é o
-#: tipo de erro que passa despercebido numa conciliação.
+#: O Inter usa sete códigos, e **três** colidem de frente com a FEBRABAN:
+#:
+#: - ``07`` — no padrão é *Liquidação por conta/parcial*; no Inter, **Cancelado**;
+#: - ``15`` — no padrão é *Liquidação em cartório*; no Inter, **alteração do valor
+#:   nominal realizada**;
+#: - ``16`` — no padrão é *Confirmação de instrução de protesto*; no Inter,
+#:   **alteração de valor e vencimento realizada**.
+#:
+#: Nos três, o rótulo do padrão é plausível e diz o oposto do que aconteceu: um
+#: título cancelado vira parcialmente liquidado, uma edição de valor vira
+#: liquidação em cartório, outra edição vira protesto. É o tipo de erro que
+#: atravessa uma conciliação sem nenhum sinal.
 #:
 #: O Safra tem colisão da mesma natureza no ``40``: no padrão é *Baixa por ter
 #: sido liquidado* — título pago — e no Safra é **baixa de título protestado**.
 #: Os pares 42/44 e 51/52/53 divergem pelo mesmo motivo.
 OCORRENCIAS_400_POR_BANCO: dict[str, dict[str, str]] = {
-    "077": {  # Banco Inter — manual CNAB400 v2.2, seção 5.2, item 13
+    "077": {  # Banco Inter — Manual CNAB 400 V9 (06/07/2026), seção 5.2, item 14
         "02": "Em aberto",
         "03": "Erro",
         "06": "Pago",
         "07": "Cancelado",
+        "14": "Alteração da data de vencimento realizada",
+        "15": "Alteração do valor nominal do título realizada",
+        "16": "Alteração do valor nominal e da data de vencimento realizada",
     },
     "422": {  # Banco Safra — Leiaute de Arquivos, Cobrança CNAB 400, nota 6.2.2
         "02": "Entrada confirmada",

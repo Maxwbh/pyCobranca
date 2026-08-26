@@ -15,8 +15,11 @@ from __future__ import annotations
 
 from datetime import date
 
+import pytest
+
 from pycobranca.cnab import Pagamento, RemessaBancoBrasil240, RemessaSicoob400
 from pycobranca.contracts import pagamento_para_api, valida_contrato
+from pycobranca.exceptions import BoletoInvalido
 
 _COMUM = dict(empresa_mae="Empresa Exemplo LTDA", documento_cedente="11222333000181")
 _COMUM_240 = dict(
@@ -226,3 +229,90 @@ def test_api_sem_encargos_omite_campo() -> None:
     """Pagamento sem encargos → nenhuma chave ``encargos`` (payload inalterado)."""
     dados = pagamento_para_api(_pag_base())
     assert "encargos" not in dados
+
+
+# --------------------------------------------------------------------------- #
+# Multa em valor fixo e desconto em percentual
+# --------------------------------------------------------------------------- #
+#
+# A regra do validador comum era "multa é sempre percentual", pela FEBRABAN, e o
+# campo cobrado era só ``percentual_multa``. Mas há layout que expressa multa em
+# **valor fixo**: no Inter, ``"1"`` no item 09 manda preencher o valor (item 10) e
+# zerar o percentual. O módulo do banco gravava o campo e o validador o recusava
+# antes — um campo que existia, era escrito e era inalcançável. O mesmo com o
+# desconto ``"4"`` do Inter, percentual do valor nominal.
+#
+# Passou despercebido porque os dois só apareciam em teste **negativo** (o Safra
+# recusa multa em valor). Nunca num positivo.
+
+
+def _pagamento_inter(**extra):
+    from pycobranca.cnab import Pagamento
+
+    return Pagamento(
+        nosso_numero="0004309540",
+        numero="1",
+        documento="DOC1",
+        data_vencimento=date(2026, 9, 15),
+        data_emissao=date(2026, 8, 15),
+        valor="127.50",
+        nome_sacado="Cliente Final",
+        documento_sacado="52998224725",
+        endereco_sacado="Rua das Flores, 100",
+        bairro_sacado="Centro",
+        cep_sacado="30110000",
+        cidade_sacado="Belo Horizonte",
+        uf_sacado="MG",
+        **extra,
+    )
+
+
+def _remessa_inter(pagamento):
+    from pycobranca.cnab import RemessaInter400
+
+    return RemessaInter400(
+        pagamentos=[pagamento],
+        empresa_mae="Empresa Exemplo LTDA",
+        documento_cedente="11222333000181",
+        agencia="0001",
+        conta_corrente="123456789",
+        digito_conta="0",
+        carteira="110",
+        sequencial_remessa="1",
+        data_geracao=date(2026, 7, 23),
+    )
+
+
+def test_multa_em_valor_fixo_e_aceita_e_chega_ao_arquivo() -> None:
+    pagamento = _pagamento_inter(codigo_multa="1", valor_multa=25.00, data_multa=date(2026, 9, 16))
+    pagamento.validar()  # não pode levantar: o código "1" pede valor, não percentual
+    detalhe = _remessa_inter(pagamento).gera_arquivo().replace("\r\n", "\n").split("\n")[1]
+    assert detalhe[65] == "1", "item 09 — código da multa"
+    assert detalhe[66:79] == "0000000002500", "itens 10 — valor fixo da multa (067-079)"
+    assert detalhe[79:83] == "0000", "item 11 — percentual zerado quando a multa é em valor"
+
+
+def test_multa_em_percentual_continua_exigindo_o_percentual() -> None:
+    with pytest.raises(BoletoInvalido, match="percentual_multa"):
+        _pagamento_inter(codigo_multa="2", percentual_multa=0).validar()
+
+
+def test_multa_em_valor_sem_valor_e_recusada() -> None:
+    with pytest.raises(BoletoInvalido, match="valor_multa"):
+        _pagamento_inter(codigo_multa="1", valor_multa=0).validar()
+
+
+def test_desconto_em_percentual_e_aceito_e_chega_ao_arquivo() -> None:
+    pagamento = _pagamento_inter(
+        cod_desconto="4", percentual_desconto=10.0, data_desconto=date(2026, 9, 1)
+    )
+    pagamento.validar()  # o "4" do Inter é percentual do valor nominal
+    detalhe = _remessa_inter(pagamento).gera_arquivo().replace("\r\n", "\n").split("\n")[1]
+    assert detalhe[183] == "4", "item 29 — código do desconto"
+    assert detalhe[184:197] == "0000000000000", "item 30 — valor zerado quando é percentual"
+    assert detalhe[197:201] == "1000", "item 31 — percentual de desconto (198-201)"
+
+
+def test_desconto_sem_valor_nem_percentual_continua_recusado() -> None:
+    with pytest.raises(BoletoInvalido, match="valor ou percentual"):
+        _pagamento_inter(cod_desconto="1", data_desconto=date(2026, 9, 1)).validar()

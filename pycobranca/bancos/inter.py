@@ -1,7 +1,7 @@
 """Banco Inter (077) — campo livre da carteira 110.
 
 Campo livre (25 posições), conforme o *Manual CNAB400 — Emissão boletos de cobrança*
-(Inter, v2.2, 26/08/2024), seção 7.1.3:
+(Inter, **V9, 06/07/2026**), seção 8.1.3:
 
 | Posições | Tam. | Conteúdo |
 |----------|------|----------|
@@ -77,7 +77,7 @@ class Inter(BancoBase):
     def dac_nosso_numero(self) -> int:
         """DV do nosso número: módulo 10 de ``agência + carteira + nosso número``.
 
-        Manual, seção 7.3 — 17 dígitos, pesos 2,1 da direita para a esquerda, com os
+        Manual, seção 8.3 — 17 dígitos, pesos 2,1 da direita para a esquerda, com os
         produtos maiores que 9 somados algarismo a algarismo. É o módulo 10 da FEBRABAN,
         já implementado em :func:`pycobranca.core.dv.modulo10`; o exemplo do manual
         (``00011100004309540`` → soma 29, resto 9, DV 1) confere.

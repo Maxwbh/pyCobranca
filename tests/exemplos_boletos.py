@@ -15,9 +15,9 @@ oficial — a PyCobrança segue o manual; a BrCobrança omite os zeros à esquer
 
 **Exceção de procedência — Inter (077).** O Inter não existe na BrCobrança nem em
 nenhuma outra implementação aberta conhecida, então a entrada dele **não tem vetor
-cruzado**: a saída foi derivada do *Manual CNAB400* do próprio banco (v2.2, 26/08/2024),
+cruzado**: a saída foi derivada do *Manual CNAB400* do próprio banco (V9, 06/07/2026),
 posição a posição, com o DV do nosso número conferido contra o exemplo resolvido da
-seção 7.3. Aqui o valor congelado é **guarda de regressão**, não concordância entre dois
+seção 8.3. Aqui o valor congelado é **guarda de regressão**, não concordância entre dois
 sistemas — prende a saída de hoje, e prenderia igual se estivesse errada. O que continua
 valendo para o Inter como verificação independente é ``test_validacao_externa.py``, que
 não usa nada do núcleo. Ver ``test_bancos_inter.py`` para o detalhe da evidência.

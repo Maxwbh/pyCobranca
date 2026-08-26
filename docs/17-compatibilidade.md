@@ -81,7 +81,7 @@ conforme à FEBRABAN.
 
 O **Inter (077)** é a exceção da camada 1: ele não existe em nenhuma implementação aberta
 conhecida, então não há vetor cruzado para ele. A saída do boleto vem do manual do próprio banco —
-com o dígito do nosso número conferido contra o exemplo resolvido da seção 7.3 — e a **remessa foi
+com o dígito do nosso número conferido contra o exemplo resolvido da seção 8.3 — e a **remessa foi
 submetida ao validador de layout do próprio Inter**, que a aprovou. Para esse banco, portanto, a
 verificação externa está nas camadas 2 e 3, não na 1.
 
@@ -94,20 +94,28 @@ externo — que prova concordância, não correção.
 ## 3. Remessa CNAB byte a byte
 
 A remessa é onde o risco é maior: posição fixa, sem tolerância. A suíte compara o arquivo gerado
-com **27 fixtures** de referência, **byte a byte**:
+com **28 fixtures**, **byte a byte**:
 
 | Layout | Fixtures |
 |---|---|
-| CNAB 400 | 17 |
+| CNAB 400 | 18 |
 | CNAB 240 | 10 |
 
-Cobrindo 16 bancos — Ailos, Banco do Brasil, BRB/Brasília, C6, Banco do Nordeste, Banrisul,
-Bradesco, Caixa, Citibank, CrediSIS, Inter, Itaú, Santander, Sicoob, Sicredi e Unicred — incluindo
-as variantes **com segmento PIX**.
+Cobrindo 17 bancos — Ailos, Banco do Brasil, BRB/Brasília, C6, Banco do Nordeste, Banrisul,
+Bradesco, Caixa, Citibank, CrediSIS, Inter, Itaú, Safra, Santander, Sicoob, Sicredi e Unicred —
+incluindo as variantes **com segmento PIX**.
 
-A fixture do Inter é a única **auto-gerada** — não existe implementação de referência que produza
-remessa dele. Em compensação, o arquivo foi submetido ao **validador de layout do próprio banco**,
-que o aprovou; ali a verificação externa vem do emissor, não de um segundo gerador.
+**Nem toda fixture é vetor de paridade, e a diferença importa.** As de Inter e Safra são
+**auto-geradas** — não há implementação de referência que produza remessa desses dois; o que
+confere a saída é um teste que afirma cada campo na posição documentada pelo manual. As de Banco
+do Nordeste, CrediSIS, BRB e Santander 240 **perderam a paridade**: a referência estourava o
+registro junto, e quem confere agora é o invariante do formato. A do Sicoob 400 também, por
+divergir do layout oficial em dez posições. A procedência de cada uma está em
+[`docs/bancos/`](bancos/README.md).
+
+A remessa do Inter tem ainda uma verificação que as outras não têm: o arquivo foi submetido ao
+**validador de layout do próprio banco**, que o aprovou — ali a conferência externa vem do
+emissor, não de um segundo gerador.
 
 Essas fixtures atravessaram todas as refatorações do projeto (reorganização do `render`, mudança de
 piso do Python, CNPJ alfanumérico) **sem alteração de um único byte**.
@@ -123,17 +131,17 @@ git clone https://github.com/Maxwbh/pyCobranca.git
 cd pyCobranca
 pip install -e ".[dev]"
 
-# as duas camadas de validação do boleto (43 testes)
+# as duas camadas de validação do boleto (103 testes)
 pytest tests/test_validacao_cruzada.py tests/test_validacao_externa.py -v
 
 # remessa byte a byte
 pytest tests/test_cnab_remessa.py -v
 
-# a suíte completa (1056 testes)
+# a suíte completa (1753 testes)
 pytest
 ```
 
-A CI roda os 1056 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
+A CI roda os 1753 testes em **Python 3.12, 3.13 e 3.14** a cada push, mais os
 [exemplos executáveis](https://github.com/Maxwbh/pyCobranca/tree/main/examples), que instalam o
 pacote **sem** as dependências de desenvolvimento — o que também valida o conteúdo do wheel.
 

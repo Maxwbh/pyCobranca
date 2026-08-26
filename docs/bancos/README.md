@@ -22,7 +22,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 033 — Santander | [033-santander.md](033-santander.md) | "Layout de Cobrança — Santander" (ficha de compensação/CNAB) |
 | 041 — Banrisul | [041-banrisul.md](041-banrisul.md) | "Layout de Cobrança CNAB 400 — Banrisul" |
 | 070 — BRB (Banco de Brasília) | [070-brb.md](070-brb.md) | "Layout de Remessa DCB — BRB" |
-| 077 — Banco Inter | [077-inter.md](077-inter.md) | "Manual CNAB400 — Emissão boletos de cobrança" (v2.2) |
+| 077 — Banco Inter | [077-inter.md](077-inter.md) | "Manual CNAB 400 — Emissão boletos de cobrança" (V9) |
 | 085 — Ailos | [085-ailos.md](085-ailos.md) | "Manual de Cobrança CNAB 240 — Ailos" |
 | 097 — CrediSIS | [097-credisis.md](097-credisis.md) | "Layout de Cobrança CNAB 400 — CrediSIS" |
 | 104 — Caixa | [104-caixa.md](104-caixa.md) | "Especificações Técnicas Boleto de Cobrança CAIXA" (SIGCB) |
@@ -138,7 +138,7 @@ implementação de referência independente): **código de barras e linha digit�
 
 O **Inter (077)** fica fora desta camada — ele não existe em nenhuma implementação aberta
 conhecida, então não há segundo gerador com que comparar. A saída dele vem do manual do próprio
-banco, com o dígito do nosso número conferido contra o exemplo resolvido da seção 7.3, e a
+banco, com o dígito do nosso número conferido contra o exemplo resolvido da seção 8.3, e a
 remessa aprovada pelo **validador de layout do próprio Inter**. Detalhe em
 [077-inter.md](077-inter.md).
 Os vetores estão congelados em

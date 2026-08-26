@@ -51,6 +51,7 @@ SLUG_POR_CODIGO: dict[str, str] = {
     "033": "santander",
     "041": "banrisul",
     "070": "banco_brasilia",
+    "077": "inter",
     "085": "ailos",
     "097": "credisis",
     "104": "caixa",
@@ -185,7 +186,16 @@ def boleto_para_api(banco) -> dict[str, Any]:
         data["chave_pix"] = banco.pix_chave
         if getattr(banco, "pix_txid", ""):
             data["txid"] = banco.pix_txid
-    return {"bank": SLUG_POR_CODIGO.get(banco.codigo, banco.codigo), "data": _sem_nulos(data)}
+    # Sem ``.get`` com padrão: um banco fora do mapa devolvia o **código** no lugar
+    # do slug, e o payload seguia parecendo válido — `boleto_para_api` entregava
+    # ``bank: "077"`` e `boleto_de_api` recusava ``"inter"``, cada ponta com uma
+    # verdade. Melhor falhar aqui, dizendo o que fazer.
+    if banco.codigo not in SLUG_POR_CODIGO:
+        raise ErroDeContrato(
+            f"banco {banco.codigo} ({banco.nome}) não tem slug em SLUG_POR_CODIGO — "
+            "todo banco do registro precisa de um para entrar no contrato REST"
+        )
+    return {"bank": SLUG_POR_CODIGO[banco.codigo], "data": _sem_nulos(data)}
 
 
 def tema_de_api(data: dict[str, Any]) -> dict[str, Any] | None:
@@ -410,12 +420,22 @@ def _valor_centavos(bruto: str | None) -> float | None:
     return int(digitos) / 100 if digitos else None
 
 
-def retorno_item_para_api(registro, layout: str = "400") -> dict[str, Any]:
+def retorno_item_para_api(
+    registro, layout: str = "400", banco: str | None = None
+) -> dict[str, Any]:
     """Serializa um :class:`~pycobranca.cnab.retorno.RegistroRetorno` para o
     schema ``RetornoItem`` (visão curada do retorno da API).
 
     Os valores monetários crus (centavos) viram ``float`` em reais e
     ``motivo_ocorrencia`` vira o rótulo legível da ocorrência.
+
+    **Informe ``banco``** — é o ``codigo_banco`` do :class:`Retorno` que trouxe o
+    registro. Há banco que redefine códigos do CNAB 400, e o sentido se inverte:
+    o ``40`` do Safra é *baixa de título protestado*, e no mapa padrão da FEBRABAN
+    é *baixa por ter sido liquidado*. Sem o banco, a API descreve um título
+    protestado como pago — e o rótulo continua plausível, então o erro atravessa a
+    conciliação sem nenhum sinal. Omitir só é seguro num retorno de banco que não
+    redefine nada, e quem lê o payload não tem como saber se é o caso.
     """
     from ..cnab.retorno.ocorrencias import descreve_ocorrencia
 
@@ -428,7 +448,7 @@ def retorno_item_para_api(registro, layout: str = "400") -> dict[str, Any]:
         "valor_pago": _valor_centavos(registro.valor_recebido),
         "valor_tarifa": _valor_centavos(registro.valor_tarifa),
         "codigo_ocorrencia": registro.codigo_ocorrencia or None,
-        "motivo_ocorrencia": descreve_ocorrencia(registro.codigo_ocorrencia, layout),
+        "motivo_ocorrencia": descreve_ocorrencia(registro.codigo_ocorrencia, layout, banco),
     }
     return _sem_nulos(dados)
 

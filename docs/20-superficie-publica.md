@@ -40,7 +40,7 @@ CNAB, OFX, PIX (EMV) e contrato não as importam: rodam só com a biblioteca pad
 ## 1. Boleto — `pycobranca.bancos`
 
 `Bancos.find(codigo)` devolve a classe do banco; instanciá-la com os dados do título devolve o
-boleto. Os 18 códigos aceitos estão em [05 — Bancos suportados](05-bancos-suportados.md).
+boleto. Os 19 códigos aceitos estão em [05 — Bancos suportados](05-bancos-suportados.md).
 
 ### O que entra
 
@@ -99,7 +99,7 @@ as funções levantam `DependenciaAusente` em vez de `ImportError` cru.
 | `render_fatura_pdf(contexto, modelo="moderno")` | `bytes` | demonstrativo + boleto na mesma página |
 | `desenha_boleto(canvas, contexto, modelo="moderno")` | — | desenha num canvas seu (composição) |
 | `logo_do_banco(codigo)` | `bytes \| None` | PNG do banco, se houver |
-| `bancos_com_logo()` | `tuple` | os 17 códigos com logo empacotado |
+| `bancos_com_logo()` | `tuple` | os 19 códigos com logo empacotado |
 | `interleaved_2of5_svg(codigo, *, altura, unidade, cor)` | `str` | código de barras isolado, em SVG |
 | `sequencia_i2of5(codigo)` | `list[tuple[bool, int]]` | barras/espaços crus, para desenhar você mesmo |
 
@@ -256,7 +256,7 @@ inventar o formato do payload nem repetir a validação.
 | `tema_de_api(data)` | extrai o tema visual do payload |
 | `pagamento_para_api(pagamento)` | `Pagamento` → `dict` |
 | `remessa_para_api(remessa)` | remessa → `dict` |
-| `retorno_item_para_api(registro, layout="400")` | `RegistroRetorno` → `dict` |
+|  `retorno_item_para_api(registro, layout="400", banco=None)` | `RegistroRetorno` → `dict` |
 | `openapi_de(paths, *, info, servers, schemas)` | `dict` | documento OpenAPI com **seus paths** e os schemas daqui |
 | `valida_contrato(dados, schema)` | valida contra o schema; levanta `ErroDeContrato` |
 | `CONTRATO` | o documento OpenAPI 3.0, como `dict` |

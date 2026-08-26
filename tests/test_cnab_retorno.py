@@ -112,7 +112,7 @@ def test_arquivo_generico_400_usa_layout_itau() -> None:
 # cai no fallback do Itaú e lê "seu número" como código de ocorrência: o arquivo
 # inteiro parece válido e os campos saem trocados, sem exceção nenhuma.
 #
-# A fixture foi montada pelas posições do manual (v2.2, seção 5.2) — não há
+# A fixture foi montada pelas posições do manual (V9, seção 5.2) — não há
 # arquivo real do banco. Ela prova o mapeamento, não a realidade do arquivo que o
 # Inter emite.
 
