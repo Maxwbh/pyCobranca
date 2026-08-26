@@ -15,6 +15,7 @@ from .contrato_rest import (
     ErroDeContrato,
     boleto_de_api,
     boleto_para_api,
+    openapi_de,
     pagamento_para_api,
     remessa_para_api,
     retorno_item_para_api,
@@ -36,5 +37,6 @@ __all__ = [
     "remessa_para_api",
     "retorno_item_para_api",
     "tema_de_api",
+    "openapi_de",
     "valida_contrato",
 ]

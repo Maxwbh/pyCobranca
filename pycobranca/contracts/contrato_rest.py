@@ -12,6 +12,7 @@ sincronia manual com o domínio — o próprio arquivo é a referência.
 
 from __future__ import annotations
 
+import copy
 import json
 import re
 from datetime import date
@@ -35,6 +36,7 @@ __all__ = [
     "remessa_para_api",
     "retorno_item_para_api",
     "valida_contrato",
+    "openapi_de",
     "ErroDeContrato",
 ]
 
@@ -49,6 +51,7 @@ SLUG_POR_CODIGO: dict[str, str] = {
     "033": "santander",
     "041": "banrisul",
     "070": "banco_brasilia",
+    "077": "inter",
     "085": "ailos",
     "097": "credisis",
     "104": "caixa",
@@ -101,7 +104,9 @@ NOMES_DO_CONTRATO: dict[str, str] = {
     "conta_corrente": "conta",
     "documento_cedente": "cedente_documento",
     "chave_pix": "pix_chave",
+    "pix_copia_cola": "pix_copia_cola",
     "txid": "pix_txid",
+    "pix_observacao": "pix_observacao",
 }
 
 #: ``nome no contrato -> chave do bloco ``tema`` no contexto de render``. O
@@ -175,11 +180,22 @@ def boleto_para_api(banco) -> dict[str, Any]:
         valor = getattr(banco, campo, None)
         data[campo] = _data_iso(valor) if isinstance(valor, date) else (valor or None)
     # Bolepix: quando o banco suporta PIX e há chave configurada.
+    if getattr(banco, "pix_copia_cola", ""):
+        data["pix_copia_cola"] = banco.pix_copia_cola
     if getattr(banco, "suporta_pix", False) and getattr(banco, "pix_chave", ""):
         data["chave_pix"] = banco.pix_chave
         if getattr(banco, "pix_txid", ""):
             data["txid"] = banco.pix_txid
-    return {"bank": SLUG_POR_CODIGO.get(banco.codigo, banco.codigo), "data": _sem_nulos(data)}
+    # Sem ``.get`` com padrão: um banco fora do mapa devolvia o **código** no lugar
+    # do slug, e o payload seguia parecendo válido — `boleto_para_api` entregava
+    # ``bank: "077"`` e `boleto_de_api` recusava ``"inter"``, cada ponta com uma
+    # verdade. Melhor falhar aqui, dizendo o que fazer.
+    if banco.codigo not in SLUG_POR_CODIGO:
+        raise ErroDeContrato(
+            f"banco {banco.codigo} ({banco.nome}) não tem slug em SLUG_POR_CODIGO — "
+            "todo banco do registro precisa de um para entrar no contrato REST"
+        )
+    return {"bank": SLUG_POR_CODIGO[banco.codigo], "data": _sem_nulos(data)}
 
 
 def tema_de_api(data: dict[str, Any]) -> dict[str, Any] | None:
@@ -404,12 +420,22 @@ def _valor_centavos(bruto: str | None) -> float | None:
     return int(digitos) / 100 if digitos else None
 
 
-def retorno_item_para_api(registro, layout: str = "400") -> dict[str, Any]:
+def retorno_item_para_api(
+    registro, layout: str = "400", banco: str | None = None
+) -> dict[str, Any]:
     """Serializa um :class:`~pycobranca.cnab.retorno.RegistroRetorno` para o
     schema ``RetornoItem`` (visão curada do retorno da API).
 
     Os valores monetários crus (centavos) viram ``float`` em reais e
     ``motivo_ocorrencia`` vira o rótulo legível da ocorrência.
+
+    **Informe ``banco``** — é o ``codigo_banco`` do :class:`Retorno` que trouxe o
+    registro. Há banco que redefine códigos do CNAB 400, e o sentido se inverte:
+    o ``40`` do Safra é *baixa de título protestado*, e no mapa padrão da FEBRABAN
+    é *baixa por ter sido liquidado*. Sem o banco, a API descreve um título
+    protestado como pago — e o rótulo continua plausível, então o erro atravessa a
+    conciliação sem nenhum sinal. Omitir só é seguro num retorno de banco que não
+    redefine nada, e quem lê o payload não tem como saber se é o caso.
     """
     from ..cnab.retorno.ocorrencias import descreve_ocorrencia
 
@@ -422,7 +448,7 @@ def retorno_item_para_api(registro, layout: str = "400") -> dict[str, Any]:
         "valor_pago": _valor_centavos(registro.valor_recebido),
         "valor_tarifa": _valor_centavos(registro.valor_tarifa),
         "codigo_ocorrencia": registro.codigo_ocorrencia or None,
-        "motivo_ocorrencia": descreve_ocorrencia(registro.codigo_ocorrencia, layout),
+        "motivo_ocorrencia": descreve_ocorrencia(registro.codigo_ocorrencia, layout, banco),
     }
     return _sem_nulos(dados)
 
@@ -490,3 +516,77 @@ def valida_contrato(dados: dict, schema_nome: str) -> None:
             raise ErroDeContrato(
                 f"{schema_nome}.{chave}: valor {valor!r} não casa com o padrão {padrao!r}"
             )
+
+
+def openapi_de(
+    paths: dict[str, Any],
+    *,
+    info: dict[str, Any] | None = None,
+    servers: list[dict[str, Any]] | None = None,
+    schemas: dict[str, Any] | None = None,
+    versao: str = "3.0.3",
+) -> dict[str, Any]:
+    """Monta um documento OpenAPI com **os seus paths** e **os schemas daqui**.
+
+    A PyCobrança é biblioteca e não tem endpoints: publicar um OpenAPI completo
+    aqui exigiria inventar rotas que ela não serve. Quem tem paths é a sua API —
+    e quem tem os schemas de dados é esta biblioteca, que os versiona junto com
+    o código que os implementa.
+
+    Este helper cola os dois lados sem que ninguém precise copiar schema, que é
+    onde a divergência começa: um arquivo copiado envelhece em silêncio quando a
+    biblioteca sobe de versão.
+
+    Args:
+        paths: o bloco ``paths`` da sua API, no formato OpenAPI. Use
+            ``{"$ref": "#/components/schemas/BoletoData"}`` para apontar aos
+            schemas daqui.
+        info: bloco ``info``. O título e a versão são seus; a **versão da
+            PyCobrança é carimbada** em ``x-pycobranca`` e na ``description``,
+            para quem lê o Swagger saber de qual engine veio o contrato.
+        servers: bloco ``servers``, opcional.
+        schemas: schemas seus, somados aos da biblioteca. **Colidir com um nome
+            existente levanta** ``ErroDeContrato`` — sobrescrever ``BoletoData``
+            em silêncio devolveria o problema que este helper evita.
+        versao: versão do OpenAPI declarada no documento.
+
+    :returns: ``dict`` pronto para virar JSON ou YAML. Os schemas são **copiados**,
+        então mutar o resultado não afeta :data:`CONTRATO`.
+
+    Exemplo::
+
+        from pycobranca.contracts import openapi_de
+
+        doc = openapi_de(
+            {"/boletos": {"post": {...}}},
+            info={"title": "cobranca_api", "version": "1.0.0"},
+            servers=[{"url": "https://api.exemplo.com.br"}],
+        )
+        yaml.safe_dump(doc, sort_keys=False)  # sirva no Swagger UI
+    """
+    from .. import __version__
+
+    do_pacote = copy.deepcopy(CONTRATO["schemas"])
+    if schemas:
+        colisoes = sorted(set(schemas) & set(do_pacote))
+        if colisoes:
+            raise ErroDeContrato(
+                "schemas colidem com os da PyCobrança (renomeie os seus): " + ", ".join(colisoes)
+            )
+        do_pacote.update(copy.deepcopy(schemas))
+
+    bloco_info: dict[str, Any] = dict(info or {})
+    bloco_info.setdefault("title", "API de cobrança")
+    bloco_info.setdefault("version", "1.0.0")
+    bloco_info["x-pycobranca"] = __version__
+    origem = f"Schemas de dados da PyCobrança {__version__}."
+    bloco_info["description"] = (
+        f"{bloco_info['description']}\n\n{origem}" if bloco_info.get("description") else origem
+    )
+
+    documento: dict[str, Any] = {"openapi": versao, "info": bloco_info}
+    if servers:
+        documento["servers"] = list(servers)
+    documento["paths"] = paths
+    documento["components"] = {"schemas": do_pacote}
+    return documento

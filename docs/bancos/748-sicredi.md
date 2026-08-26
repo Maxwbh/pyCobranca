@@ -1,6 +1,6 @@
 ---
 description: >-
-  Boleto Sicredi (748) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 3). Remessa e retorno CNAB 240.
+  Boleto Sicredi (748) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (1, 3). Remessa e retorno CNAB 240, e retorno CNAB 400.
 ---
 
 # Sicredi (748)
@@ -51,6 +51,7 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 | Agência | 1–4 dígitos |
 | Posto | até 2 dígitos (opcional) |
 | Convênio | 1–5 dígitos |
+| Byte de identificação | 1 dígito, **obrigatório** (`1` = agência, `2`–`9` = beneficiário) |
 | Nosso número | 1–5 dígitos |
 | Carteira | conjunto: 1, 3 |
 
@@ -92,3 +93,32 @@ layout de arquivo `081`, de lote `040`. Densidade `01600`, espécie `03`,
 **Observações:** `data_mora` usa **vencimento + 1 dia**; código de desconto e de baixa fixos em
 `1`; agência sem DV (branco). O CNAB 240 da **Unicred (136)** herda este mesmo layout — ver
 [`136-unicred.md`](136-unicred.md).
+
+## Retorno CNAB 400 — implementado
+
+**Layout:** `LAYOUTS_400["748"]` em
+[`pycobranca/cnab/retorno/cnab400.py`](../../pycobranca/cnab/retorno/cnab400.py) ·
+fixture: [`tests/fixtures/retorno/externos/sicredi_cnab400.ret`](../../tests/fixtures/retorno/externos/sicredi_cnab400.ret)
+
+Conforme a **seção 9.2** do *Manual CNAB 400* v2.4 (26/09/2022). O desvio decisivo:
+
+| Campo | Sicredi | Layout de reserva (Itaú) |
+|---|:--:|:--:|
+| **Nosso número** | **048–062** (15 posições) | 063–070 (8 posições) |
+| Espécie do documento | 175 (uma **letra**) | 174–175 (dois dígitos) |
+| Motivos da ocorrência | 319–328 | 378–385 |
+| Data prevista de crédito | 329–336 (`AAAAMMDD`) | 296–301 (`DDMMAA`) |
+
+As posições 063–108 do Sicredi são *filler*. Sem a entrada `748`, o parser lia ali e devolvia
+`00000000` — **zeros lidos de espaço em branco**, com toda a aparência de um nosso número
+válido. Uma conciliação compararia isso contra os títulos emitidos, não casaria nenhum, e não
+diria por quê.
+
+Isso está medido sobre um **arquivo de retorno real** do banco, não sobre fixture construída
+aqui: `test_sem_o_layout_proprio_o_sicredi_devolvia_zeros_de_filler` lê o mesmo arquivo pelos
+dois caminhos e compara. É a evidência mais forte do projeto — manual oficial **mais** arquivo
+verdadeiro.
+
+!!! note "A data de crédito fica crua, em oito posições"
+    O campo 329–336 vem em `AAAAMMDD`, enquanto o resto do layout usa `DDMMAA` em seis.
+    `data_credito` entrega o que veio: converter aqui esconderia a diferença de quem lê.

@@ -22,9 +22,9 @@ from ...exceptions import RetornoInvalido
 from .base import RegistroRetorno
 from .cnab240 import banco_do_arquivo_240, parse_cnab240
 from .cnab400 import banco_do_arquivo_400, parse_cnab400
-from .ocorrencias import descreve_ocorrencia
+from .ocorrencias import OCORRENCIAS_400_POR_BANCO, descreve_ocorrencia
 
-__all__ = ["Retorno", "RegistroRetorno", "descreve_ocorrencia"]
+__all__ = ["Retorno", "RegistroRetorno", "descreve_ocorrencia", "OCORRENCIAS_400_POR_BANCO"]
 
 
 @dataclass
@@ -66,17 +66,22 @@ class Retorno:
             raise RetornoInvalido("arquivo de retorno vazio (nenhuma linha com conteúdo)")
         if layout is None:
             layout = "240" if len(primeira) <= 245 else "400"
-        if layout == "240":
-            codigo_banco = banco_do_arquivo_240(primeira)
-            registros = parse_cnab240(linhas, codigo_banco)
-        else:
-            codigo_banco = banco_do_arquivo_400(primeira)
-            registros = parse_cnab400(linhas, codigo_banco)
+        codigo_banco = (
+            banco_do_arquivo_240(primeira) if layout == "240" else (banco_do_arquivo_400(primeira))
+        )
+        # A checagem vem **antes** do parsing: um arquivo que não é retorno CNAB
+        # não deve ser percorrido, e o aviso de layout genérico que sairia dali
+        # apontaria para um código de banco que só existe porque a linha era
+        # lixo — sinal enganoso onde já se sabe que o arquivo não serve.
         if not (codigo_banco or "").strip().isdigit():
             raise RetornoInvalido(
                 "não foi possível identificar o banco no header do retorno "
                 "(arquivo não parece um retorno CNAB válido)"
             )
+        if layout == "240":
+            registros = parse_cnab240(linhas, codigo_banco)
+        else:
+            registros = parse_cnab400(linhas, codigo_banco)
         return cls(layout=layout, codigo_banco=codigo_banco, registros=registros)
 
     def to_dict(self, compact: bool = True) -> list[dict]:
@@ -84,7 +89,7 @@ class Retorno:
 
     def descricao_ocorrencia(self, registro: RegistroRetorno) -> str | None:
         """Rótulo legível da ocorrência do ``registro`` (indicativo — ver docs)."""
-        return descreve_ocorrencia(registro.codigo_ocorrencia, self.layout)
+        return descreve_ocorrencia(registro.codigo_ocorrencia, self.layout, self.codigo_banco)
 
     def __iter__(self):
         return iter(self.registros)

@@ -2,6 +2,234 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.1.1] - 2026-08-26
+
+### Adicionado
+
+- **Retorno CNAB 400 do Sicoob (756)**, conforme a aba *04.Retorno* do
+  `Layout_Cobranca_CNAB400.xls` publicado no portal do banco (19/05/2025). O nosso número ocupa
+  **63–73 mais o DV em 74**; o layout de reserva lia oito posições e cortava três dígitos e o
+  dígito verificador. A data de crédito fica em **176–181**, não em 296–301 — o reserva devolvia
+  zeros, indistinguível de "ainda não creditado".
+- **Retorno CNAB 400 do Sicredi (748)**, conforme a seção 9.2 do *Manual CNAB 400* v2.4. O nosso
+  número fica em **48–62, quinze posições**; o layout de reserva lia 63–70, que ali é *filler*, e
+  devolvia `00000000` — zeros com aparência de número válido. Medido sobre o **arquivo de retorno
+  real** que já estava em `fixtures/retorno/externos`.
+- **Varredura de valores-limite por banco** (`tests/test_limites_campos.py`), nos dois artefatos:
+  boleto e remessa CNAB. Para cada campo de cada banco — sem dados, 1 caractere, o máximo
+  declarado e máximo+1 —, e para agência, conta e nosso número em todos os tamanhos de 0 a 20
+  dígitos. O contrato que ela prende: **ou o valor é recusado com um erro do pacote, ou o
+  artefato sai no tamanho certo**; nunca calado e errado. Foi ela que encontrou os sete campos
+  sem limite e os quatro `tamanho_registro = None`.
+- **Aviso `LayoutGenerico`** quando o retorno é lido sem layout próprio do banco. O parser
+  continua lendo o arquivo — o que muda é que agora **diz** que os campos podem estar em outras
+  posições. Filtrável como qualquer aviso; `warnings.simplefilter("error", LayoutGenerico)` faz
+  falhar em vez de seguir adiante.
+
+- **`RemessaSafra400` e retorno 400 do Safra** — conforme o *Leiaute de Arquivos, Cobrança CNAB
+  400* do banco. O boleto já existia; faltavam os arquivos. Trailer com quantidade e valor
+  somado (369–391), multa gravada **dentro do campo de abatimento** em formato próprio (nota
+  6.1.8) — os dois não cabem no mesmo título — e banco cobrador `422`, `341` ou `237`, para o
+  arranjo de correspondente.
+- **Layout de retorno `422`.** O nosso número do Safra ocupa 63–71, nove posições; o layout de
+  reserva lê oito e cortava o **DV** em silêncio. Os códigos de ocorrência também divergem: o
+  `40` é *baixa de título protestado*, não *baixa por ter sido liquidado* — sentidos opostos
+  numa conciliação.
+
+- **Banco Inter (077)** — 19º banco: boleto, remessa e retorno CNAB 400, e logo empacotado.
+  Conforme o *Manual CNAB400* do banco (v2.2). **Só a carteira 110**: na 112 quem numera é o
+  Inter, e o nosso número só existe no retorno — a 112 é recusada em `validar()`.
+- **`RemessaInter400`** — remessa aprovada no **validador de layout do próprio Inter**.
+  `nome_arquivo()` devolve `CI400_001_<sequencial>.REM`, que o manual exige igual ao header.
+  Multa, juros e desconto em valor ou percentual; sem IOF e sem abatimento no layout.
+  Não há CNAB 240 de cobrança no Inter — o que o banco publica em 240 é de *pagamentos*.
+- **Retorno do Inter** — layout `077`: ocorrência em 90–91 e vencimento em 119–124, longe do
+  comum. Sem ele o parser lia o "seu número" como código de ocorrência, sem aviso.
+  `descreve_ocorrencia` passa a aceitar o banco: o `07` do Inter é *Cancelado*, não
+  *Liquidação parcial*.
+- **`Pagamento`**: `valor_multa`, `percentual_desconto` e `mensagem` — opcionais, exigidos pelo
+  layout do Inter e ignorados pelos demais.
+- **`tools/demo_gif.py`** — gera o GIF do README com os valores calculados pelo pacote. O
+  anterior não tinha gerador e anunciava a versão 1.0.0.
+- **`pix_copia_cola`** — payload EMV devolvido pelo banco ao registrar a cobrança. É o Bolepix de
+  verdade: QR dinâmico, vinculado ao título, com baixa automática. Vai para o QR como veio, tem
+  precedência sobre `pix_chave` e funciona em qualquer banco.
+- **O QR avulso passa a sair identificado.** Sem `pix_txid`, o campo 62-05 recebe o nosso número —
+  antes ia `***` e o crédito chegava órfão na conciliação por OFX. Sem nosso número o txid sai
+  ausente, não derivado: zeros produziriam um identificador plausível e sem significado.
+- **`pix_observacao`** — texto livre no campo 26-02 do BR Code (até 40), para descrever a cobrança
+  a quem paga.
+- **`openapi_de(paths, *, info, servers, schemas)`** — monta um documento OpenAPI com os paths de
+  quem consome e os schemas daqui, sem cópia. A versão fica carimbada em `info["x-pycobranca"]` e
+  colisão de nome levanta `ErroDeContrato`. `pix_copia_cola` e `pix_observacao` entram no
+  `BoletoData`, e a resposta traz `pix_vinculado`.
+
+### Corrigido
+
+- **Sicoob: a carteira `09` gravava `0` no código de barras.** A posição 1 do campo livre era
+  montada com `so_digitos(carteira)[:1]`, que pega o **primeiro** caractere — e `"09"` virava
+  `"0"`, uma carteira que o Sicoob não tem. Como `carteiras` declara `"9"` e `"09"` como a mesma
+  coisa, o mesmo título saía com **dois códigos de barras diferentes** conforme a grafia. Nada
+  levantava: são 44 posições com o DV recalculado sobre o valor errado, então o boleto passa em
+  qualquer conferência estrutural e vai para a carteira errada — o mesmo modo de falha do
+  `portfolio` do Citibank. Agora vale o dígito **significativo**, e carteira que não cabe em uma
+  posição é **recusada** em vez de truncada. Um teste passa a exigir, de todo banco, que duas
+  grafias da mesma carteira produzam o mesmo boleto (o Ailos já declarava `"1"` e `"01"` e
+  acertava — o Sicoob era o único que divergia).
+- **Oito remessas aceitavam `carteira` e nunca a gravavam.** O campo está na base, então toda
+  remessa o aceita — mas a CrediSIS e o Santander no 400, e seis dos sete layouts 240, não têm
+  campo de carteira: a FEBRABAN separa o *código da carteira* (posição 58 do segmento P, `1` a
+  `4`) da *modalidade* do banco. Quem monta a remessa com o mesmo dicionário do boleto — o
+  caminho natural — acreditava ter escolhido a carteira, e o arquivo saía com a do padrão. Sai
+  agora o aviso **`CampoIgnorado`**, nomeando o campo que aquele layout realmente grava; o
+  arquivo não muda, porque sempre esteve correto — o que faltava era o sinal. O aviso encontrou,
+  na primeira execução, a própria fixture da CrediSIS passando uma carteira inerte.
+
+  Este **não** é o defeito do campo livre acima: no CNAB o Sicoob grava a carteira em duas
+  posições (`rjust(2, "0")`), e ali `9` e `09` sempre produziram o mesmo arquivo. São dois
+  defeitos diferentes no mesmo banco.
+
+**Contrato REST e encargos.**
+
+- **O Banco Inter não existia no contrato REST.** `SLUG_POR_CODIGO` é escrito à mão e o `"077"`
+  ficou de fora: `boleto_para_api` devolvia `bank: "077"` onde os outros 18 devolviam o slug, e
+  `boleto_de_api({"bank": "inter"})` recusava. Remessa do Inter funcionava, boleto não. **O teste
+  que deveria pegar isso tinha um atalho** — `SLUG_POR_CODIGO.get(cls.codigo, cls.codigo)`, cujo
+  padrão devolve o código quando o slug falta, fazendo a asserção virar `"077" == "077"`. O
+  fallback foi removido dos dois lados: `boleto_para_api` agora **levanta** para banco sem slug, e
+  três testes novos exigem que o registro e o contrato conheçam os mesmos bancos.
+- **Multa em valor fixo e desconto em percentual eram inalcançáveis.** O validador comum aplicava
+  a regra FEBRABAN *"multa é sempre percentual"* e exigia `percentual_multa > 0` para qualquer
+  `codigo_multa`; o mesmo para desconto, que exigia `valor > 0`. Só que o Inter grava multa em
+  **valor** (`"1"` no item 09) e desconto em **percentual** (`"4"` no item 29) — campos que o
+  módulo do banco escreve e o validador recusava antes. Agora o código escolhe qual dos dois
+  campos vem preenchido. Passou despercebido porque os dois só apareciam em teste **negativo**.
+- **`retorno_item_para_api` não repassava o banco** a `descreve_ocorrencia`, então a API descrevia
+  o `40` do Safra como *"Baixa por ter sido liquidado"* quando o manual do banco diz **baixa de
+  título protestado** — título pago contra título protestado, numa conciliação, com o rótulo
+  plausível. A função ganhou o parâmetro `banco`, e o exemplo da documentação (de onde a chamada
+  costuma ser copiada) passa `banco=retorno.codigo_banco`.
+
+**Banco Inter conferido contra o manual V9.**
+
+O manual passou de **v2.2 (26/08/2024)** para **V9 (06/07/2026)**. As 41 posições do detalhe, as
+14 do header, o trailer, as 18 posições lidas do retorno, o campo livre e o DV do nosso número
+**batem sem exceção**. O que mudou:
+
+- **Três códigos de ocorrência novos, dois deles colidindo com a FEBRABAN.** O `15` do Inter é
+  *alteração do valor nominal* e no padrão é **liquidação em cartório**; o `16` é *alteração de
+  valor e vencimento* e no padrão é **confirmação de instrução de protesto**. Como o `07` que já
+  estava mapeado, o rótulo do padrão é plausível e diz o oposto do que aconteceu.
+- **Carteira `121`**, irmã da 112 na seção 6.1 (*"o Inter já realiza a emissão dos boletos e
+  registro dos nossos números"*): entra na **remessa** com o nosso número zerado e fica fora do
+  boleto, pelo mesmo critério da 112.
+- Registros **tipo 2, 3 e 4** da remessa (mensagens extras, e-mail do pagador, beneficiário final,
+  nota fiscal) e o **tipo 2 do retorno** seguem não implementados — são opcionais no manual, e
+  isso passou a estar dito no módulo em vez de omitido.
+
+- **Revisão dos 19 bancos.** Passou a existir uma varredura que gera boleto para **toda carteira
+  declarada de todo banco** e roda o verificador FEBRABAN independente — 55 carteiras válidas, e
+  uma que nunca funcionou: a **`CSB` do HSBC**, cujo campo livre monta 27 posições onde cabem 25.
+  Antes só uma carteira por banco era exercitada. **A CSB saiu de `carteiras`** — corrigi-la
+  precisa do manual do HSBC, que o banco não publica mais, e anunciá-la como suportada era
+  promessa que sempre falhava. A composição segue em `campo_livre()` para quem tiver o manual.
+- **Quatro remessas produziam registro fora do comprimento do formato** — 401 e 402 posições no
+  CNAB 400 (Banco de Brasília, Banco do Nordeste, CrediSIS) e 241 no 240 (Santander). Causa única
+  nas quatro: `str.rjust` **preenche mas nunca corta**, então um valor maior que o campo
+  atravessava para a posição seguinte e deslocava todo o resto do registro — o CNAB é posicional.
+  As fixtures não pegavam: vêm da implementação de referência, que estoura igual. Entra
+  `campo_numerico`, que descarta zeros à esquerda sobrando e **recusa** dígito significativo que
+  não cabe; truncar um nosso número produziria um título com outro número. As quatro fixtures
+  foram regeradas e deixaram de ser vetor de paridade.
+- **A remessa não aplicava os limites de campo que o boleto já declarava.** Banco do Nordeste
+  (7 posições), CrediSIS (6) e BRB (6) aceitavam nosso número de oito dígitos — o mesmo que
+  `regras_campos` recusa no boleto — e o gravavam estourando o registro. Agora é erro, com a
+  mensagem dizendo quantos dígitos não couberam.
+- **Atributos aceitos e nunca gravados**, removidos: `posto` no `RemessaSicoob240` e
+  `modalidade_carteira`, `parcela`, `posto` e `byte_idt` no `RemessaSicredi240` (herdados pela
+  Unicred). Mesma classe do `tipo_formulario`. Um teste passa a exigir, de **todas** as remessas,
+  que nenhum campo declarado fique sem ser lido.
+- **Sicoob: "seu número" (111–120) era gravado com zeros à esquerda.** O layout oficial declara
+  o campo `X(10)`, alfanumérico — `DOC0001` virava `000DOC0001`, e é isso que o banco devolve no
+  retorno: quem guardou `DOC0001` não reencontrava o título ao conciliar. Valor só de dígitos
+  continua com zeros, onde as duas convenções coincidem. A fixture da remessa **deixou de ser
+  vetor de paridade** (a referência preenchia com zeros); a diferença é só naquelas dez posições.
+- **Sicoob: `tipo_formulario` era aceito na remessa 400 e nunca gravado.** O layout 400 não tem
+  esse campo — é do 240, onde segue em uso. Removido do `RemessaSicoob400`: aceitar um parâmetro
+  inerte é pior que recusá-lo. `modalidade_carteira` também ganhou documentação — ela grava a
+  posição 106, *Tipo de Emissão*, não *Carteira/Modalidade*, que é de `carteira`.
+- **Boleto do Safra sustentado só por vetor cruzado.** Passa a ser conferido contra o manual: o
+  DV do nosso número bate com os **três exemplos resolvidos** da seção 7.1, incluindo o de resto
+  zero; o campo livre bate posição a posição com a seção 7.2.2; e a linha digitável, que o manual
+  documenta em **tabela própria** (7.2.3, com a agência partida entre as posições 6–9 e 11), bate
+  com ela. Nenhuma mudança foi necessária na implementação — a verificação confirmou o que já
+  havia.
+- **`Retorno.ler` percorria arquivo que não é retorno CNAB.** A checagem do código do banco vinha
+  **depois** do parsing, então uma entrada inválida era lida inteira antes de ser recusada — e
+  ainda produzia um aviso apontando para um código que só existia porque a linha era lixo.
+- **Sete campos entravam no campo livre sem limite declarado** e estouravam as 25 posições:
+  `digito_conta` (Banco do Nordeste, Banestes, Unicred, Safra), `digito_agencia` (Safra),
+  `variacao` (Sicoob), `byte_idt` (Sicredi) e a parcela do Sicoob (`quantidade`, 3 posições).
+  `validar()` passava e o erro só aparecia na montagem do código de barras, sem dizer qual campo
+  o causara. Agora estão em `regras_campos`, e a mensagem nomeia o campo.
+- **Agência e conta estouravam o registro em quatro remessas** — Banco do Nordeste, CrediSIS,
+  BRB e Santander 240 —, mesma causa do nosso número: `rjust` preenche e não corta. Passam por
+  `campo_numerico`.
+- **A conferência de comprimento do registro estava desligada nessas quatro remessas.** Cada uma
+  justificava o `tamanho_registro = None` dizendo que *o layout do banco* usava 401, 402 ou 241
+  posições. Nenhuma usava — era o `rjust` estourando o campo; o `None` transformou o sintoma em
+  documentação e desligou o único aviso. As quatro voltam a conferir (o BRB com `(39, 400)`, pelo
+  header DCB), e um teste exige que nenhuma remessa desligue a checagem.
+- **Carteira desconhecida no Banco do Nordeste levantava `KeyError`**, de fora da hierarquia de
+  erros do pacote: quem integra com `except PyCobrancaError` via o processo morrer. Vira
+  `BoletoInvalido` dizendo quais combinações de carteira e emissão existem.
+- **Revisão arquivo por arquivo da documentação**, que encontrou afirmações que o código já
+  contradizia. A home dos docs anunciava **18 bancos** enquanto o README anunciava 19, e o mesmo
+  número desatualizado aparecia em `04`, `16`, `20` e no roadmap — que ainda listava o **Inter
+  (077) como fora de escopo**, depois de ele ter entrado. A matriz de remessa de `docs/bancos/`
+  não tinha linha para Inter nem Safra; a de campos de `14` não tinha o Inter e oferecia a **CSB
+  do HSBC**, retirada do código. Quatro páginas de banco descreviam registros de 401, 402 e 241
+  posições como *quirk do layout do banco* — o diagnóstico que esta versão corrigiu —, e
+  `15-novo-banco.md` **ensinava** `tamanho_registro = None`, hoje recusado por teste. Corrigidos
+  também os totais de layout de retorno (16 dos 19, 14 em 400), de classes de remessa (28) e de
+  logos empacotados (19).
+- **Quatro testes novos prendem o que era mantido à mão:** todo banco do registro tem página; a
+  contagem de bancos no texto bate com o registro; carteira retirada não é oferecida na
+  documentação; e a tabela *Validação de campos* de cada banco lista **todo** campo com regra
+  declarada — foi a ausência desses campos de uma posição que escondeu o defeito do campo livre.
+- **Mensagens de erro nomeavam o atributo cru** em cinco campos: `digito_conta`, `digito_agencia`,
+  `variacao`, `byte_idt` e a parcela do Sicoob saíam sem rótulo amigável. Agora saem como
+  *"dígito da conta deve ter no máximo 1 dígitos"*, como os demais campos.
+- **README anunciava os 18 logos como "alta resolução com transparência"**, e cinco são 150×40
+  (quatro deles sem canal alfa). Não é defeito visível — o cabeçalho é branco e a faixa de marca
+  não carrega o logo do banco —, mas pixelam na impressão. A frase passa a dizer quais, e um teste
+  prende a lista ao que está em disco.
+
+- **O QR do PIX montado da chave não liquida o boleto, e a documentação o chamava de Bolepix.**
+  O payload de `pix_chave` é **estático**: paga a chave, mas o banco não sabe que aquele PIX quita
+  este título — que fica em aberto, com risco de segunda cobrança ou protesto de título já pago.
+  O Bolepix exige QR **dinâmico**, gerado pelo banco no registro. O comportamento antigo continua,
+  agora nomeado pelo que é, e `contexto_render()["pix"]["vinculado"]` e
+  `BoletoEmitido.pix_vinculado` dizem qual dos dois está no boleto.
+- **Imagem do README invisível fora da `main`.** As referências ao repositório estavam fixadas em
+  `.../main/...`, então uma captura nova só aparecia depois de promovida. O README passa a usar
+  caminho relativo, e a conversão para URL absoluta — que o PyPI exige — acontece no
+  empacotamento (`tools/_readme_urls.py`).
+- **Matriz de bancos do README errada em três linhas**: dizia que Banco do Brasil e C6 não têm
+  parser de retorno próprio (têm) e que o HSBC tem (não tem). Passou a ser derivada do código.
+- **DAC do nosso número errado na carteira 112 do Itaú.** A composição longa era aplicada às sete
+  carteiras aceitas, produzindo um código de barras estruturalmente válido com o dígito errado —
+  passa em validador estrutural e só é detectado nas regras do Itaú. As demais não mudam.
+  [#40](https://github.com/Maxwbh/pyCobranca/issues/40)
+- **Paridade do Itaú presa por vetor**: as sete carteiras passam a ser conferidas byte a byte.
+  O manual se contradiz sobre as escriturais; a decisão saiu da comparação com três outras
+  implementações.
+- **A faixa de encargos do boleto era impressa, e o total, calculado.** Desconto, deduções,
+  mora/multa, acréscimos e valor cobrado são preenchidos **pelo caixa** no ato do pagamento. A
+  1.1.0 imprimia o que o emissor informasse e somava o total, levando o pagador a pagar errado.
+  As molduras continuam; o conteúdo não sai mais. `contexto_render()["totalizadores"]` e
+  `BoletoEmitido.totalizadores` passam a vir sempre vazios.
+
 ## [1.1.0] - 2026-08-23
 
 ### Alterado

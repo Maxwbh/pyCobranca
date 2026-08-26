@@ -46,6 +46,11 @@ _ROTULOS_CAMPOS: dict[str, str] = {
     "portfolio": "portfolio",
     "incremento": "incremento",
     "numero_contrato": "número do contrato",
+    "digito_agencia": "dígito da agência",
+    "digito_conta": "dígito da conta",
+    "variacao": "variação",
+    "byte_idt": "byte de identificação",
+    "quantidade": "quantidade de parcelas",
 }
 
 
@@ -109,8 +114,27 @@ class BancoBase:
     #: A biblioteca **não** embute marcas registradas — o asset é do chamador.
     logo: bytes | str | None = None
     # ---- PIX / Bolepix (opcional; requer banco com suporta_pix) ----
+    #: Payload EMV **pronto**, devolvido pelo banco ao registrar a cobrança
+    #: (arquivo retorno ou API do PSP). Quando informado, é ele que vai no QR —
+    #: é o Bolepix de verdade, vinculado ao título e com baixa automática.
+    #:
+    #: Tem precedência sobre :attr:`pix_chave`: se o banco já produziu o payload,
+    #: montar outro localmente seria imprimir um QR que ele não conhece.
+    pix_copia_cola: str = ""
+    #: Chave PIX do recebedor. Monta um BR Code **estático**, que credita a chave
+    #: mas **não liquida o título** no banco — ver ``docs/07-pix.md``.
     pix_chave: str = ""
+    #: Identificador da transação (campo 62-05). Até 25 caracteres ``A-Za-z0-9``.
+    #:
+    #: **Vazio, é derivado do nosso número.** No QR avulso o identificador é o que
+    #: permite reconhecer o crédito no extrato: sem ele o recebimento fica órfão e
+    #: o título parece não pago. Deixar isso na lembrança de quem chama garantia
+    #: que uma parte dos boletos sairia sem — então o padrão passa a identificar.
+    #: Para abrir mão de propósito, informe ``"***"``.
     pix_txid: str = ""
+    #: Texto livre no campo 26-02 (até 40, sem acentos). Descreve a cobrança;
+    #: não substitui o ``pix_txid`` como identificador.
+    pix_observacao: str = ""
     cedente_cidade: str = ""
     # ---- campos auxiliares usados por bancos específicos ----
     variacao: str = ""  # Sicoob, Banestes
@@ -278,49 +302,75 @@ class BancoBase:
             },
             "sacador_avalista": self.sacador_avalista,
             "demonstrativo": self.demonstrativo,
-            "totalizadores": {
-                "desconto_abatimento": moeda(self.desconto_abatimento),
-                "outras_deducoes": moeda(self.outras_deducoes),
-                "mora_multa": moeda(self.mora_multa),
-                "outros_acrescimos": moeda(self.outros_acrescimos),
-                "valor_cobrado": moeda(self._valor_cobrado()),
-            },
+            # Sempre em branco: a faixa de desconto/mora/acréscimo e o total são
+            # preenchidos **pelo caixa** no momento do pagamento, não pelo
+            # beneficiário. A regra de encargo do título vai em ``instrucoes``
+            # ("após o vencimento, multa de 2% e juros de 1% ao mês"), que é o que
+            # o caixa lê para calcular. Imprimir valor aqui antecipa uma conta que
+            # não é do emissor e induz o pagador a erro.
+            "totalizadores": dict.fromkeys(_TOTALIZADORES_OPCIONAIS, ""),
             "pix": self._contexto_pix(),
         }
 
-    def _valor_cobrado(self) -> Decimal | None:
-        """Valor do documento menos deduções, mais acréscimos.
+    def txid_do_titulo(self) -> str:
+        """Identificador derivado do nosso número, para o campo 62-05.
 
-        Devolve ``None`` — campo em branco — quando nenhum totalizador foi
-        informado: no boleto comum quem preenche essa faixa é o caixa, e imprimir
-        um total antecipado induziria o pagador a erro.
+        Mantém só ``A-Za-z0-9`` e corta em 25, que é o que o padrão aceita — o
+        nosso número formatado costuma trazer ``/`` e ``-``. Devolve ``"***"``
+        (ausente, no padrão EMV) quando não sobra nada, em vez de montar um
+        payload inválido.
+
+        É o que amarra o crédito PIX ao título na conciliação por OFX.
         """
-        if self.valor_cobrado is not None:
-            return Decimal(str(self.valor_cobrado))
-        parcelas = [getattr(self, campo) for campo in _TOTALIZADORES_OPCIONAIS[:4]]
-        if all(p is None for p in parcelas):
-            return None
-        desconto, deducoes, mora, acrescimos = (p or Decimal(0) for p in parcelas)
-        return Decimal(str(self.valor)) - desconto - deducoes + mora + acrescimos
+        if not so_digitos(self.nosso_numero):
+            # Sem nosso número, ``nosso_numero_formatado()`` preenche com zeros e
+            # ainda calcula o dígito em cima deles: sairia um txid plausível e sem
+            # significado, que não casa com título nenhum na conciliação — ou casa
+            # com o errado. Melhor declarar ausente.
+            return "***"
+        alfanumericos = "".join(c for c in self.nosso_numero_formatado() if c.isalnum())
+        return alfanumericos[:25] or "***"
 
     def _contexto_pix(self) -> dict[str, Any]:
-        """Bolepix real: payload EMV + QR quando há chave PIX e o banco suporta."""
+        """QR do PIX, em uma de duas naturezas — e o contexto diz qual.
+
+        Com :attr:`pix_copia_cola`, o payload é o que o **banco** devolveu ao
+        registrar a cobrança: QR dinâmico, vinculado ao título, com baixa
+        automática. É o Bolepix.
+
+        Com :attr:`pix_chave`, o payload é montado aqui e é **estático**: paga a
+        chave, mas o banco não sabe que aquele pagamento quita este título. O
+        título segue em aberto até conciliação manual — daí ``vinculado`` sair no
+        contexto, para quem renderiza ou expõe não confundir os dois.
+        """
+        from ..pix import qr_matrix
+
+        if self.pix_copia_cola:
+            copia_cola = self.pix_copia_cola.strip()
+            return {
+                "habilitado": True,
+                "vinculado": True,
+                "copia_cola": copia_cola,
+                "qrcode_matrix": qr_matrix(copia_cola),
+            }
         if not self.pix_chave:
             return {"habilitado": False}
         if not self.suporta_pix:
             raise BoletoInvalido(f"banco {self.codigo} ({self.nome}) não suporta PIX")
-        from ..pix import PixPayload, qr_matrix
+        from ..pix import PixPayload
 
         payload = PixPayload(
             chave=self.pix_chave,
             nome=self.cedente,
             cidade=self.cedente_cidade or "BRASIL",
             valor=self.valor,
-            txid=self.pix_txid or "***",
+            txid=self.pix_txid or self.txid_do_titulo(),
+            info_adicional=self.pix_observacao,
         )
         copia_cola = payload.br_code()
         return {
             "habilitado": True,
+            "vinculado": False,
             "copia_cola": copia_cola,
             "qrcode_matrix": qr_matrix(copia_cola),
         }

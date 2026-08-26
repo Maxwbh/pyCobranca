@@ -22,6 +22,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 033 — Santander | [033-santander.md](033-santander.md) | "Layout de Cobrança — Santander" (ficha de compensação/CNAB) |
 | 041 — Banrisul | [041-banrisul.md](041-banrisul.md) | "Layout de Cobrança CNAB 400 — Banrisul" |
 | 070 — BRB (Banco de Brasília) | [070-brb.md](070-brb.md) | "Layout de Remessa DCB — BRB" |
+| 077 — Banco Inter | [077-inter.md](077-inter.md) | "Manual CNAB 400 — Emissão boletos de cobrança" (V9) |
 | 085 — Ailos | [085-ailos.md](085-ailos.md) | "Manual de Cobrança CNAB 240 — Ailos" |
 | 097 — CrediSIS | [097-credisis.md](097-credisis.md) | "Layout de Cobrança CNAB 400 — CrediSIS" |
 | 104 — Caixa | [104-caixa.md](104-caixa.md) | "Especificações Técnicas Boleto de Cobrança CAIXA" (SIGCB) |
@@ -35,7 +36,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 748 — Sicredi | [748-sicredi.md](748-sicredi.md) | "Manual de Cobrança CNAB 240 — Sicredi" |
 | 756 — Sicoob | [756-sicoob.md](756-sicoob.md) | "Manual de Cobrança Sicoob (CNAB 400/240)" |
 
-## Todos os bancos suportados (18) — boleto validado por comparação cruzada
+## Todos os bancos suportados (19)
 
 | Código | Banco | Particularidade principal |
 |:------:|-------|---------------------------|
@@ -45,6 +46,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 033 | Santander | IOS + código do cedente; DV 2..9 (>9→0) |
 | 041 | Banrisul | Dígito duplo (módulo 10+11) com regra de recálculo |
 | 070 | BRB (Banco de Brasília) | Incremento(3) + dígito duplo |
+| 077 | Banco Inter | Nosso número(10) + DV módulo 10 de agência+carteira+NN |
 | 085 | Ailos | Conta com DV (7+1) + nosso número 9 |
 | 097 | CrediSIS | DV do documento do cedente no campo livre |
 | 104 | Caixa | SIGCB: intercalação do nosso número 17 |
@@ -52,7 +54,7 @@ banco e o **exemplo validado** na validação por vetores de referência.
 | 237 | Bradesco | DV base 7 (restos 1→"P", 0→"0") |
 | 336 | C6 Bank | Convênio 12 + indicador de layout por carteira |
 | 341 | Itaú | DACs módulo 10 (agência/conta/carteira/nosso) |
-| 399 | HSBC (legado) | CNR com data juliana; CSB |
+| 399 | HSBC (legado) | CNR com data juliana (a CSB foi retirada — campo livre de 27 posições) |
 | 422 | Safra | DV calculado da esquerda p/ direita (11→1) |
 | 745 | Citibank | Portfólio + convênio sem 1º dígito |
 | 748 | Sicredi | Ano + byte identificador no nosso número |
@@ -60,32 +62,43 @@ banco e o **exemplo validado** na validação por vetores de referência.
 
 ## Remessa CNAB — validada byte a byte
 
-Todos os arquivos abaixo são gerados **byte a byte idênticos** aos vetores de referência para os mesmos
-dados de entrada; as fixtures ficam congeladas em
-[`tests/fixtures/`](../../tests/fixtures/) e são verificadas em
-[`tests/test_cnab_remessa.py`](../../tests/test_cnab_remessa.py).
+As fixtures ficam congeladas em [`tests/fixtures/`](../../tests/fixtures/) e são verificadas em
+[`tests/test_cnab_remessa.py`](../../tests/test_cnab_remessa.py). A coluna **Procedência** diz o
+que cada fixture prova, sem arredondar:
 
-| Banco | CNAB 400 | CNAB 240 | Observação de layout |
-|-------|:--------:|:--------:|----------------------|
-| Banco do Brasil (001) | ✅ | ✅ | Convênio 4/6/7; nosso número com DV por tamanho do convênio |
-| Banco do Nordeste (004) | ✅ | — | Detalhe com 401 posições (quirk do layout) |
-| Santander (033) | ✅ | ✅ | 240: segmento P com 241 posições |
-| Banrisul (041) | ✅ | — | Nosso número com dígito duplo (módulo 10+11) |
-| Banco de Brasília/BRB (070) | ✅ | — | Formato **DCB** (não FEBRABAN): header 39, detalhe 402 |
-| Ailos (085) | — | ✅ | Segmento R só quando há multa |
-| CrediSIS (097) | ✅ | — | Detalhe com 402 posições (quirk do layout) |
-| Caixa (104) | — | ✅ | Layout SIGCB |
-| Unicred (136) | ✅ | ✅ | 240 reaproveita o layout Sicredi |
-| Bradesco (237) | ✅ | — | DV do nosso número base 7 (restos 1→"P", 0→"0") |
-| C6 (336) | ✅ | — | DV do nosso número módulo 11 base 7; carteiras 10/20 |
-| Itaú (341) | ✅ | — | Código da carteira `I`/`U`/`1`/`E` |
-| Citibank (745) | ✅ | — | Portfólio de 20 posições |
-| Sicredi (748) | — | ✅ | — |
-| Sicoob (756) | ✅ | ✅ | Trailer de cooperativa (totais por carteira) |
+- **paridade** — byte a byte idêntica à de um sistema de cobrança independente com os mesmos dados;
+- **manual** — sem segundo gerador com que comparar; a fixture é guarda de regressão e quem
+  confere a saída é um teste que afirma **cada campo na posição documentada** pelo banco;
+- **invariante** — a fixture perdeu a paridade porque a referência também estourava o registro;
+  quem confere agora é o invariante do formato (400/240 posições exatas).
 
-> Onde o registro diverge das 400/240 posições do padrão FEBRABAN (Banco do Nordeste, CrediSIS,
-> BRB e o segmento P do Santander 240), a divergência vem **do layout de referência**; a PyCobrança
-> mantém a paridade byte a byte e anota o desvio no código (`tamanho_registro=None`).
+| Banco | CNAB 400 | CNAB 240 | Procedência | Observação de layout |
+|-------|:--------:|:--------:|---|----------------------|
+| Banco do Brasil (001) | ✅ | ✅ | paridade | Convênio 4/6/7; nosso número com DV por tamanho do convênio |
+| Banco do Nordeste (004) | ✅ | — | invariante | Nosso número de 7 posições — passar 8 é recusado |
+| Santander (033) | ✅ | ✅ | paridade (400) · invariante (240) | 240: `dias_baixa` de 2 posições |
+| Banrisul (041) | ✅ | — | paridade | Nosso número com dígito duplo (módulo 10+11) |
+| Banco de Brasília/BRB (070) | ✅ | — | invariante | Formato **DCB** (não FEBRABAN): header de 39, demais registros em 400 |
+| Banco Inter (077) | ✅ | — | manual | Só a carteira 110; a 112 zera o nosso número |
+| Ailos (085) | — | ✅ | paridade | Segmento R só quando há multa |
+| CrediSIS (097) | ✅ | — | invariante | Nosso número de 6 posições — passar 8 é recusado |
+| Caixa (104) | — | ✅ | paridade | Layout SIGCB |
+| Unicred (136) | ✅ | ✅ | paridade | 240 reaproveita o layout Sicredi |
+| Bradesco (237) | ✅ | — | paridade | DV do nosso número base 7 (restos 1→"P", 0→"0") |
+| C6 (336) | ✅ | — | paridade | DV do nosso número módulo 11 base 7; carteiras 10/20 |
+| Itaú (341) | ✅ | — | paridade | Código da carteira `I`/`U`/`1`/`E` |
+| Safra (422) | ✅ | — | manual | Multa gravada **dentro** do campo de abatimento (206–218) |
+| Citibank (745) | ✅ | — | paridade | Portfólio de 20 posições |
+| Sicredi (748) | — | ✅ | paridade | — |
+| Sicoob (756) | ✅ | ✅ | manual (400) · paridade (240) | Trailer de cooperativa (totais por carteira) |
+
+> **Correção de um registro anterior.** Esta página dizia que Banco do Nordeste (401), CrediSIS
+> (402), BRB (402) e o segmento P do Santander 240 (241) divergiam das 400/240 posições **por
+> serem assim no layout de referência**, e que o desvio ficava anotado com `tamanho_registro=None`.
+> Não era o layout: era `rjust` preenchendo sem cortar, com um valor maior que o campo atravessando
+> para a posição seguinte. O `None` desligava a única conferência que pegaria isso. Hoje os quatro
+> saem em 400/240 (o BRB com o header DCB de 39), a conferência está ligada em **todos** os layouts
+> e um teste exige que nenhuma remessa a desligue.
 
 Além da paridade byte a byte, cada arquivo passa por um **validador estrutural FEBRABAN
 independente** (`tests/test_cnab_estrutura.py`), que lê a remessa posição a posição — como o intake
@@ -120,8 +133,14 @@ linha de origem.
 
 ## Validação cruzada
 
-**Os 18 bancos** foram validados gerando **os mesmos dados nos dois sistemas** (PyCobrança ×
+**18 dos 19 bancos** foram validados gerando **os mesmos dados nos dois sistemas** (PyCobrança ×
 implementação de referência independente): **código de barras e linha digitável idênticos em 18/18**.
+
+O **Inter (077)** fica fora desta camada — ele não existe em nenhuma implementação aberta
+conhecida, então não há segundo gerador com que comparar. A saída dele vem do manual do próprio
+banco, com o dígito do nosso número conferido contra o exemplo resolvido da seção 8.3, e a
+remessa aprovada pelo **validador de layout do próprio Inter**. Detalhe em
+[077-inter.md](077-inter.md).
 Os vetores estão congelados em
 [`tests/test_validacao_cruzada.py`](../../tests/test_validacao_cruzada.py).
 Divergência encontrada e arbitrada durante o porte: o layout do **Ailos** (conta 7+DV e nosso

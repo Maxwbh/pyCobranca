@@ -95,9 +95,12 @@ fixture: [`tests/fixtures/remessa_santander_cnab240.rem`](../../tests/fixtures/r
 Estrutura em lotes (versão de arquivo `040`, de lote `030`). Header de arquivo e segmentos
 P/Q são customizados.
 
-> **Quirk documentado:** o **segmento P é emitido com 241 posições** (mantida a paridade byte
-> a byte com os vetores de referência — o desvio do padrão FEBRABAN de 240 vem do layout do banco).
-> Por isso `tamanho_registro=None` e a garantia passa a ser a comparação com a fixture.
+> **Correção de um registro anterior.** Esta página dizia que o segmento P era emitido com **241
+> posições** porque *o desvio vinha do layout do banco*, e que por isso `tamanho_registro` ficava
+> em `None`. Não era o layout: o `dias_baixa` tem **2 posições**, e um valor de 3 dígitos
+> atravessava para a posição seguinte, porque `rjust` preenche e não corta. A fixture não pegava —
+> vem da implementação de referência, que estoura igual. Hoje o valor que não cabe é **recusado**,
+> todos os registros saem em 240, e a conferência de tamanho está ligada.
 
 | Registro | Conteúdo principal |
 |----------|--------------------|

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import ClassVar
 
 from ...exceptions import BoletoInvalido
-from ..formatacao import remover_acentos
+from ..formatacao import avisa_carteira_ignorada, confere_tamanhos, remover_acentos
 from ..pagamento import Pagamento, PagamentoPix
 
 __all__ = ["RemessaCnab400Base"]
@@ -25,11 +26,13 @@ class RemessaCnab400Base:
     sequencial_remessa: str = "1"
     data_geracao: date | None = None
 
-    #: Tamanho esperado de cada registro. A maioria dos layouts usa 400
-    #: posições; alguns bancos (ex.: BRB no formato DCB, ou quirks de
-    #: comprimento do layout) usam ``None`` para pular a checagem estrita
-    #: — a garantia passa a ser a comparação byte a byte com a fixture.
-    tamanho_registro: int | None = 400
+    #: Tamanhos aceitos para cada registro — um número, ou uma tupla quando o
+    #: layout mistura tamanhos (o BRB tem header DCB de 39 e o resto de 400).
+    #: ``None`` desliga a checagem, e desligar é caro: sem ela um campo que não
+    #: cabe atravessa para a posição seguinte e o arquivo sai deslocado, sem
+    #: nenhum sinal até o banco recusá-lo. Só a comparação byte a byte com a
+    #: fixture sobra como guarda, e ela cobre um conjunto de dados apenas.
+    tamanho_registro: int | tuple[int, ...] | None = 400
 
     # ---- por banco ----
     def cod_banco(self) -> str:
@@ -67,9 +70,15 @@ class RemessaCnab400Base:
     def monta_trailer(self, sequencial: int) -> str:
         return "9" + " " * 393 + str(sequencial).rjust(6, "0")
 
+    #: Quando o layout **não** grava ``carteira``, o nome do campo que ele grava
+    #: no lugar — ou ``""`` quando o layout não tem campo de carteira nenhum.
+    #: ``None`` (o padrão) significa que este layout usa ``carteira``.
+    campo_de_carteira: ClassVar[str | None] = None
+
     def validar(self) -> None:
         if not self.pagamentos:
             raise BoletoInvalido("remessa sem pagamentos")
+        avisa_carteira_ignorada(self)
         for pagamento in self.pagamentos:
             pagamento.validar()
 
@@ -93,13 +102,7 @@ class RemessaCnab400Base:
         """Gera o arquivo completo (registros, CRLF, maiúsculas, sem acentos)."""
         self.validar()
         linhas = self._monta_registros()
-        if self.tamanho_registro is not None:
-            for i, linha in enumerate(linhas):
-                if len(linha) != self.tamanho_registro:
-                    raise BoletoInvalido(
-                        f"registro {i + 1} com {len(linha)} posições "
-                        f"(esperado {self.tamanho_registro})"
-                    )
+        confere_tamanhos(linhas, self.tamanho_registro)
         conteudo = "\n".join(linhas)
         conteudo = remover_acentos(conteudo).upper() + "\n"
         return conteudo.replace("\n", "\r\n")

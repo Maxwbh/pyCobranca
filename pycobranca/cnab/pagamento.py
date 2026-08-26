@@ -42,6 +42,10 @@ class Pagamento:
     cod_segunda_instrucao: str = "00"
     codigo_multa: str = "0"
     percentual_multa: float = 0.0
+    #: Multa em **valor fixo**. A maioria dos layouts só expressa multa em
+    #: percentual; o Inter tem os dois campos (itens 10 e 11 do tipo 1) e
+    #: escolhe entre eles pelo código da multa.
+    valor_multa: float = 0.0
     data_multa: date | None = None
     tipo_mora: str = "3"
     valor_mora: float = 0.0
@@ -53,6 +57,10 @@ class Pagamento:
     cod_desconto: str = "0"
     data_desconto: date | None = None
     valor_desconto: float = 0.0
+    #: Desconto em **percentual** do valor nominal (Inter, item 31 do tipo 1,
+    #: com ``cod_desconto == "4"``). Layouts que só expressam desconto em valor
+    #: ignoram este campo.
+    percentual_desconto: float = 0.0
     cod_segundo_desconto: str = "0"
     data_segundo_desconto: date | None = None
     valor_segundo_desconto: float = 0.0
@@ -66,6 +74,9 @@ class Pagamento:
     codigo_baixa: str = "0"
     dias_baixa: str = "000"
     parcela: str = "01"
+    #: Mensagem livre impressa no boleto (Inter, item 40 do tipo 1). Não volta
+    #: no arquivo retorno.
+    mensagem: str = ""
 
     def __post_init__(self) -> None:
         if self.data_emissao is None:
@@ -108,28 +119,46 @@ class Pagamento:
             erros.append('tipo_mora="1" (valor ao dia) exige valor_mora > 0')
         if self.tipo_mora == "2" and float(self.percentual_mora or 0) <= 0:
             erros.append('tipo_mora="2" (taxa mensal) exige percentual_mora > 0')
-        # coerência de multa (FEBRABAN: multa é sempre percentual)
-        if self.codigo_multa in ("1", "2") and float(self.percentual_multa or 0) <= 0:
-            erros.append("codigo_multa != 0 exige percentual_multa > 0")
+        # Coerência de multa. A regra era "multa é sempre percentual", e o campo
+        # cobrado era só ``percentual_multa`` — mas há layout que expressa multa em
+        # **valor fixo**: no Inter, ``"1"`` no item 09 manda preencher o valor
+        # (item 10) e zerar o percentual. Exigir o percentual ali recusava um
+        # encargo que o próprio módulo do banco grava. O que a regra precisa dizer
+        # é que o código escolhe **qual** dos dois campos vem preenchido.
+        if self.codigo_multa == "1" and float(self.valor_multa or 0) <= 0:
+            erros.append('codigo_multa="1" (valor fixo) exige valor_multa > 0')
+        if self.codigo_multa == "2" and float(self.percentual_multa or 0) <= 0:
+            erros.append('codigo_multa="2" (percentual) exige percentual_multa > 0')
+        # Coerência de desconto (1º/2º/3º), pela mesma lógica: o código diz se o
+        # desconto vem em valor ou em percentual. O ``"4"`` do Inter é percentual
+        # do valor nominal, e exigir valor > 0 ali recusava o item 31 do manual.
         # coerência de desconto (1º/2º/3º)
-        for cod, valor, data, rotulo in (
-            (self.cod_desconto, self.valor_desconto, self.data_desconto, "1º desconto"),
+        for cod, valor, percentual, data, rotulo in (
+            (
+                self.cod_desconto,
+                self.valor_desconto,
+                self.percentual_desconto,
+                self.data_desconto,
+                "1º desconto",
+            ),
             (
                 self.cod_segundo_desconto,
                 self.valor_segundo_desconto,
+                0.0,
                 self.data_segundo_desconto,
                 "2º desconto",
             ),
             (
                 self.cod_terceiro_desconto,
                 self.valor_terceiro_desconto,
+                0.0,
                 self.data_terceiro_desconto,
                 "3º desconto",
             ),
         ):
             if cod and cod != "0":
-                if float(valor or 0) <= 0:
-                    erros.append(f"{rotulo} indicado (cód. != 0) exige valor > 0")
+                if float(valor or 0) <= 0 and float(percentual or 0) <= 0:
+                    erros.append(f"{rotulo} indicado (cód. != 0) exige valor ou percentual > 0")
                 if data is None:
                     erros.append(f"{rotulo} indicado (cód. != 0) exige data")
         # sacado

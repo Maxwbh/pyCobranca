@@ -44,7 +44,9 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 | Campo | Regra |
 |-------|-------|
 | Conta | 1–10 dígitos |
+| Dígito da conta | 1 dígito — entra no campo livre em 1 posição |
 | Nosso número | 1–8 dígitos |
+| Variação | 1 posição no campo livre, `2` quando ausente (o excedente é cortado) |
 | Carteira | conjunto: 11, 13 |
 
 ## Formatos de exibição

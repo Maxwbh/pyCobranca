@@ -1,5 +1,5 @@
 site_name: PyCobrança
-site_description: Boletos, CNAB 240/400 e PIX para 18 bancos — em Python puro.
+site_description: Boletos, CNAB 240/400 e PIX para 19 bancos — em Python puro.
 site_url: https://maxwbh.github.io/pyCobranca/
 repo_url: https://github.com/Maxwbh/pyCobranca
 repo_name: Maxwbh/pyCobranca
@@ -76,6 +76,7 @@ nav:
       - Documentação por banco: bancos/README.md
       - 001 — Banco do Brasil: bancos/001-banco-do-brasil.md
       - 004 — Banco do Nordeste: bancos/004-banco-do-nordeste.md
+      - 077 — Banco Inter: bancos/077-inter.md
       - 021 — Banestes: bancos/021-banestes.md
       - 033 — Santander: bancos/033-santander.md
       - 041 — Banrisul: bancos/041-banrisul.md

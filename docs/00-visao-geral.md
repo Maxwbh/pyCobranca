@@ -33,6 +33,12 @@ virar serviço. Na prática, para quem constrói em cima dela:
 
 - **Roda dentro do seu processo.** Sem rede, sem estado, sem daemon, sem sidecar. Um `pip install`
   e as funções estão disponíveis; o que entra e o que sai é objeto Python.
+- **Compõe o título offline, do primeiro ao último dígito.** Código de barras, linha digitável,
+  QR do PIX e arquivo de remessa saem do que você já tem em mãos — a biblioteca nunca precisa
+  perguntar nada a ninguém para fechar um boleto. Isso é garantia de comportamento, não detalhe
+  de implementação: o mesmo dado de entrada produz o mesmo título, hoje e em produção, com ou sem
+  conexão. **E é também um limite**: modalidade cujo nosso número só existe depois de uma resposta
+  do banco fica de fora — ver [ausências permanentes](05-bancos-suportados.md#ausencias-que-sao-permanentes).
 - **Você decide a moldura.** Transporte, persistência, filas, agendamento e autenticação continuam
   seus. A biblioteca não escolhe framework web, ORM nem broker por você.
 - **O contrato REST vem como dado, não como servidor.** `pycobranca.contracts` entrega a

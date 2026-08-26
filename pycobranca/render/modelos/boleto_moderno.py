@@ -59,14 +59,15 @@ _FAIXA_TOTAIS_H = 9.0
 _LINHA_INSTR = 10 * _PT
 _TOPO_INSTR = 7.0
 
-#: ``(rótulo, chave em DadosBoleto.totalizadores)`` na ordem da faixa FEBRABAN.
-_TOTALIZADORES = [
-    ("(-) Desconto / Abatimento", "desconto_abatimento"),
-    ("(-) Outras deduções", "outras_deducoes"),
-    ("(+) Mora / Multa", "mora_multa"),
-    ("(+) Outros Acréscimos", "outros_acrescimos"),
-    ("(=) Valor cobrado", "valor_cobrado"),
-]
+#: Rótulos da faixa FEBRABAN, na ordem. Só os rótulos: o valor é do caixa, no
+#: ato do pagamento — a biblioteca desenha as caixas vazias.
+_TOTALIZADORES = (
+    "(-) Desconto / Abatimento",
+    "(-) Outras deduções",
+    "(+) Mora / Multa",
+    "(+) Outros Acréscimos",
+    "(=) Valor cobrado",
+)
 
 
 def desenha(tela, info, contexto) -> None:
@@ -364,7 +365,7 @@ def _bloco_instrucoes_pix(tela, info, tem_pix: bool, tema: dict | None = None) -
 
     h_lado = h_instr / len(_TOTALIZADORES)
     x_tot = w_instr + w_pix
-    for i, (rot, chave) in enumerate(_TOTALIZADORES):
+    for i, rot in enumerate(_TOTALIZADORES):
         canvas.setStrokeColor(tela.borda)
         canvas.rect(
             x_(x_tot),
@@ -391,10 +392,11 @@ def _bloco_instrucoes_pix(tela, info, tem_pix: bool, tema: dict | None = None) -
             tam=5.8,
             cor=tela.rotulo,
         )
+        # Sem valor: quem preenche esta faixa é o caixa, no ato do pagamento.
         texto(
             0,
             y_topo - (i * h_lado + h_lado - 1.6) * mm,
-            info.total(chave),
+            "",
             fonte="Helvetica-Bold",
             tam=8.5,
             dir_x=x_(x_tot + w_tot - 1.5),
@@ -450,8 +452,8 @@ def recibo_moderno(tela, info, tema: dict | None = None) -> None:
     tela.avanca(7.0 + _RESPIRO * 0.3)
 
     w5 = _LARGURA / 5
-    for i, (rot, chave) in enumerate(_TOTALIZADORES):
-        celula(i * w5, w5, _FAIXA_TOTAIS_H, rot, info.total(chave), alinhar_dir=True)
+    for i, rot in enumerate(_TOTALIZADORES):
+        celula(i * w5, w5, _FAIXA_TOTAIS_H, rot, "", alinhar_dir=True)
     tela.avanca(_FAIXA_TOTAIS_H + _RESPIRO * 0.3)
 
     celula(0, 190, 12.0, "Sacado", info.sacado_curto, negrito=True, linha2=info.sacado_endereco)

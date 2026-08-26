@@ -157,7 +157,7 @@ saida.nosso_numero
 saida.vencimento
 saida.valor_documento
 saida.pix_copia_cola  # None quando o boleto não tem PIX
-saida.totalizadores  # dict com os cinco campos formatados
+saida.totalizadores  # os cinco campos da faixa FEBRABAN — sempre vazios, ver abaixo
 saida.to_dict()  # tudo menos o PDF, pronto para o corpo da resposta
 ```
 
@@ -166,34 +166,37 @@ montagem**: buscando o PDF de um lado e os números do outro, o papel pode dizer
 outra sem nada avisar. E `contexto_render()`, de onde os dados sairiam, é formato interno do
 `render/` — não serve de contrato para quem consome.
 
-### Faixa de totalizadores
+### Faixa de encargos: sempre em branco
 
-Os cinco campos da faixa FEBRABAN saem **em branco por padrão** — no boleto comum quem os preenche
-é o caixa, no ato do pagamento. Informe-os quando o valor já é conhecido na emissão (desconto por
-pontualidade, abatimento negociado, boleto reemitido com mora apurada):
+Os cinco campos da faixa FEBRABAN — `(-) Desconto / Abatimento`, `(-) Outras deduções`,
+`(+) Mora / Multa`, `(+) Outros Acréscimos` e `(=) Valor cobrado` — são impressos como **caixas
+vazias**, e é assim que devem sair.
+
+Quem preenche essa faixa é o **caixa**, no ato do pagamento: só ali se sabe se houve atraso, quanto
+rendeu de juros e se o desconto ainda vale. A regra do título vai no bloco de **instruções**, que é
+o que o operador lê para calcular:
 
 ```python
 boleto = Banco(
     valor="1279.50",
-    desconto_abatimento="150.00",
-    outras_deducoes="12.30",
-    mora_multa="8.00",
-    outros_acrescimos="3.20",
+    instrucoes=[
+        "Após o vencimento, multa de 2% e juros de 1% ao mês.",
+        "Conceder desconto de R$ 150,00 até 10/09/2026.",
+    ],
     # ... demais campos do boleto
 )
 ```
 
-| Campo | Sinal no total |
-|-------|----------------|
-| `desconto_abatimento` | − |
-| `outras_deducoes` | − |
-| `mora_multa` | + |
-| `outros_acrescimos` | + |
-| `valor_cobrado` | total |
+Os campos `desconto_abatimento`, `outras_deducoes`, `mora_multa`, `outros_acrescimos` e
+`valor_cobrado` continuam existindo no título e no [contrato REST](04-api-rest.md) — servem para
+trafegar o encargo entre sistemas. O que eles **não** fazem é chegar ao papel:
+`contexto_render()["totalizadores"]` devolve os cinco vazios, informados ou não, e
+`BoletoEmitido.totalizadores` acompanha.
 
-`valor_cobrado` é calculado a partir dos quatro anteriores quando não informado, e continua vazio
-enquanto nenhum deles for. Informe-o explicitamente para sobrepor o cálculo — é o caso quando o
-banco já apurou o total. Os valores aceitam `str`, `int`, `float` ou `Decimal`, como `valor`.
+!!! warning "Mudou na 1.1.1"
+    Até a 1.1.0, o valor informado era impresso e o `(=) Valor cobrado` era **calculado** a partir
+    dos outros quatro. Um total impresso antes do pagamento leva o pagador a pagar o valor errado,
+    e nada no PDF denuncia — a biblioteca estava fazendo a conta que é do caixa.
 
 ### Faixa de marca (`tema`)
 
@@ -225,6 +228,13 @@ pdf = render_boleto_pdf(ctx, modelo="moderno")
 | `parcela_texto` | texto à direita da faixa | omitido |
 | `marca_dagua` | diagonal em duas posições da página | omitida |
 | `rodape` | linha centralizada no pé | omitido |
+
+![Boleto moderno com faixa de marca no topo, marca d'água na diagonal e rodapé de contato](images/screenshots/boleto-tema.png)
+
+As capturas desta documentação são geradas do próprio renderizador por
+[`tools/screenshots.py`](https://github.com/Maxwbh/pyCobranca/blob/main/tools/screenshots.py) —
+rode-o depois de mexer no layout, senão elas passam a mostrar um boleto que a biblioteca não
+produz mais.
 
 `logo_texto` e `empresa` têm largura limitada e **encolhem o corpo até caber** em vez de invadir a
 faixa. Para a marca em imagem (PNG/JPEG) no lugar do nome do banco, use o
@@ -342,14 +352,14 @@ comportamento padrão inalterado (saída byte a byte idêntica).
 
 #### Logos de bancos empacotados
 
-Como conveniência, a biblioteca inclui logos de 17 bancos (nomeados pelo código FEBRABAN) em
+Como conveniência, a biblioteca inclui logos dos **19 bancos** (nomeados pelo código FEBRABAN) em
 `pycobranca/render/logos/`, expostos por `logo_do_banco`:
 
 ```python
 from pycobranca.render import logo_do_banco, bancos_com_logo
 
-bancos_com_logo()  # ('001', '004', '021', '033', '041', '070', '085', '097', '104',
-#  '136', '237', '336', '341', '399', '422', '748', '756')
+bancos_com_logo()  # ('001', '004', '021', '033', '041', '070', '077', '085', '097', '104',
+#  '136', '237', '336', '341', '399', '422', '745', '748', '756')
 ctx["banco"]["logo"] = logo_do_banco("237")  # bytes do PNG, ou None se não houver
 ```
 

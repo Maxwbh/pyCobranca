@@ -1,9 +1,9 @@
 """Remessa CNAB 400 — Banco do Nordeste (004).
 
-O registro detalhe é gerado com **401 posições** (um caractere a mais em
-relação ao padrão FEBRABAN de 400, conforme o layout do banco); por isso
-``tamanho_registro`` é
-``None`` e a garantia passa a ser a comparação byte a byte com a fixture.
+O detalhe já saiu com 401 posições, e o módulo atribuía isso ao layout do banco
+— não era: era o nosso número de 8 dígitos num campo de 7, com ``rjust``, que
+preenche mas não corta. Corrigido o campo, o registro tem as 400 posições da
+FEBRABAN e ``tamanho_registro`` volta a valer.
 """
 
 from __future__ import annotations
@@ -12,6 +12,8 @@ from dataclasses import dataclass
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
+from ...exceptions import BoletoInvalido
+from ..formatacao import campo_numerico
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
 
@@ -21,7 +23,6 @@ __all__ = ["RemessaBancoNordeste400"]
 @dataclass
 class RemessaBancoNordeste400(RemessaCnab400Base):
     emissao_boleto: str = "2"
-    tamanho_registro: int | None = None
 
     def cod_banco(self) -> str:
         return "004"
@@ -30,10 +31,10 @@ class RemessaBancoNordeste400(RemessaCnab400Base):
         return "B.DO NORDESTE".ljust(15)
 
     def _agencia(self) -> str:
-        return so_digitos(self.agencia).rjust(4, "0")
+        return campo_numerico(self.agencia, 4, "agencia")
 
     def _conta(self) -> str:
-        return so_digitos(self.conta_corrente).rjust(7, "0")
+        return campo_numerico(self.conta_corrente, 7, "conta_corrente")
 
     def info_conta(self) -> str:
         return f"{self._agencia()}00{self._conta()}{self.digito_conta}" + " " * 6
@@ -49,7 +50,16 @@ class RemessaBancoNordeste400(RemessaCnab400Base):
             "1": {"21": "1", "41": "2"},
             "2": {"21": "4", "41": "5"},
         }
-        return carteiras[str(self.emissao_boleto)][carteira]
+        por_emissao = carteiras.get(str(self.emissao_boleto))
+        if por_emissao is None or carteira not in por_emissao:
+            # Era ``KeyError``: escapava da hierarquia de erros do pacote, então
+            # quem chamasse com ``except PyCobrancaError`` via o processo morrer.
+            raise BoletoInvalido(
+                f"combinação inválida no Banco do Nordeste: carteira {carteira!r} "
+                f"com emissao_boleto {self.emissao_boleto!r} "
+                "(aceitas: 21 e 41, emissão 1 ou 2; 51 é a carteira I)"
+            )
+        return por_emissao[carteira]
 
     def _digito_nosso_numero(self, nosso_numero: str) -> str:
         return str(
@@ -73,7 +83,7 @@ class RemessaBancoNordeste400(RemessaCnab400Base):
             + pagamento.formata_percentual_multa()[0:2]
             + " " * 4
             + str(pagamento.documento_ou_numero).ljust(25)
-            + so_digitos(pagamento.nosso_numero).rjust(7, "0")
+            + campo_numerico(pagamento.nosso_numero, 7, "nosso_numero")
             + self._digito_nosso_numero(pagamento.nosso_numero)
             + "0" * 10
             + "0" * 6

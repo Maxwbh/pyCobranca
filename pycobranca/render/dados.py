@@ -56,13 +56,6 @@ class DadosBoleto:
     codigo_baixa: str
     tem_pix: bool
     qrcode_matrix: list | None
-    #: Os cinco campos da faixa FEBRABAN, já formatados. String vazia quando o
-    #: emissor não informou — é o caixa quem preenche no ato do pagamento.
-    totalizadores: dict[str, str]
-
-    def total(self, chave: str) -> str:
-        """Totalizador formatado, ou vazio se não informado."""
-        return self.totalizadores.get(chave, "")
 
     @property
     def beneficiario(self) -> str:
@@ -118,7 +111,6 @@ def extrai_dados(contexto: dict[str, Any]) -> DadosBoleto:
         codigo_baixa=d.get("codigo_baixa") or "",
         tem_pix=bool(pix.get("habilitado") and pix.get("qrcode_matrix")),
         qrcode_matrix=pix.get("qrcode_matrix"),
-        totalizadores=d.get("totalizadores") or {},
     )
 
 

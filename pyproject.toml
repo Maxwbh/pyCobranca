@@ -1,6 +1,10 @@
 [build-system]
 requires = ["setuptools>=77", "wheel"]
-build-backend = "setuptools.build_meta"
+# O README fica com caminho relativo, para renderizar em qualquer branch; o
+# backend converte para URL absoluta no empacotamento, que é o que o PyPI
+# exige. Ver tools/_backend_readme.py.
+build-backend = "_backend_readme"
+backend-path = ["tools"]
 
 [project]
 name = "pycobranca"

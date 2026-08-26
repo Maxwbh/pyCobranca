@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from ...core.documentos import so_digitos
 from ...core.dv import modulo11_flex
@@ -14,6 +15,8 @@ __all__ = ["RemessaAilos240"]
 
 @dataclass
 class RemessaAilos240(RemessaCnab240Base):
+    campo_de_carteira: ClassVar[str | None] = "codigo_carteira"
+
     def __post_init__(self) -> None:
         self.forma_cadastramento = "0"
         self.tipo_documento = "1"

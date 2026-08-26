@@ -26,8 +26,13 @@ def _qrcode():
 def qr_matrix(payload: str) -> list[list[int]]:
     """Matriz de módulos (0/1) do QR para o ``payload`` (BR Code).
 
-    Correção de erro nível M (recomendação do manual do PIX), borda zero —
-    o backend de renderização aplica a zona de silêncio.
+    Correção de erro nível M (recomendação do manual do PIX) e ``border=0``: a
+    matriz sai só com o símbolo.
+
+    A **zona de silêncio** da norma (4 módulos) não é desenhada — ela vem do
+    fundo branco do boleto, já que o QR é posicionado com folga em volta. Quem
+    consumir a matriz em outro suporte precisa reservar essa margem: sem ela o
+    leitor não isola o símbolo do que estiver ao redor.
     """
     qrcode = _qrcode()
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=0)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import io
 
 import pytest
 
@@ -289,3 +290,55 @@ def test_reportlab_saida_deterministica() -> None:
     finally:
         rc.invariant = anterior
     assert a == b
+
+
+#: Logos ainda em 150×40, herdados do laravel-boleto. Pixelam na impressão e não
+#: têm canal alfa. Não é defeito visível — o cabeçalho do boleto é branco e a
+#: faixa de marca não carrega o logo do banco —, mas o README anuncia a qualidade
+#: dos arquivos, e a lista tem de bater com o disco.
+#:
+#: Os dois que sobraram têm motivo, não são pendência:
+#:
+#: - **085 (Ailos)** não existe no Wikimedia Commons;
+#: - **399 (HSBC)** existe, mas só na marca de **2018** — hexágono à esquerda. O
+#:   HSBC encerrou no Brasil em 2016, e o arquivo empacotado é a marca anterior,
+#:   que é a que o HSBC Brasil de fato usou. Trocar deixaria o arquivo *menos*
+#:   correto.
+LOGOS_DE_BAIXA_RESOLUCAO = frozenset({"085", "399"})
+
+
+def test_a_lista_de_logos_de_baixa_resolucao_bate_com_o_disco() -> None:
+    """Prende a afirmação do README à realidade dos arquivos.
+
+    O README dizia que **todos** os 18 logos eram "em alta resolução com
+    transparência" — e cinco não são. Uma frase dessas envelhece calada: nada no
+    código a contradizia. Este teste faz a contradição aparecer, nos dois
+    sentidos — se um logo for trocado por um de alta resolução e a lista não for
+    atualizada, ele também falha.
+    """
+    from PIL import Image
+
+    from pycobranca.render import bancos_com_logo, logo_do_banco
+
+    baixa = {
+        codigo
+        for codigo in bancos_com_logo()
+        if Image.open(io.BytesIO(logo_do_banco(codigo))).size[0] < 400
+    }
+    assert baixa == LOGOS_DE_BAIXA_RESOLUCAO
+
+
+def test_os_demais_logos_tem_alta_resolucao_e_transparencia() -> None:
+    """A outra metade da promessa: 600 px de largura e canal alfa."""
+    from PIL import Image
+
+    from pycobranca.render import bancos_com_logo, logo_do_banco
+
+    for codigo in bancos_com_logo():
+        if codigo in LOGOS_DE_BAIXA_RESOLUCAO:
+            continue
+        imagem = Image.open(io.BytesIO(logo_do_banco(codigo)))
+        assert imagem.size[0] >= 400, f"{codigo}: {imagem.size[0]} px de largura"
+        assert imagem.mode in ("RGBA", "LA") or "transparency" in imagem.info, (
+            f"{codigo}: sem transparência (modo {imagem.mode})"
+        )

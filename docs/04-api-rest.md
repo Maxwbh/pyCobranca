@@ -43,7 +43,48 @@ fonte:
 | `conta_corrente` | `conta` |
 | `documento_cedente` | `cedente_documento` |
 | `chave_pix` | `pix_chave` |
+| `pix_copia_cola` | `pix_copia_cola` |
 | `txid` | `pix_txid` |
+| `pix_observacao` | `pix_observacao` |
+
+## Publicando o seu OpenAPI
+
+A PyCobrança **não tem endpoints** — é biblioteca, por escolha de projeto. O que ela publica são
+os **schemas de dados**, versionados junto do código que os implementa. Quem tem paths, auth e
+respostas é a sua API.
+
+`openapi_de()` cola os dois lados sem cópia de schema, que é onde a divergência começa: um
+arquivo copiado envelhece em silêncio quando a biblioteca sobe de versão.
+
+```python
+import yaml
+from pycobranca.contracts import openapi_de
+
+doc = openapi_de(
+    {"/boletos": {"post": {...}}},  # seus paths
+    info={"title": "cobranca_api", "version": "1.0.0"},
+    servers=[{"url": "https://api.exemplo.com.br"}],
+)
+Path("openapi.yaml").write_text(yaml.safe_dump(doc, sort_keys=False))
+```
+
+Nos paths, aponte para os schemas daqui com `{"$ref": "#/components/schemas/BoletoData"}`.
+
+| Detalhe | Comportamento |
+|---|---|
+| Versão da engine | carimbada em `info["x-pycobranca"]` e na `description` — quem abre o Swagger sabe de qual PyCobrança veio o contrato |
+| `schemas=` | schemas seus são somados; **colidir com um nome da biblioteca levanta `ErroDeContrato`** |
+| Cópia | os schemas são copiados: mutar o documento não corrompe o `CONTRATO` do processo |
+| Formato | devolve `dict`. Serializar em JSON ou YAML é com você — a biblioteca não escolhe |
+
+> **Guarda sugerida do lado da API:** um teste que compare o `openapi.yaml` publicado com
+> `openapi_de(...)` recém-gerado. Se alguém subir a PyCobrança sem regerar o YAML, o teste acusa —
+> mesmo padrão que aqui impede o mapa de nomes e o schema de divergirem.
+
+> **Dois caminhos de PIX, e o contrato expressa os dois.** `pix_copia_cola` é o payload que o
+> **banco** devolveu ao registrar a cobrança — o QR que liquida o título. `chave_pix` monta um BR
+> Code estático, que credita a chave mas deixa o boleto em aberto. Quando os dois vêm, vale o do
+> banco. A resposta traz `pix_vinculado` dizendo qual foi usado — ver [07 — PIX](07-pix.md).
 
 > **`additionalProperties` é permissivo — mas só na validação.** `valida_contrato` ignora campo
 > desconhecido em vez de recusá-lo, então um `data` com `banco` dentro **passa** por ele, e o banco
@@ -58,7 +99,7 @@ fonte:
 
 ### Campos específicos de banco
 
-Sete dos 18 bancos precisam de campo que não aparece no payload genérico: ele entra no **campo
+Nove dos 19 bancos precisam de campo que não aparece no payload genérico: ele entra no **campo
 livre** do código de barras ou é exigido por regra do banco. A tupla `CAMPOS_POR_BANCO` lista os
 nove:
 
@@ -82,12 +123,15 @@ Quem precisa de quê, nos dados de referência de cada banco:
 | 748 Sicredi | `posto`, `byte_idt` |
 | 756 Sicoob | `variacao` |
 
-`data_documento` vale para qualquer banco (é a data impressa no título). Os demais 11 bancos não
+`data_documento` vale para qualquer banco (é a data impressa no título). Os demais 10 bancos não
 usam nenhum destes campos.
 
-**Omitir um deles não levanta erro em todos os casos.** Banco do Nordeste, Banestes e Unicred
-falham na montagem (campo livre com 24 dígitos em vez de 25); BRB, Safra e Sicredi barram na
-validação. **O Citibank produz um código de barras diferente, sem exceção nenhuma** — com o
+**Omitir um deles não levanta erro em todos os casos.** Banco do Nordeste, Banestes, Unicred,
+Safra, BRB e Sicredi barram na **validação**, com a mensagem nomeando o campo
+(`dígito da conta deve ter no mínimo 1 dígito(s)`) — antes os quatro primeiros só falhavam na
+montagem, com um campo livre de 24 dígitos e nenhuma indicação de qual campo faltava. Banrisul
+(`digito_convenio`, que só entra na impressão) e Sicoob (`variacao`, que tem valor padrão) geram
+normalmente. **O Citibank produz um código de barras diferente, sem exceção nenhuma** — com o
 `portfolio` zerado, estruturalmente válido, DV recalculado e destino errado:
 
 ```
@@ -96,7 +140,7 @@ sem portfolio:  74595153900000127503000006247107010999940225
                                   ^^^ 172 → 000
 ```
 
-Por isso a ida e volta é testada nos 18 bancos (ver [Caminho de volta](#caminho-de-volta-boleto_de_api)).
+Por isso a ida e volta é testada nos 19 bancos (ver [Caminho de volta](#caminho-de-volta-boleto_de_api)).
 
 ## Contrato de dados verificado
 
@@ -106,7 +150,7 @@ oferece:
 
 - **Serializadores** engine → schemas da API: `boleto_para_api(banco)` (→ `{"bank", "data"}` com
   `BoletoData`), `pagamento_para_api(pagamento)` (→ `Pagamento`), `remessa_para_api(remessa)` (→
-  `RemessaRequest`) e `retorno_item_para_api(registro, layout="400")` (→ `RetornoItem`, com valores
+  `RemessaRequest`) e `retorno_item_para_api(registro, layout="400", banco=None)` (→ `RetornoItem`, com valores
   em centavos convertidos para reais e a ocorrência traduzida).
 - **`boleto_de_api(payload)`** e **`tema_de_api(data)`** — o caminho de volta, contrato → engine.
 - **`valida_contrato(dados, schema)`** — validador leve (obrigatórios, tipos, `enum`, itens de
@@ -119,7 +163,7 @@ oferece:
   `TEMA_DO_CONTRATO`.
 
 Os **testes de contrato** (`tests/test_contrato_rest.py`) validam a serialização de boleto
-para os **18 bancos**, além de remessa e retorno (usando as fixtures `.RET`), garantindo que os
+para os **19 bancos**, além de remessa e retorno (usando as fixtures `.RET`), garantindo que os
 artefatos permaneçam válidos conforme a API evolui:
 
 ```python
@@ -143,10 +187,10 @@ valida_contrato(payload["data"], "BoletoData")  # levanta ErroDeContrato se dive
 # payload == {"bank": "itau", "data": {...}}
 ```
 
-### Faixa de totalizadores (`BoletoData`)
+### Faixa de encargos (`BoletoData`)
 
-Os cinco campos FEBRABAN impressos no boleto viajam no contrato com **os mesmos nomes** que têm em
-`BancoBase` — não há tradução nos dois sentidos. A tupla `TOTALIZADORES` expõe a lista:
+Os cinco campos FEBRABAN viajam no contrato com **os mesmos nomes** que têm em `BancoBase` — não
+há tradução nos dois sentidos. A tupla `TOTALIZADORES` expõe a lista:
 
 ```python
 from pycobranca.contracts import TOTALIZADORES, boleto_para_api
@@ -159,9 +203,14 @@ boleto_para_api(boleto)["data"]
 ```
 
 Campo não informado **some do payload** — boleto sem encargo sai idêntico ao que saía antes destes
-campos existirem. `valor_cobrado` é serializado como foi informado (ou omitido); o total calculado
-a partir dos outros quatro é detalhe de renderização e vive em `contexto_render()`, não aqui —
-assim `boleto_para_api` continua sendo uma projeção fiel do que o chamador montou.
+campos existirem. `valor_cobrado` é serializado como foi informado, ou omitido: não há cálculo em
+lugar nenhum, então `boleto_para_api` é projeção fiel do que o chamador montou.
+
+> **Estes campos não são impressos no boleto.** A faixa da ficha sai em branco, porque quem a
+> preenche é o caixa no ato do pagamento — ver
+> [11 — Renderização](11-renderizacao.md#faixa-de-encargos-sempre-em-branco). No contrato eles
+> servem para **trafegar o encargo entre sistemas**, que é outro problema: a regra que o pagador lê
+> vai em `instrucao1`/`instrucao2`.
 
 ### Encargos na remessa (`Pagamento`)
 
@@ -281,10 +330,23 @@ from pycobranca.cnab.retorno import Retorno
 from pycobranca.contracts import retorno_item_para_api
 
 retorno = Retorno.ler(upload.read())  # caminho, bytes ou objeto com .read()
-itens = [retorno_item_para_api(r, layout=retorno.layout) for r in retorno.registros]
+itens = [
+    retorno_item_para_api(r, layout=retorno.layout, banco=retorno.codigo_banco)
+    for r in retorno.registros
+]
 # {'nosso_numero': '00000011', 'valor_titulo': 40.0, 'valor_pago': 37.9,
 #  'codigo_ocorrencia': '06', 'motivo_ocorrencia': 'Liquidação normal', ...}
 ```
+
+> **Passe `banco=retorno.codigo_banco`.** Há banco que redefine códigos do CNAB 400, e o
+> sentido se inverte: o `40` do Safra é *baixa de título protestado*, e no mapa padrão da
+> FEBRABAN é *baixa por ter sido liquidado*. Sem o banco, a API descreve um título
+> protestado como pago — e o rótulo continua plausível, então o erro atravessa a
+> conciliação sem nenhum sinal. O `Retorno` já traz o código; é só repassar.
+>
+> O mesmo vale para o Inter, em três códigos: `07` (cancelado, não liquidação parcial),
+> `15` (alteração de valor, não liquidação em cartório) e `16` (alteração de valor e
+> vencimento, não instrução de protesto).
 
 ## Caminho de volta: `boleto_de_api`
 
@@ -304,7 +366,7 @@ Ela valida contra o schema, resolve o slug, aplica as quatro traduções de nome
 ISO para `date`, junta `instrucao1`/`instrucao2` na lista `instrucoes` e descarta os campos de
 apresentação que o construtor não aceita (tema e fatura).
 
-**A ida e volta é testada nos 18 bancos**: `boleto_de_api(boleto_para_api(b))` reproduz o mesmo
+**A ida e volta é testada nos 19 bancos**: `boleto_de_api(boleto_para_api(b))` reproduz o mesmo
 código de barras e a mesma linha digitável. É o que garante que os
 [campos específicos de banco](#campos-especificos-de-banco) estejam todos no schema.
 
@@ -351,4 +413,4 @@ estruturalmente válido, com DV recalculado, e o destino errado.**
 
 Quem acrescentar campo ao domínio acrescenta aqui também. Duas redes pegam o esquecimento hoje:
 `test_contrato_hierarquia_erros.py` confere que os totalizadores estão declarados, e o teste de
-ida e volta nos 18 bancos falha se um campo consumido pelo campo livre ficar de fora.
+ida e volta nos 19 bancos falha se um campo consumido pelo campo livre ficar de fora.

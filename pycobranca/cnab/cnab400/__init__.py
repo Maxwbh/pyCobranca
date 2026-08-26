@@ -8,7 +8,9 @@ from .banrisul import RemessaBanrisul400
 from .bradesco import RemessaBradesco400
 from .citibank import RemessaCitibank400
 from .credisis import RemessaCredisis400
+from .inter import RemessaInter400
 from .itau import RemessaItau400
+from .safra import RemessaSafra400
 from .santander import RemessaSantander400
 from .sicoob import RemessaSicoob400
 from .unicred import RemessaUnicred400
@@ -25,5 +27,7 @@ __all__ = [
     "RemessaBancoBrasilia400",
     "RemessaCitibank400",
     "RemessaCredisis400",
+    "RemessaInter400",
     "RemessaBancoC6_400",
+    "RemessaSafra400",
 ]
