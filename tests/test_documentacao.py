@@ -100,8 +100,11 @@ def test_nenhuma_pagina_anuncia_um_numero_de_bancos_desatualizado() -> None:
     """
     total = len(_bancos())
     # "para 18 bancos", "os 18 bancos", "dos 18 bancos", "nos **18 bancos**"
+    # "N bancos", "N classes de boleto", "N códigos aceitos" — as três formas que
+    # a documentação usou para dizer a mesma coisa, e as três derivaram.
     frase = re.compile(
-        r"(?:para|os|dos|nos|em|registro d[oa]s?|as)\s+\**(\d+)\s+bancos\**",
+        r"(?:para|os|dos|nos|em|registro d[oa]s?|as)\s+\**(\d+)\**\s+"
+        r"(?:bancos|c[óo]digos|classes de boleto)\b",
         re.I,
     )
     # linhas que recortam o catálogo em vez de medi-lo

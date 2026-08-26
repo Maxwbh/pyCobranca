@@ -36,7 +36,7 @@ portal do banco ou via canal de homologação:
 
 - Banestes (021)
 - Banco de Brasília / BRB (070) — layout DCB obtido via canal de homologação
-- Banco Inter (077) — *Manual CNAB400 — Emissão boletos de cobrança*, v2.2 (26/08/2024),
+- Banco Inter (077) — *Manual CNAB 400 — Emissão boletos de cobrança*, V9 (06/07/2026),
   publicado pelo banco em `developers.inter.co/docs/cnab/manuais`. Seções usadas: 6 (carteiras
   110 e 112), 7.1.3 (campo livre) e 7.3 (DV do nosso número, com exemplo resolvido)
 - CrediSIS (097) — *Padronização Boletos de Pagamento*, Cooperativa Central de Crédito Noroeste

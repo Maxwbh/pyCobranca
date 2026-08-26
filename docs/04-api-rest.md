@@ -150,7 +150,7 @@ oferece:
 
 - **Serializadores** engine → schemas da API: `boleto_para_api(banco)` (→ `{"bank", "data"}` com
   `BoletoData`), `pagamento_para_api(pagamento)` (→ `Pagamento`), `remessa_para_api(remessa)` (→
-  `RemessaRequest`) e `retorno_item_para_api(registro, layout="400")` (→ `RetornoItem`, com valores
+  `RemessaRequest`) e `retorno_item_para_api(registro, layout="400", banco=None)` (→ `RetornoItem`, com valores
   em centavos convertidos para reais e a ocorrência traduzida).
 - **`boleto_de_api(payload)`** e **`tema_de_api(data)`** — o caminho de volta, contrato → engine.
 - **`valida_contrato(dados, schema)`** — validador leve (obrigatórios, tipos, `enum`, itens de
@@ -330,10 +330,23 @@ from pycobranca.cnab.retorno import Retorno
 from pycobranca.contracts import retorno_item_para_api
 
 retorno = Retorno.ler(upload.read())  # caminho, bytes ou objeto com .read()
-itens = [retorno_item_para_api(r, layout=retorno.layout) for r in retorno.registros]
+itens = [
+    retorno_item_para_api(r, layout=retorno.layout, banco=retorno.codigo_banco)
+    for r in retorno.registros
+]
 # {'nosso_numero': '00000011', 'valor_titulo': 40.0, 'valor_pago': 37.9,
 #  'codigo_ocorrencia': '06', 'motivo_ocorrencia': 'Liquidação normal', ...}
 ```
+
+> **Passe `banco=retorno.codigo_banco`.** Há banco que redefine códigos do CNAB 400, e o
+> sentido se inverte: o `40` do Safra é *baixa de título protestado*, e no mapa padrão da
+> FEBRABAN é *baixa por ter sido liquidado*. Sem o banco, a API descreve um título
+> protestado como pago — e o rótulo continua plausível, então o erro atravessa a
+> conciliação sem nenhum sinal. O `Retorno` já traz o código; é só repassar.
+>
+> O mesmo vale para o Inter, em três códigos: `07` (cancelado, não liquidação parcial),
+> `15` (alteração de valor, não liquidação em cartório) e `16` (alteração de valor e
+> vencimento, não instrução de protesto).
 
 ## Caminho de volta: `boleto_de_api`
 

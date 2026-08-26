@@ -19,7 +19,7 @@ __all__ = ["parse_cnab400", "banco_do_arquivo_400", "LAYOUTS_400"]
 # Mapa posicional por banco: {atributo: (inicio, fim)} com faixas inclusivas.
 # ``motivo_ocorrencia`` recebe uma tupla extra (inicio, fim, modo).
 LAYOUTS_400: dict[str, dict[str, tuple]] = {
-    "077": {  # Banco Inter — manual CNAB400 v2.2, seção 5.2 (posições 1-based no manual)
+    "077": {  # Banco Inter — Manual CNAB 400 V9 (06/07/2026), seção 5.2 (posições 1-based)
         # Layout bem distante do comum: a ocorrência fica em 90-91, não em 109-110,
         # e o vencimento em 119-124, não em 147-152. Sem esta entrada o parser cairia
         # no fallback do Itaú e leria "seu número" como código de ocorrência — erro

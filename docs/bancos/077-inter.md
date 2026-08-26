@@ -1,13 +1,19 @@
 ---
 description: >-
-  Boleto Banco Inter (077) em Python: campo livre posição a posição, DV do nosso número, carteira 110 e por que a 112 não é suportada.
+  Boleto Banco Inter (077) em Python: campo livre posição a posição, DV do nosso número, carteira 110 e por que a 112 e a 121 não são suportadas.
 ---
 
 # Banco Inter (077)
 
-**Manual oficial de referência:** *Manual CNAB400 — Emissão boletos de cobrança* (Inter, v2.2,
-26/08/2024), seções 6, 7.1.3 e 7.3. Fontes em [`fontes-oficiais.md`](fontes-oficiais.md) — os PDFs
-não são redistribuídos, apenas citados.
+**Manual oficial de referência:** *Manual CNAB 400 — Emissão boletos de cobrança* (Inter, **V9,
+06/07/2026**), seções 6, 8.1.3 e 8.3. Fontes em [`fontes-oficiais.md`](fontes-oficiais.md) — os
+PDFs não são redistribuídos, apenas citados.
+
+> **Conferido contra a V9.** A implementação nasceu da v2.2 (26/08/2024). As **41 posições** do
+> registro de transação tipo 1, as 14 do header, o trailer, as 18 posições lidas do retorno, o
+> campo livre (8.1.3) e o DV do nosso número (8.3, exemplo `0001` + `110` + `0004309540` → `1`)
+> **batem sem exceção** com a V9. O que mudou de v2.2 para cá está registrado abaixo: a carteira
+> **121** e três códigos de ocorrência.
 
 **Implementação:** [`pycobranca/bancos/inter.py`](../../pycobranca/bancos/inter.py) ·
 Dígito do banco: **9** · PIX: — (ver abaixo)
@@ -36,7 +42,7 @@ Módulo 10 sobre `agência(4) + carteira(3) + nosso número sem DV(10)` — 17 d
 direita para a esquerda, produtos maiores que 9 somados algarismo a algarismo.
 
 É o mesmo módulo 10 da FEBRABAN que a biblioteca já implementa em `pycobranca.core.dv.modulo10`.
-O exemplo resolvido do manual (seção 7.3) confere:
+O exemplo resolvido do manual (seção 8.3) confere:
 
 ```
 0001 + 110 + 0004309540  ->  00011100004309540
@@ -45,24 +51,33 @@ soma 29 · resto 9 · DV = 10 - 9 = 1  ->  nosso número 0004309540-1
 
 ## Só a carteira 110
 
-O Inter tem duas modalidades com modelos **opostos** de atribuição do nosso número:
+O Inter tem três carteiras, com modelos **opostos** de atribuição do nosso número:
 
-| Carteira | Quem numera | Suportada |
-|:--:|---|:--:|
-| **110** | o **cliente**, de uma faixa que o Inter entrega antes | ✅ |
-| 112 | o **banco**, depois de receber a remessa | — |
+| Carteira | Quem numera | Boleto | Remessa |
+|:--:|---|:--:|:--:|
+| **110** | o **cliente**, de uma faixa que o Inter entrega antes | ✅ | ✅ |
+| 112 | o **banco**, depois de receber a remessa | — | ✅ (nosso número zerado) |
+| 121 | o **banco**, depois de receber a remessa | — | ✅ (nosso número zerado) |
 
-Na 112, o nosso número **só existe no arquivo retorno**. Antes disso não há código de barras a
-montar, e nenhum algoritmo supre isso: falta o dado, não a regra. Aceitá-la produziria um título
-que imprime, passa em conferência estrutural e carrega um nosso número que o Inter nunca emitiu.
+Na 112 e na 121, o nosso número **só existe no arquivo retorno**. Antes disso não há código de
+barras a montar, e nenhum algoritmo supre isso: falta o dado, não a regra. Aceitá-las produziria um
+título que imprime, passa em conferência estrutural e carrega um nosso número que o Inter nunca
+emitiu.
 
-Por isso a 112 é **recusada em `validar()`** — ver
+Por isso as duas são **recusadas em `validar()`** no boleto — e **aceitas na remessa**, que é
+justamente como se obtém o número nelas. Ver
 [ausências permanentes](../05-bancos-suportados.md#ausencias-que-sao-permanentes).
 
 !!! info "A 110 depende de enquadramento"
-    O manual (seção 6) registra que a 112 é a modalidade automática de toda conta, e que a 110
-    exige perfil de relacionamento Inter Empresas, solicitado ao advisor da conta ou à central de
-    atendimento. Sem a faixa de nossos números não há o que compor.
+    O manual (seção 6.1) põe 112 e 121 do mesmo lado: *"o Inter já realiza a emissão dos boletos e
+    registro dos nossos números… ao abrir a conta, todos os clientes automaticamente já são
+    inseridos nessas modalidades"*. A 110 (6.2) exige perfil de relacionamento Inter Empresas,
+    solicitado ao advisor da conta ou à central de atendimento. Sem a faixa de nossos números não
+    há o que compor.
+
+!!! note "A 121 entrou depois"
+    A v2.2 do manual não trazia a 121; a V9 a lista nos itens 03 (remessa), 05 e 13 (retorno) e no
+    título da seção 6. Ela entrou na remessa pelo mesmo critério da 112 — irmãs na seção 6.1.
 
 ## Validação de campos (geração do boleto)
 
@@ -102,7 +117,7 @@ Linha digitável:  07790.00116 10123.456708 00430.954016 6 15390000012750
 
     O que sustenta esta implementação: o **DV do nosso número conferido contra o exemplo resolvido
     do manual** (única verificação com número esperado vindo do banco), as **posições do campo
-    livre conferidas uma a uma** contra a tabela da seção 7.1.3, e a montagem do código de barras
+    livre conferidas uma a uma** contra a tabela da seção 8.1.3, e a montagem do código de barras
     validada pelo **verificador FEBRABAN independente**, que não usa nada do núcleo.
 
     O código de barras congelado nos testes é **guarda de regressão, não paridade externa**: ele
@@ -128,7 +143,7 @@ Três diferenças em relação ao layout comum dos demais bancos:
 |---|---|
 | Header, posições 27–46 | **brancos** — o Inter não identifica a conta no header |
 | Trailer, posições 2–7 | **quantidade de boletos** (o trailer genérico leva brancos ali) |
-| Detalhe, item 13 | na carteira **112** o nosso número vai **zerado**: quem numera é o banco |
+| Detalhe, item 13 | nas carteiras **112** e **121** o nosso número vai **zerado**: quem numera é o banco |
 
 !!! danger "Nosso número na remessa: 10 ou 11 dígitos, nunca preenchido com zero"
     A faixa que o Inter reserva vem com **10 dígitos, sem DV**. As 11 posições do item 13 pedem
@@ -208,7 +223,7 @@ pelos dois caminhos e afirma que os resultados divergem.
 
 ### Códigos de ocorrência próprios
 
-O Inter usa quatro, e um deles **colide de frente** com a FEBRABAN:
+O Inter usa **sete**, e **três colidem de frente** com a FEBRABAN:
 
 | Código | Inter | Padrão FEBRABAN |
 |:--:|---|---|
@@ -216,11 +231,23 @@ O Inter usa quatro, e um deles **colide de frente** com a FEBRABAN:
 | 03 | Erro | Entrada rejeitada |
 | 06 | Pago | Liquidação normal |
 | **07** | **Cancelado** | **Liquidação por conta/parcial** |
+| 14 | Alteração da data de vencimento realizada | Confirmação de instrução de alteração de vencimento |
+| **15** | **Alteração do valor nominal realizada** | **Liquidação em cartório** |
+| **16** | **Alteração de valor e vencimento realizada** | **Confirmação de instrução de protesto** |
 
-Os três primeiros são equivalentes na prática; o `07` inverte o sentido. Descrever título
-cancelado como parcialmente liquidado erra a conciliação em silêncio. Por isso existe
-`OCORRENCIAS_400_POR_BANCO`, consultado antes do mapa padrão — `descreve_ocorrencia` aceita o
-banco, e `Retorno.descricao_ocorrencia` o repassa sozinho.
+O `02`, `03`, `06` e `14` são equivalentes na prática. Os outros três invertem o sentido, e nos
+três o rótulo do padrão é **plausível**: um título cancelado vira parcialmente liquidado, uma
+edição de valor vira liquidação em cartório, outra edição vira protesto. Nada disso levanta erro —
+erra a conciliação em silêncio.
+
+Por isso existe `OCORRENCIAS_400_POR_BANCO`, consultado antes do mapa padrão —
+`descreve_ocorrencia` aceita o banco, e `Retorno.descricao_ocorrencia` o repassa sozinho. Quem
+serializa pelo contrato REST precisa passar `banco=retorno.codigo_banco` a
+`retorno_item_para_api`; ver [04 — Retorno curado](../04-api-rest.md#retorno-curado-retornoitem).
+
+!!! note "O 14, 15 e 16 entraram depois"
+    A v2.2 listava só quatro códigos. A V9 acrescentou os três de alteração — e dois deles caíam
+    justamente em cima de códigos FEBRABAN de sentido oposto.
 
 O motivo da rejeição vem em texto livre nas posições **241–380**, quando a ocorrência é `03`.
 

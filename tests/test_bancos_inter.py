@@ -9,7 +9,7 @@ esse cruzamento não existe.
 O que sustenta esta implementação, em ordem de força:
 
 1. **O DV do nosso número é conferido contra o exemplo resolvido do manual**
-   (seção 7.3: ``00011100004309540`` → soma 29, resto 9, DV 1). Isso é verificação
+   (seção 8.3: ``00011100004309540`` → soma 29, resto 9, DV 1). Isso é verificação
    externa de verdade — o número esperado vem do banco, não daqui.
 2. **As posições do campo livre são conferidas uma a uma** contra a tabela da seção
    7.1.3. Estrutural, mas ancorada na fonte primária.
@@ -22,7 +22,7 @@ barras congelado abaixo é **guarda de regressão, não paridade externa** — e
 saída de hoje, e prenderia igual se estivesse errada. Um boleto real fecharia essa
 lacuna; até lá, a distinção fica dita.
 
-Manual: *CNAB400 — Emissão boletos de cobrança*, Inter, v2.2, 26/08/2024.
+Manual: *CNAB 400 — Emissão boletos de cobrança*, Inter, V9, 06/07/2026.
 """
 
 from __future__ import annotations
@@ -82,7 +82,7 @@ def test_o_dv_entra_no_nosso_numero_com_11_posicoes() -> None:
     assert b.campo_livre()[14:25] == "00043095401"
 
 
-# --- campo livre, posição a posição (seção 7.1.3) ----------------------------
+# --- campo livre, posição a posição (seção 8.1.3) ----------------------------
 
 
 def test_campo_livre_posicao_a_posicao() -> None:
