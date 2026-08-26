@@ -2,3 +2,27 @@
 # sdist: sem ele, construir um wheel a partir do sdist falha por backend ausente.
 include tools/_backend_readme.py
 include tools/_readme_urls.py
+
+# --------------------------------------------------------------------------- #
+# O que NÃO vai na distribuição
+# --------------------------------------------------------------------------- #
+#
+# O wheel já sai limpo — o setuptools só empacota o que `packages` declara. O
+# sdist é que leva o repositório quase inteiro por padrão, e ali entravam os
+# testes: 38 arquivos, 302 KB, quase tudo fixture `.rem`/`.RET` de remessa e
+# retorno. Quem instala a biblioteca não usa nada disso.
+#
+# **O custo, declarado.** Sem os testes no sdist, quem empacota para uma distro
+# (Debian, conda-forge) não consegue rodar a suíte contra o arquivo publicado —
+# é uma prática comum entre eles. O caminho passa a ser clonar o repositório na
+# tag correspondente, onde a suíte está inteira. A CI roda a suíte a cada push,
+# e `tests/test_distribuicao.py` constrói as distribuições e confere o que levam.
+prune tests
+prune docs
+prune examples
+prune site
+prune .github
+exclude mkdocs.yml
+exclude .pre-commit-config.yaml
+global-exclude *.py[cod]
+global-exclude __pycache__
