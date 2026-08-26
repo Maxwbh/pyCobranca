@@ -1,6 +1,6 @@
 ---
 description: >-
-  Boleto HSBC (399) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteiras aceitas (CNR, CSB). Somente emissão de boleto — este banco não tem remessa CNAB.
+  Boleto HSBC (399) em Python: campo livre posição a posição, dígitos verificadores, nosso número e carteira aceita (CNR). Somente emissão de boleto — este banco não tem remessa CNAB.
 ---
 
 # HSBC (399)
@@ -16,7 +16,8 @@ Dígito do banco: **9** · PIX: —
 
 ## Resumo
 
-Legado. Carteira CNR usa data juliana no campo livre; carteira CSB é o layout padrão.
+Legado. A carteira **CNR** usa data juliana no campo livre. A **CSB foi retirada** —
+ver a seção no fim desta página.
 
 ## Campo livre (posições 20–44 do código de barras)
 
@@ -47,7 +48,7 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 |-------|-------|
 | Conta | 1–7 dígitos |
 | Nosso número | 1–13 dígitos |
-| Carteira | conjunto: CNR, CSB |
+| Carteira | conjunto: CNR |
 
 ## Formatos de exibição
 
@@ -64,3 +65,25 @@ Campo livre:      1234567123456789012322762
 Código de barras: 39999153900000127501234567123456789012322762
 Linha digitável:  39991.23452 67123.456781 90123.227622 9 15390000012750
 ```
+
+## A carteira CSB foi retirada
+
+`carteiras` declarava `CNR` e `CSB`. A **CSB nunca funcionou** e foi retirada. O campo livre monta
+
+```
+nosso número (13) + agência (4) + conta (7) + "001"  =  27 posições
+```
+
+e a FEBRABAN reserva **25**. Não é ajuste de dígito: sobram duas posições. Qualquer boleto na
+CSB é recusado com *"campo livre deve ter 25 dígitos"*.
+
+O defeito foi encontrado varrendo **todas as carteiras declaradas de todos os bancos** pelo
+verificador FEBRABAN independente — 55 passaram, esta não. Antes disso a carteira nunca havia
+sido gerada: os exemplos exercitavam só a `CNR`.
+
+**Corrigir precisa do manual do HSBC**, que o banco não publica mais — encerrou as operações no
+Brasil em 2016. Sem ele não dá para saber qual campo encolhe, e adivinhar produziria um boleto
+que imprime e é recusado no banco. Anunciá-la como suportada era promessa que sempre falhava, então ela saiu de
+`carteiras` e é recusada na validação. A composição continua em `campo_livre()` para
+quem tiver o manual, e o defeito fica preso em
+`test_o_campo_livre_do_csb_tem_27_posicoes_onde_cabem_25`.

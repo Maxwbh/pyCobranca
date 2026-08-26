@@ -77,12 +77,36 @@ def _todas_as_excecoes():
 
 
 def test_toda_excecao_do_pacote_herda_de_pycobranca_error() -> None:
+    """A promessa é sobre **erros**; avisos são outra hierarquia.
+
+    ``Warning`` é subclasse de ``Exception`` em Python, então a varredura os
+    apanha — mas ``except PyCobrancaError`` nunca captura um aviso, e pendurar
+    um sob a hierarquia de erros só faria a promessa de ``docs/19`` mentir na
+    direção contrária. Avisos são filtrados aqui e cobertos pelo teste seguinte.
+    """
     foras = [
         caminho
         for caminho, cls in _todas_as_excecoes().items()
-        if not issubclass(cls, PyCobrancaError)
+        if not issubclass(cls, PyCobrancaError) and not issubclass(cls, Warning)
     ]
     assert not foras, f"não herdam de PyCobrancaError: {foras}"
+
+
+def test_todo_aviso_do_pacote_herda_de_warning() -> None:
+    """Contrapartida da regra acima: aviso é aviso, e tem de ser filtrável.
+
+    Quem quiser tratar leitura com layout genérico como erro usa
+    ``warnings.simplefilter("error", LayoutGenerico)`` — o que só funciona se a
+    classe estiver mesmo na hierarquia de avisos.
+    """
+    avisos = {
+        caminho: cls for caminho, cls in _todas_as_excecoes().items() if issubclass(cls, Warning)
+    }
+    assert avisos, "esperava ao menos um aviso no pacote"
+    for caminho, cls in avisos.items():
+        assert not issubclass(cls, PyCobrancaError), (
+            f"{caminho} é aviso e erro ao mesmo tempo — escolha uma hierarquia"
+        )
 
 
 def test_o_pacote_nao_levanta_builtin_direto() -> None:

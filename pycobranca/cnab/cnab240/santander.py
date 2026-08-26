@@ -1,8 +1,10 @@
 """Remessa CNAB 240 — Santander (033).
 
-Header de arquivo e segmentos P/Q são customizados. O segmento P é emitido
-com 241 posições; por isso ``tamanho_registro`` é ``None``
-e a garantia é a comparação byte a byte com a fixture.
+Header de arquivo e segmentos P/Q são customizados. O segmento P já saiu com
+241 posições, e o módulo atribuía isso ao layout do banco — não era: era o
+``dias_baixa`` de 3 dígitos num campo de 2, com ``rjust``, que preenche mas não
+corta. Corrigido o campo, o registro tem as 240 posições da FEBRABAN e
+``tamanho_registro`` volta a valer.
 """
 
 from __future__ import annotations
@@ -11,6 +13,7 @@ from dataclasses import dataclass
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo11_flex
+from ..formatacao import campo_numerico
 from ..pagamento import Pagamento
 from .base import RemessaCnab240Base
 
@@ -20,7 +23,6 @@ __all__ = ["RemessaSantander240"]
 @dataclass
 class RemessaSantander240(RemessaCnab240Base):
     codigo_transmissao: str = ""
-    tamanho_registro: int | None = None
 
     def __post_init__(self) -> None:
         self.emissao_boleto = " "
@@ -44,10 +46,10 @@ class RemessaSantander240(RemessaCnab240Base):
         return str(self.codigo_transmissao).strip().rjust(15, "0")
 
     def _agencia4(self) -> str:
-        return so_digitos(self.agencia).rjust(4, "0")
+        return campo_numerico(self.agencia, 4, "agencia")
 
     def _conta(self) -> str:
-        return so_digitos(self.conta_corrente)
+        return campo_numerico(self.conta_corrente, 9, "conta_corrente")
 
     def _digito_agencia(self) -> str:
         return str(modulo11_flex(self._agencia4(), mapa={10: "X", 11: "X"}))
@@ -86,7 +88,10 @@ class RemessaSantander240(RemessaCnab240Base):
         return " " * 61
 
     def dias_baixa(self, pagamento: Pagamento) -> str:
-        return str(pagamento.dias_baixa).rjust(2, "0")
+        # O campo tem 2 posições (precedido do "0" literal no segmento P, fecha
+        # as 3 da FEBRABAN). O padrão de ``dias_baixa`` é "000", com três — e
+        # ``rjust`` não cortava, estourando o registro para 241 posições.
+        return campo_numerico(pagamento.dias_baixa, 2, "dias_baixa")
 
     def _identificador_titulo(self, nosso_numero: str) -> str:
         dv = modulo11_flex(
@@ -98,7 +103,7 @@ class RemessaSantander240(RemessaCnab240Base):
         return f"{so_digitos(nosso_numero)}{dv}".rjust(13, "0")
 
     def complemento_p(self, pagamento: Pagamento) -> str:
-        conta = self._conta().rjust(9, "0")
+        conta = self._conta()
         dc = str(self.digito_conta)
         return conta + dc + conta + dc + "  " + self._identificador_titulo(pagamento.nosso_numero)
 

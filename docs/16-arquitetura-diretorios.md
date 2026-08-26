@@ -56,7 +56,7 @@ pycobranca/
 │   └── linha_digitavel.py      linha_digitavel() — IPTE, 47 dígitos, 3 DVs módulo 10
 │
 ├── bancos/                     regras por banco + registro
-│   ├── __init__.py             Bancos.todos/find/com_pix + exports das 18 classes
+│   ├── __init__.py             Bancos.todos/find/com_pix + exports das 19 classes
 │   ├── base.py                 BancoBase (dataclass + ClassVars + validar) e REGISTRO
 │   ├── ailos.py                085 — Ailos
 │   ├── banco_do_brasil.py      001 — Banco do Brasil
@@ -70,6 +70,7 @@ pycobranca/
 │   ├── citibank.py             745 — Citibank
 │   ├── credisis.py             097 — CrediSIS
 │   ├── hsbc.py                 399 — HSBC (legado)
+│   ├── inter.py                077 — Banco Inter (só a carteira 110)
 │   ├── itau.py                 341 — Itaú
 │   ├── safra.py                422 — Safra
 │   ├── santander.py            033 — Santander
@@ -80,13 +81,14 @@ pycobranca/
 ├── cnab/                       remessa e retorno FEBRABAN
 │   ├── __init__.py             reexporta Pagamento e todas as classes Remessa*
 │   ├── pagamento.py            Pagamento / PagamentoPix — título a registrar + formatadores
-│   ├── formatacao.py           remover_acentos, format_size, format_valor
+│   ├── formatacao.py           remover_acentos, format_size, format_valor,
+│   │                           campo_numerico, confere_tamanhos
 │   ├── cnab400/
 │   │   ├── base.py             RemessaCnab400Base — header/detalhe/trailer, gera_arquivo()
 │   │   ├── pix.py              PixMixinCnab400 (registro tipo 8) + Remessa*400Pix
-│   │   └── <banco>.py          12 bancos: itau, bradesco, banco_brasil, santander, sicoob,
+│   │   └── <banco>.py          14 bancos: itau, bradesco, banco_brasil, santander, sicoob,
 │   │                           unicred, banrisul, banco_nordeste, banco_brasilia, citibank,
-│   │                           credisis, banco_c6
+│   │                           credisis, banco_c6, inter, safra
 │   ├── cnab240/
 │   │   ├── base.py             RemessaCnab240Base — header arq/lote, segmentos P/Q/R, trailers
 │   │   ├── pix.py              segmento Y-03 + Remessa*240Pix
@@ -156,7 +158,7 @@ DV geral (módulo 11 com a regra de colapsar 0/10/11 em 1). Rejeita campo livre 
 `linha_digitavel(codigo_barras)` faz o rearranjo IPTE e devolve a string formatada de 47 dígitos.
 Nenhum dos dois conhece banco algum.
 
-### `bancos/` — registro + 18 bancos
+### `bancos/` — registro + 19 bancos
 
 `BancoBase` é uma `dataclass` com os campos do título e a composição pronta: as propriedades
 `codigo_barras` e `linha_digitavel` chamam `validar()`, `campo_livre()` e as funções de `boleto/`.

@@ -73,19 +73,20 @@ o **máximo**. O **máximo** trava o formato do campo livre; o **mínimo** pega 
 | **Bradesco** (237) | 1–4 | 1–7 | — | 03, 06, 09, 19, 21, 22, 25, 26 | 1–11 (+DV; pode ser `P`) | — |
 | **Caixa** (104) | 4² | —³ | 1–6 (cód. benef.) | 14, 24 (modalidade SIGCB) | 1–15 (efetivo 17) | 2 DVs (benef. + campo livre) |
 | **Santander** (033) | —³ | fallback⁴ | 1–7 (cód. cedente) | 101, 102, 121 | 1–12 (+DV) | cedente = convênio **ou** conta |
-| **Sicoob** (756) | 1–4 | —³ | 0–7 (ou nº contrato) | 1, 3, 9, 09 | 1–7 (+DV) | `numero_contrato` (0–7) na carteira 9 |
-| **Sicredi** (748) | 1–4 | 1–5 (convênio) | 1–5 | 1, 3 | 1–5 (+ano+byte+DV) | `byte_idt` **obrig.**; `posto` (0–2); `data_documento` **obrig.** |
+| **Sicoob** (756) | 1–4 | —³ | 0–7 (ou nº contrato) | 1, 3, 9, 09 | 1–7 (+DV) | `numero_contrato` (0–7) na carteira 9; `variacao` (0–2); `quantidade` (0–3, parcela) |
+| **Sicredi** (748) | 1–4 | 1–5 (convênio) | 1–5 | 1, 3 | 1–5 (+ano+byte+DV) | `byte_idt` (1–1) **obrig.**; `posto` (0–2); `data_documento` **obrig.** |
 | **Banrisul** (041) | 1–4 | —³ | 1–7 | 1, 2 | 1–8 (+duplo dígito) | `digito_convenio` (impressão) |
 | **Ailos** (085) | —³ | 1–7 (+DV) | 1–6 | 01, 1 | 1–9 | — |
-| **Unicred** (136) | 1–4 | 1–9 (+`digito_conta`) | — | 21 | 1–10 (+DV) | `digito_conta` **obrig.** |
+| **Unicred** (136) | 1–4 | 1–9 (+`digito_conta`) | — | 21 | 1–10 (+DV) | `digito_conta` (1–1) **obrig.** |
+| **Banco Inter** (077) | 0–4 | —³ | 1–7 | 110 | 1–10 (+DV) | só a carteira **110**; a 112 é recusada (o banco numera) |
 | **Citibank** (745) | 1–4 | —³ | 1–10 | 3 | 1–11 (+DV) | `portfolio` (0–3) |
 | **CrediSIS** (097) | 1–4 | —³ | 1–6 | 18 | 1–6 | `cedente_documento` **obrig.** (gera DV) |
 | **BRB** (070) | **1–3** | 1–7 | — | 1, 2 | 1–6 (+duplo dígito) | `incremento` (1–3) **obrig.** |
-| **Banco do Nordeste** (004) | 1–4 | 1–7 (+`digito_conta`) | — | 21, 31, 41, 51 | 1–7 (+DV) | `digito_conta` |
-| **Banestes** (021) | (impressão) | 1–10 (+`digito_conta`) | — | 11, 13 | 1–8 (+DV duplo) | variação; `digito_conta` |
+| **Banco do Nordeste** (004) | 1–4 | 1–7 (+`digito_conta`) | — | 21, 31, 41, 51 | 1–7 (+DV) | `digito_conta` (1–1) |
+| **Banestes** (021) | (impressão) | 1–10 (+`digito_conta`) | — | 11, 13 | 1–8 (+DV duplo) | variação; `digito_conta` (1–1) |
 | **C6 Bank** (336) | 4 | —³ | 1–12 | 10, 20 | 1–10 (+DV; pode ser `P`) | indicador 3/4 conforme carteira |
-| **HSBC** (399) | 4 (CSB) | 1–7 | — | **CNR, CSB** (alfanum.) | 1–13 | CNR: `data_vencimento` **obrig.** (legado) |
-| **Safra** (422) | 1–4 (+`digito_agencia`) | 1–8 (+`digito_conta`) | — | 1, 2 | 1–8 (+DV) | `digito_agencia` e `digito_conta` **obrig.** |
+| **HSBC** (399) | (impressão) | 1–7 | — | **CNR** (alfanum.) | 1–13 | `data_vencimento` **obrig.** (legado) |
+| **Safra** (422) | 1–4 (+`digito_agencia`) | 1–8 (+`digito_conta`) | — | 1, 2 | 1–8 (+DV) | `digito_agencia` e `digito_conta` (1–1) **obrig.** |
 
 **Notas:** ¹BB só usa agência/conta nos convênios 4 e 6 (mín. 0). ²Caixa: agência só na impressão.
 ³Não entra no campo livre (o beneficiário vem do convênio). ⁴Santander usa `convenio` ou, na falta,
@@ -146,7 +147,10 @@ publicar a regra (com exemplo numérico validável), o suporte entra seguindo o 
 
 > **Caracteres válidos:** todos os campos de conta/agência/convênio/nosso número são **numéricos**
 > (a máscara é descartada; um valor sem dígito nenhum falha no mínimo). A carteira do **HSBC** é
-> **alfanumérica** (`CNR`/`CSB`) — validada pelo conjunto.
+> **alfanumérica** (`CNR`) — validada pelo conjunto. A **CSB foi retirada**: o campo livre dela
+> montava 27 posições onde a FEBRABAN reserva 25, então nunca gerou boleto válido, e corrigir
+> precisa do manual do HSBC, que o banco não publica mais. Ver
+> [399-hsbc.md](bancos/399-hsbc.md).
 
 ## Regras — geração da remessa CNAB (`Pagamento`)
 

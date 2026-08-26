@@ -1,10 +1,12 @@
 """Remessa CNAB 400 — Banco de Brasília / BRB (070), formato DCB.
 
 Porta fiel de ``Remessa::Cnab400::BancoBrasilia``. Este layout **não** é o CNAB
-400 FEBRABAN: o header tem 39 posições ("DCB..."), o detalhe 402 e o trailer
-padrão 400. O header inclui a data/hora de formação (``AAAAMMDDHHMMSS``); para
-gerar arquivos determinísticos (fixtures/testes) informe ``data_formacao``.
-``tamanho_registro`` é ``None`` — a garantia é a comparação byte a byte.
+400 FEBRABAN: o header tem 39 posições ("DCB...") e os demais registros 400 — daí
+``tamanho_registro = (39, 400)``. O detalhe já saiu com 402, e o módulo atribuía
+isso ao layout do banco; era o nosso número num campo menor, com ``rjust``, que
+preenche mas não corta. O header inclui a data/hora de formação
+(``AAAAMMDDHHMMSS``); para gerar arquivos determinísticos informe
+``data_formacao``.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from datetime import datetime
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ...core.dv import modulo10, modulo11_flex
+from ..formatacao import campo_numerico
 from ..pagamento import Pagamento
 from .base import RemessaCnab400Base
 
@@ -24,7 +27,8 @@ __all__ = ["RemessaBancoBrasilia400"]
 class RemessaBancoBrasilia400(RemessaCnab400Base):
     #: ``AAAAMMDDHHMMSS`` — quando vazio, usa o horário atual (não determinístico).
     data_formacao: str = ""
-    tamanho_registro: int | None = None
+    #: Header DCB de 39 posições, restante em 400.
+    tamanho_registro: int | tuple[int, ...] | None = (39, 400)
 
     def cod_banco(self) -> str:
         return "070"
@@ -33,10 +37,12 @@ class RemessaBancoBrasilia400(RemessaCnab400Base):
         return ""
 
     def _agencia(self) -> str:
-        return so_digitos(self.agencia).rjust(3, "0")
+        # O header DCB reserva 3 posições e o detalhe 4 (com zero à esquerda):
+        # o limite que vale é o menor dos dois, senão o header desloca.
+        return campo_numerico(self.agencia, 3, "agencia")
 
     def _conta(self) -> str:
-        return so_digitos(self.conta_corrente).rjust(7, "0")
+        return campo_numerico(self.conta_corrente, 7, "conta_corrente")
 
     def _carteira(self) -> str:
         return so_digitos(self.carteira).rjust(1, "0")
@@ -55,8 +61,8 @@ class RemessaBancoBrasilia400(RemessaCnab400Base):
 
     def _monta_nosso_numero(self, pagamento: Pagamento) -> str:
         if self._carteira() == "3":
-            return so_digitos(pagamento.nosso_numero).rjust(12, "0")
-        nn = so_digitos(pagamento.nosso_numero).rjust(6, "0")
+            return campo_numerico(pagamento.nosso_numero, 12, "nosso_numero")
+        nn = campo_numerico(pagamento.nosso_numero, 6, "nosso_numero")
         base = f"{self._carteira()}{nn}{self.cod_banco()}"
         base += str(modulo10(base))
         base += str(

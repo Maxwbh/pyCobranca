@@ -8,6 +8,7 @@ __all__ = [
     "BancoNaoRegistrado",
     "DadosInvalidos",
     "DependenciaAusente",
+    "LayoutGenerico",
     "ModeloInvalido",
     "OFXInvalido",
     "RetornoInvalido",
@@ -69,3 +70,26 @@ class OFXInvalido(PyCobrancaError, ValueError):
 
 class RetornoInvalido(PyCobrancaError, ValueError):
     """Arquivo de retorno CNAB vazio ou sem header reconhecível."""
+
+
+class LayoutGenerico(UserWarning):
+    """O retorno foi lido com um layout de reserva, não com o do banco.
+
+    Cada banco põe os campos onde quer. Sem o mapa próprio, ``parse_cnab400`` e
+    ``parse_cnab240`` recorrem a um layout genérico — o arquivo é lido até o fim
+    e **nenhum erro é levantado**, mas campos podem sair de posições que não são
+    as daquele banco.
+
+    É a forma de falha mais perigosa do parsing: a saída é plausível. O Inter
+    grava a ocorrência em 90–91 onde o genérico lê 109–110; o Safra usa nove
+    posições de nosso número onde o genérico lê oito, cortando o DV. Nos dois
+    casos o resultado passava adiante sem sinal nenhum.
+
+    Este aviso não muda o comportamento — é o sinal que faltava. Para tratá-lo
+    como erro::
+
+        warnings.simplefilter("error", LayoutGenerico)
+
+    Não herda de :class:`PyCobrancaError`: avisos e erros são hierarquias
+    separadas em Python, e ``except PyCobrancaError`` não captura ``Warning``.
+    """

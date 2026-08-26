@@ -12,12 +12,14 @@ detalhe/segmentos T, e ``nosso_numero`` presente na linha de origem).
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 
 import pytest
 from test_retorno_estrutura import _valida_estrutura_240, _valida_estrutura_400
 
 from pycobranca.cnab.retorno import Retorno
+from pycobranca.exceptions import LayoutGenerico
 
 EXTERNOS = Path(__file__).parent / "fixtures" / "retorno" / "externos"
 
@@ -35,11 +37,25 @@ def _linhas(caminho: Path) -> list[str]:
     return [linha for linha in bruto.split(sep) if linha.strip()]
 
 
+#: Bancos destes arquivos que ainda não têm layout próprio e caem no genérico.
+#: O HSBC (399) é o único: o banco foi absorvido pelo Bradesco em 2016 e não
+#: publica mais manual de cobrança, então o mapa não tem de onde sair. O aviso
+#: fica **exigido** aqui — se um layout for acrescentado depois, este teste
+#: falha e cobra a atualização, em vez de deixar a lista envelhecer calada.
+SEM_LAYOUT_PROPRIO = {"399"}
+
+
 @pytest.mark.parametrize(("arquivo", "layout", "banco"), CASOS)
 def test_retorno_externo_real(arquivo: str, layout: str, banco: str) -> None:
     caminho = EXTERNOS / arquivo
     linhas = _linhas(caminho)
-    retorno = Retorno.ler(caminho)
+    if banco in SEM_LAYOUT_PROPRIO:
+        with pytest.warns(LayoutGenerico):
+            retorno = Retorno.ler(caminho)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", LayoutGenerico)
+            retorno = Retorno.ler(caminho)
     registros = retorno.registros
 
     assert retorno.codigo_banco == banco, f"{arquivo}: banco {retorno.codigo_banco} ≠ {banco}"

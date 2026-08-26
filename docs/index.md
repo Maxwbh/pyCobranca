@@ -6,12 +6,12 @@
 title: Boleto bancário, CNAB 240/400 e PIX em Python
 description: >-
   Gere boleto bancário, arquivos CNAB 240/400 e QR Code PIX em Python puro.
-  18 bancos, sem dependência de API externa. pip install pycobranca.
+  19 bancos, sem dependência de API externa. pip install pycobranca.
 ---
 
 # PyCobrança
 
-**Boletos, CNAB 240/400 e PIX para 18 bancos — em Python puro, num único `pip install`.**
+**Boletos, CNAB 240/400 e PIX para 19 bancos — em Python puro, num único `pip install`.**
 
 A PyCobrança é a plataforma Open Source de cobrança bancária brasileira em Python. Uma única
 biblioteca cobre o ciclo completo: emite boletos (código de barras, linha digitável e PDF), gera e

@@ -136,7 +136,6 @@ def _remessas():
             conta_corrente="12345678",
             convenio="123456",
             modalidade_carteira="01",
-            tipo_formulario="4",
             parcela="01",
             digito_conta="5",
             **_C240,

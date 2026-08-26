@@ -149,7 +149,7 @@ O que a PyCobrança entrega, para você avaliar contra a sua solução atual (se
 | Recurso | Status |
 |---|---|
 | Boleto — código de barras, linha digitável, PDF | 19 bancos |
-| CNAB 400 — remessa · retorno | 13 · parsing por banco |
+| CNAB 400 — remessa · retorno | 14 · parsing por banco |
 | CNAB 240 — remessa · retorno | 7 · parsing por banco |
 | Encargos na remessa | mora (valor/dia ou % mensal), multa, desconto 1º/2º/3º, IOF, abatimento |
 | PIX / Bolepix | BR Code EMV + CRC16, QR no PDF e segmento PIX na remessa |

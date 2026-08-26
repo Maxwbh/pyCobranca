@@ -5,7 +5,13 @@ from __future__ import annotations
 import re
 import unicodedata
 
-__all__ = ["remover_acentos", "format_size", "format_valor"]
+__all__ = [
+    "remover_acentos",
+    "format_size",
+    "format_valor",
+    "campo_numerico",
+    "confere_tamanhos",
+]
 
 
 def remover_acentos(texto: str) -> str:
@@ -28,3 +34,52 @@ def format_size(texto: str, tamanho: int) -> str:
 def format_valor(valor, tamanho: int = 13) -> str:
     """Equivalente ao ``format_value``: ``%.2f`` sem o ponto, zeros à esquerda."""
     return f"{float(valor):.2f}".replace(".", "").rjust(tamanho, "0")
+
+
+def campo_numerico(valor, tamanho: int, campo: str) -> str:
+    """Alinha ``valor`` à direita em ``tamanho`` posições, sem estourar o campo.
+
+    ``str.rjust`` **preenche mas nunca corta**: um valor mais longo que o campo
+    atravessa para a posição seguinte, e o CNAB é posicional — todo o resto do
+    registro desloca. O arquivo sai com 401 ou 402 posições e o banco o recusa,
+    ou pior, lê os campos trocados.
+
+    Aqui zeros à esquerda são descartados quando sobram (``"000"`` num campo de
+    dois vira ``"00"``: mesmo valor), mas **dígito significativo que não cabe
+    levanta erro** em vez de ser cortado em silêncio — truncar um nosso número
+    produziria um título com outro número.
+    """
+    from ..exceptions import BoletoInvalido
+
+    digitos = "".join(c for c in str(valor or "") if c.isdigit())
+    significativos = digitos.lstrip("0")
+    if len(significativos) > tamanho:
+        raise BoletoInvalido(
+            f"{campo}: {digitos!r} não cabe em {tamanho} posições "
+            f"({len(significativos)} dígitos significativos)"
+        )
+    return significativos.rjust(tamanho, "0")
+
+
+def confere_tamanhos(linhas, tamanho: int | tuple[int, ...] | None) -> None:
+    """Recusa o arquivo se algum registro não tiver o tamanho do layout.
+
+    É a rede que pega o que nenhum limite por campo pegou. O CNAB é posicional:
+    um caractere a mais em qualquer campo empurra todos os seguintes, e o
+    arquivo continua parecendo válido — o banco é que lê o vencimento no lugar
+    do valor. Melhor recusar aqui, com o número do registro, do que entregar um
+    arquivo deslocado.
+
+    ``tamanho`` aceita uma tupla para os layouts que misturam tamanhos.
+    """
+    from ..exceptions import BoletoInvalido
+
+    if tamanho is None:
+        return
+    aceitos = (tamanho,) if isinstance(tamanho, int) else tuple(tamanho)
+    esperado = " ou ".join(str(t) for t in aceitos)
+    for i, linha in enumerate(linhas):
+        if len(linha) not in aceitos:
+            raise BoletoInvalido(
+                f"registro {i + 1} com {len(linha)} posições (esperado {esperado})"
+            )

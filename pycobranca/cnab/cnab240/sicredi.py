@@ -14,11 +14,6 @@ __all__ = ["RemessaSicredi240"]
 
 @dataclass
 class RemessaSicredi240(RemessaCnab240Base):
-    modalidade_carteira: str = "01"
-    parcela: str = "01"
-    posto: str = "00"
-    byte_idt: str = ""
-
     def __post_init__(self) -> None:
         self.especie_titulo = "03"
         self.forma_cadastramento = "1"

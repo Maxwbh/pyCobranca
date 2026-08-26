@@ -15,11 +15,12 @@ empresa e banco. A PyCobrança implementa os **dois layouts** de uso geral na co
     [roadmap](02-roadmap-modernizacao.md) e entra sob o mesmo critério dos demais layouts: manual
     oficial com exemplo numérico validável, e comparação byte a byte contra vetor de referência.
 
-> **Status:** remessa **CNAB 400 implementada para 12 bancos** (Itaú, Bradesco, Banco do
-> Brasil, Santander, Sicoob, Unicred, Banrisul, Banco do Nordeste, BRB/DCB, Citibank, CrediSIS e
-> C6) e **CNAB 240 para 7 bancos** (Ailos, Banco do Brasil, Caixa, Santander, Sicoob, Sicredi e
-> Unicred), todas validadas **byte a byte** contra vetores de referência (fixtures congeladas em
-> `tests/fixtures/`; ver [`docs/bancos/`](bancos/README.md)).
+> **Status:** remessa **CNAB 400 implementada para 14 bancos** (Itaú, Bradesco, Banco do
+> Brasil, Santander, Sicoob, Unicred, Banrisul, Banco do Nordeste, BRB/DCB, Citibank, CrediSIS,
+> C6, Inter e Safra) e **CNAB 240 para 7 bancos** (Ailos, Banco do Brasil, Caixa, Santander,
+> Sicoob, Sicredi e Unicred). As fixtures ficam congeladas em `tests/fixtures/`; **o que cada uma
+> prova — paridade, manual ou invariante do formato — está em**
+> [`docs/bancos/`](bancos/README.md).
 >
 > **Bolepix na remessa:** com um `PagamentoPix`, a remessa acrescenta o **registro tipo 8**
 > (CNAB 400: Itaú, Bradesco, C6, Santander) ou o **segmento Y-03** (CNAB 240: Banco do Brasil,
@@ -38,9 +39,10 @@ empresa e banco. A PyCobrança implementa os **dois layouts** de uso geral na co
 cnab/
 ├── pagamento.py          # título a registrar (campos + formatadores CNAB)
 ├── formatacao.py         # format_size / format_valor / remover_acentos (fiéis ao Ruby)
+│                         # + campo_numerico / confere_tamanhos (recusam o que não cabe)
 ├── cnab400/
 │   ├── base.py           # header/detalhe/trailer + gera_arquivo (400 posições)
-│   └── <banco>.py        # RemessaXxx400 (12 bancos)
+│   └── <banco>.py        # RemessaXxx400 (14 bancos)
 ├── cnab240/
 │   ├── base.py           # header arq/lote + segmentos P/Q/R + trailers (240 posições)
 │   └── <banco>.py        # RemessaXxx240 (7 bancos)
@@ -53,10 +55,18 @@ cnab/
 
 ## Retorno — status
 
-> **Implementado e validado campo a campo** contra vetores de referência para 11 arquivos `.RET`.
+> **16 dos 19 bancos têm layout de retorno próprio** — 14 em 400 e 5 em 240, com sobreposição.
 > **CNAB 400**: Itaú, Bradesco, Banco do Brasil, Santander (com campos PIX), Banco do Nordeste,
-> Banrisul, CrediSIS, C6, Unicred e BRB. **CNAB 240**: base/Caixa, Santander, Ailos, Sicredi e
-> Sicoob (dois segmentos, **T** = dados gerais e **U** = valores, combinados em um registro).
+> Banrisul, CrediSIS, C6, Unicred, BRB, Inter, Safra, Sicredi e Sicoob. **CNAB 240**: base/Caixa,
+> Santander, Ailos, Sicredi e Sicoob (dois segmentos, **T** = dados gerais e **U** = valores,
+> combinados em um registro). Ficam sem layout próprio Banestes (021), HSBC (399) e Citibank
+> (745) — o parser os lê com o layout de reserva e **avisa** (ver abaixo).
+>
+> **Procedência, sem arredondar.** Onze arquivos `.RET` foram validados campo a campo contra
+> vetores de referência; três são **arquivos reais de banco** (`fixtures/retorno/externos`); e os
+> de Inter, Safra e Sicoob 400 foram **montados a partir do manual/planilha** do banco — provam o
+> mapeamento das posições, não o que o banco emite.
+>
 > `Retorno.ler` aceita caminho, `bytes` ou objeto com `.read()`, e detecta o layout pelo tamanho
 > do registro e o banco pelo header.
 
@@ -276,6 +286,36 @@ A decodificação é **Latin-1**, que mapeia os 256 bytes e por isso nunca subst
 Os valores são devolvidos como **strings cruas** do arquivo (ex.: `valor_recebido`
 `"0000000003790"` = R$ 37,90; datas no formato do banco), preservando fidelidade ao retorno; a
 interpretação numérica/monetária fica a cargo do consumidor (aplicação).
+
+### Quando o banco não tem layout próprio
+
+Cada banco põe os campos onde quer. Para os que ainda não têm mapa aqui, o parser recorre a um
+**layout genérico** — o arquivo é lido até o fim, nenhum erro é levantado, e os campos podem sair
+de posições que não são as daquele banco.
+
+É a forma de falha mais perigosa do parsing, porque a saída é **plausível**. Dois casos medidos:
+o Inter grava a ocorrência em 90–91 onde o genérico lê 109–110; o Sicredi usa quinze posições de
+nosso número a partir da 48, e o genérico lia a 63–70 — que ali é *filler* — devolvendo
+`00000000`, zeros com toda a aparência de número válido.
+
+Por isso a leitura com layout genérico **avisa**:
+
+```python
+import warnings
+from pycobranca.exceptions import LayoutGenerico
+
+# só para saber
+with warnings.catch_warnings(record=True) as avisos:
+    warnings.simplefilter("always", LayoutGenerico)
+    retorno = Retorno.ler("arquivo.ret")
+
+# ou, em processamento em lote, falhar em vez de seguir adiante
+warnings.simplefilter("error", LayoutGenerico)
+```
+
+O aviso **não muda o comportamento** — arquivos que eram lidos continuam sendo. Ele é o sinal
+que faltava. `LayoutGenerico` herda de `UserWarning`, não de `PyCobrancaError`: avisos e erros
+são hierarquias separadas em Python, e `except PyCobrancaError` não captura avisos.
 
 ## Um arquivo, uma conta
 

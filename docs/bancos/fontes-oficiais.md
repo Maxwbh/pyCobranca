@@ -20,12 +20,13 @@ em manual oficial**; ao usar um manual, registrar a URL, a versão e a data de c
 | Santander (033) | [Layout de arquivos](https://www.santander.com.br/layout-de-arquivos) · Cobrança 400 posições H7800 (v2.33, jun/2024) · CNAB 240 H7815 (Multibanco) · Código de barras (v34, set/2021) | CNAB e boleto/código de barras. |
 | Caixa (104) | [CNAB 400](https://www.caixa.gov.br/Downloads/cobranca-caixa/Manual_de_Leiaute_de_Arquivo_Eletronico_CNAB_400.pdf) · [CNAB 240](https://www.caixa.gov.br/Downloads/cobranca-caixa/Manual_de_Leiaute_de_Arquivo_Eletronico_CNAB_240.pdf) · Manual de Boleto (2020) · Código de barras SIGCB | CNAB e boleto SIGCB. |
 | C6 Bank (336) | [Manual CNAB](https://cms-assets-p.c6bank.com.br/uploads/manual-cnab.pdf) · [Boleto de Cobrança](https://www.c6bank.com.br/boletocobranca/) · [Developers](https://developers.c6bank.com.br/) | CNAB 400, boleto e APIs. |
-| Sicoob (756) | [Validador CNAB](https://www.sicoob.com.br/web/sicoob/validador-cnab) · Manual de Layout Sicoob (Cobrança) · Sicoobnet Empresarial | CNAB 240/400 e homologação. |
+| Sicoob (756) | [Validador CNAB](https://www.sicoob.com.br/web/sicoob/validador-cnab) (só CNAB240) · [`Layout_Cobranca_CNAB400.xls`](https://www.sicoob.com.br/documents/20128/263767178/Layout_Cobranca_CNAB400.xls) (portal Sicoob, 19/05/2025) · Sicoobnet Empresarial | CNAB 240/400 e homologação. O XLS traz as abas de remessa e retorno 400 — o validador não oferece 400, mas o layout segue publicado. |
 | Sicredi (748) | [Cobrança para empresas / manuais CNAB](https://www.sicredi.com.br/site/recebimentos-para-empresa/cobranca/) · Manual CNAB 240 e CNAB 400 (ago/2019) · [API Pix PJ](https://www.sicredi.com.br/site/pixpj/api-pix/) | CNAB 240/400 e Pix. |
 | Banco do Nordeste (004) | [Cobrança BNB](https://www.bnb.gov.br/cobranca-bancaria) · Cobrança Eletrônica BNB · Padrão BNB CNAB 400 | CNAB 400. |
 | Banrisul (041) | [Cobrança Banrisul](https://www.banrisul.com.br/) · Layout Cobrança CNAB 400 e CNAB 240 posições | CNAB 240/400. |
 | Ailos (085) | [Cooperativas Ailos](https://ailos.coop.br/) · Manual Técnico de Cobrança Bancária — 240 Posições | CNAB 240. |
 | Unicred (136) | [Unicred](https://www.unicred.com.br/) · Manual de Cobrança Unicred (leiautes CNAB 240 e CNAB 400) | CNAB 240/400. |
+| Safra (422) | [Leiaute de Arquivos — Cobrança CNAB 400](https://www.safra.com.br/data/files/74/70/C8/0F/1451971028EDDE77E03EF9C2/Leiaute%20de%20Arquivos%20-%20Cobranca%20CNAB%20400.pdf) | Boleto (seções 7.1 e 7.2.2) e CNAB 400 (seções 5, 6.1 e 6.2). Não há CNAB 240 de cobrança. |
 
 ## Bancos pendentes de manual público localizado
 
@@ -43,7 +44,6 @@ portal do banco ou via canal de homologação:
   `097XAAAACCCCCCSSSSSS` (com `X` = módulo 11 do CPF/CNPJ do beneficiário). **Anterior à
   IN RFB 2.229/2024** — não cobre CNPJ alfanumérico.
 - Citibank (745) — layout Citibank de cobrança 400 posições
-- Safra (422)
 
 ## Regra de preenchimento
 

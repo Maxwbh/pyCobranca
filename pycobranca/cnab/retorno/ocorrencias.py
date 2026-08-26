@@ -90,12 +90,47 @@ OCORRENCIAS_240: dict[str, str] = {
 #: ``07``, que no padrão é *Liquidação por conta/parcial* e no Inter é
 #: **Cancelado**. Descrever um título cancelado como parcialmente liquidado é o
 #: tipo de erro que passa despercebido numa conciliação.
+#:
+#: O Safra tem colisão da mesma natureza no ``40``: no padrão é *Baixa por ter
+#: sido liquidado* — título pago — e no Safra é **baixa de título protestado**.
+#: Os pares 42/44 e 51/52/53 divergem pelo mesmo motivo.
 OCORRENCIAS_400_POR_BANCO: dict[str, dict[str, str]] = {
     "077": {  # Banco Inter — manual CNAB400 v2.2, seção 5.2, item 13
         "02": "Em aberto",
         "03": "Erro",
         "06": "Pago",
         "07": "Cancelado",
+    },
+    "422": {  # Banco Safra — Leiaute de Arquivos, Cobrança CNAB 400, nota 6.2.2
+        "02": "Entrada confirmada",
+        "03": "Entrada rejeitada",
+        "04": "Transferência de carteira (entrada)",
+        "05": "Transferência de carteira (baixa)",
+        "06": "Liquidação normal",
+        "09": "Baixado automaticamente",
+        "10": "Baixado conforme instruções",
+        "11": "Títulos em ser (arquivo mensal)",
+        "12": "Abatimento concedido",
+        "13": "Abatimento cancelado",
+        "14": "Vencimento alterado",
+        "15": "Liquidação em cartório",
+        "19": "Confirmação de instrução de protesto",
+        "20": "Confirmação de sustar protesto",
+        "21": "Transferência de beneficiário",
+        "23": "Título enviado a cartório",
+        "40": "Baixa de título protestado",
+        "41": "Liquidação de título baixado",
+        "42": "Título retirado do cartório",
+        "43": "Despesa de cartório",
+        "44": "Aceite do título DDA pelo pagador",
+        "45": "Não aceite do título DDA pelo pagador",
+        "51": "Valor do título alterado",
+        "52": "Acerto de data de emissão",
+        "53": "Acerto de código de espécie de documento",
+        "54": "Alteração de seu número",
+        "56": "Instrução de negativação aceita",
+        "57": "Instrução de baixa de negativação aceita",
+        "58": "Instrução de não negativar aceita",
     },
 }
 

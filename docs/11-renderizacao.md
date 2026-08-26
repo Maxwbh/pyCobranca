@@ -352,14 +352,14 @@ comportamento padrão inalterado (saída byte a byte idêntica).
 
 #### Logos de bancos empacotados
 
-Como conveniência, a biblioteca inclui logos de 17 bancos (nomeados pelo código FEBRABAN) em
+Como conveniência, a biblioteca inclui logos dos **19 bancos** (nomeados pelo código FEBRABAN) em
 `pycobranca/render/logos/`, expostos por `logo_do_banco`:
 
 ```python
 from pycobranca.render import logo_do_banco, bancos_com_logo
 
-bancos_com_logo()  # ('001', '004', '021', '033', '041', '070', '085', '097', '104',
-#  '136', '237', '336', '341', '399', '422', '748', '756')
+bancos_com_logo()  # ('001', '004', '021', '033', '041', '070', '077', '085', '097', '104',
+#  '136', '237', '336', '341', '399', '422', '745', '748', '756')
 ctx["banco"]["logo"] = logo_do_banco("237")  # bytes do PNG, ou None se não houver
 ```
 

@@ -17,7 +17,6 @@ class RemessaSicoob240(RemessaCnab240Base):
     modalidade_carteira: str = "01"
     tipo_formulario: str = "4"
     parcela: str = "01"
-    posto: str = "00"
 
     def __post_init__(self) -> None:
         self.forma_cadastramento = "0"

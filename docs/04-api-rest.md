@@ -99,7 +99,7 @@ Nos paths, aponte para os schemas daqui com `{"$ref": "#/components/schemas/Bole
 
 ### Campos específicos de banco
 
-Sete dos 18 bancos precisam de campo que não aparece no payload genérico: ele entra no **campo
+Nove dos 19 bancos precisam de campo que não aparece no payload genérico: ele entra no **campo
 livre** do código de barras ou é exigido por regra do banco. A tupla `CAMPOS_POR_BANCO` lista os
 nove:
 
@@ -123,12 +123,15 @@ Quem precisa de quê, nos dados de referência de cada banco:
 | 748 Sicredi | `posto`, `byte_idt` |
 | 756 Sicoob | `variacao` |
 
-`data_documento` vale para qualquer banco (é a data impressa no título). Os demais 11 bancos não
+`data_documento` vale para qualquer banco (é a data impressa no título). Os demais 10 bancos não
 usam nenhum destes campos.
 
-**Omitir um deles não levanta erro em todos os casos.** Banco do Nordeste, Banestes e Unicred
-falham na montagem (campo livre com 24 dígitos em vez de 25); BRB, Safra e Sicredi barram na
-validação. **O Citibank produz um código de barras diferente, sem exceção nenhuma** — com o
+**Omitir um deles não levanta erro em todos os casos.** Banco do Nordeste, Banestes, Unicred,
+Safra, BRB e Sicredi barram na **validação**, com a mensagem nomeando o campo
+(`dígito da conta deve ter no mínimo 1 dígito(s)`) — antes os quatro primeiros só falhavam na
+montagem, com um campo livre de 24 dígitos e nenhuma indicação de qual campo faltava. Banrisul
+(`digito_convenio`, que só entra na impressão) e Sicoob (`variacao`, que tem valor padrão) geram
+normalmente. **O Citibank produz um código de barras diferente, sem exceção nenhuma** — com o
 `portfolio` zerado, estruturalmente válido, DV recalculado e destino errado:
 
 ```
@@ -137,7 +140,7 @@ sem portfolio:  74595153900000127503000006247107010999940225
                                   ^^^ 172 → 000
 ```
 
-Por isso a ida e volta é testada nos 18 bancos (ver [Caminho de volta](#caminho-de-volta-boleto_de_api)).
+Por isso a ida e volta é testada nos 19 bancos (ver [Caminho de volta](#caminho-de-volta-boleto_de_api)).
 
 ## Contrato de dados verificado
 
@@ -160,7 +163,7 @@ oferece:
   `TEMA_DO_CONTRATO`.
 
 Os **testes de contrato** (`tests/test_contrato_rest.py`) validam a serialização de boleto
-para os **18 bancos**, além de remessa e retorno (usando as fixtures `.RET`), garantindo que os
+para os **19 bancos**, além de remessa e retorno (usando as fixtures `.RET`), garantindo que os
 artefatos permaneçam válidos conforme a API evolui:
 
 ```python
@@ -350,7 +353,7 @@ Ela valida contra o schema, resolve o slug, aplica as quatro traduções de nome
 ISO para `date`, junta `instrucao1`/`instrucao2` na lista `instrucoes` e descarta os campos de
 apresentação que o construtor não aceita (tema e fatura).
 
-**A ida e volta é testada nos 18 bancos**: `boleto_de_api(boleto_para_api(b))` reproduz o mesmo
+**A ida e volta é testada nos 19 bancos**: `boleto_de_api(boleto_para_api(b))` reproduz o mesmo
 código de barras e a mesma linha digitável. É o que garante que os
 [campos específicos de banco](#campos-especificos-de-banco) estejam todos no schema.
 
@@ -397,4 +400,4 @@ estruturalmente válido, com DV recalculado, e o destino errado.**
 
 Quem acrescentar campo ao domínio acrescenta aqui também. Duas redes pegam o esquecimento hoje:
 `test_contrato_hierarquia_erros.py` confere que os totalizadores estão declarados, e o teste de
-ida e volta nos 18 bancos falha se um campo consumido pelo campo livre ficar de fora.
+ida e volta nos 19 bancos falha se um campo consumido pelo campo livre ficar de fora.

@@ -22,6 +22,11 @@ class Safra(BancoBase):
         "agencia": (1, 4),
         "conta": (1, 8),
         "nosso_numero": (1, 8),
+        # Entra no campo livre em 1 posição, interpolado cru: sem limite
+        # declarado, dois caracteres estouram as 25 posições e o erro só aparecia
+        # na montagem do código de barras, sem dizer qual campo o causou.
+        "digito_agencia": (1, 1),
+        "digito_conta": (1, 1),
     }
 
     @property
