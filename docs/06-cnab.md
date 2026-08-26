@@ -317,6 +317,31 @@ O aviso **não muda o comportamento** — arquivos que eram lidos continuam send
 que faltava. `LayoutGenerico` herda de `UserWarning`, não de `PyCobrancaError`: avisos e erros
 são hierarquias separadas em Python, e `except PyCobrancaError` não captura avisos.
 
+### Quando o layout não tem o campo que você informou
+
+`carteira` existe em **toda** remessa porque está na base — mas oito layouts não têm esse campo:
+a CrediSIS e o Santander no 400, e seis dos sete 240, onde a FEBRABAN separa o **código da
+carteira** (posição 58 do segmento P, `1` a `4`) da **modalidade** do banco.
+
+Nesses, informar `carteira` não faz nada. O arquivo sai correto — com a carteira do padrão, não
+com a que você pediu. Quem monta a remessa reaproveitando o dicionário do boleto, que é o caminho
+natural, acreditava ter escolhido a carteira.
+
+```python
+import warnings
+from pycobranca.exceptions import CampoIgnorado
+
+warnings.simplefilter("error", CampoIgnorado)  # falhar em vez de seguir adiante
+```
+
+```
+CampoIgnorado: RemessaSicoob240: `carteira` não é gravada neste layout
+(use 'modalidade_carteira'). O arquivo sai correto, mas sem a carteira que você informou.
+```
+
+O campo que cada layout grava no lugar está em `campo_de_carteira`. Como o `LayoutGenerico`, este
+aviso **não muda o comportamento** e herda de `UserWarning`, não de `PyCobrancaError`.
+
 ## Um arquivo, uma conta
 
 Cada instância de `Remessa*` representa **um arquivo para uma conta**: banco, layout, convênio,

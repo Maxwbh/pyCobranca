@@ -238,3 +238,66 @@ def test_o_campo_livre_do_csb_tem_27_posicoes_onde_cabem_25() -> None:
     boleto = _um_boleto_por_banco()["399"]()
     boleto.carteira = "CSB"
     assert len(boleto.campo_livre()) == 27
+
+
+def test_a_mesma_carteira_escrita_de_dois_jeitos_da_o_mesmo_boleto() -> None:
+    """``"9"`` e ``"09"`` são a mesma carteira — têm de gerar o mesmo título.
+
+    O Sicoob declara as duas grafias e o Ailos declara ``"1"`` e ``"01"``. O
+    Ailos acertava (``zfill(2)``); o Sicoob montava a posição 1 do campo livre
+    com ``so_digitos(carteira)[:1]``, que pega o **primeiro** caractere — e
+    ``"09"`` virava ``"0"``, uma carteira que o banco não tem.
+
+    Nenhuma camada existente pegava isso. O verificador FEBRABAN aprova: são 44
+    posições com o DV recalculado sobre o valor errado. O vetor cruzado usa uma
+    grafia só. É o mesmo modo de falha do ``portfolio`` do Citibank — o boleto
+    sai plausível, válido e cobrando pela conta errada.
+    """
+    from collections import defaultdict
+
+    from pycobranca.bancos import Bancos
+
+    construtores = _um_boleto_por_banco()
+    divergem = []
+    for banco in sorted(Bancos.todos(), key=lambda b: b.codigo):
+        if banco.codigo not in construtores:
+            continue
+        grupos = defaultdict(list)
+        for carteira in banco.carteiras:
+            if carteira.isdigit():
+                grupos[int(carteira)].append(carteira)
+        for numero, grafias in grupos.items():
+            if len(grafias) < 2:
+                continue
+            saidas = {}
+            for grafia in grafias:
+                boleto = construtores[banco.codigo]()
+                boleto.carteira = grafia
+                saidas[grafia] = boleto.codigo_barras
+            if len(set(saidas.values())) > 1:
+                divergem.append(f"{banco.codigo} carteira {numero}: {saidas}")
+    assert divergem == [], "\n".join(divergem)
+
+
+@pytest.mark.parametrize("carteira", ["9", "09"])
+def test_a_carteira_9_do_sicoob_grava_o_9_no_campo_livre(carteira: str) -> None:
+    """Prende o dígito, não só a igualdade entre as duas grafias.
+
+    Sem isto, uma correção que fizesse as duas gravarem ``"0"`` também passaria
+    no teste acima — as duas iguais, as duas erradas.
+    """
+    boleto = _um_boleto_por_banco()["756"]()
+    boleto.carteira = carteira
+    assert boleto.campo_livre()[0] == "9"
+
+
+def test_carteira_que_nao_cabe_na_posicao_do_campo_livre_e_recusada() -> None:
+    """Dois dígitos significativos num campo de um: erro, não truncamento.
+
+    Truncar produziria um boleto de outra carteira, que é exatamente o defeito
+    que se está consertando.
+    """
+    boleto = _um_boleto_por_banco()["756"]()
+    boleto.carteira = "19"
+    with pytest.raises(PyCobrancaError, match="posição 1 do campo livre"):
+        boleto.campo_livre()

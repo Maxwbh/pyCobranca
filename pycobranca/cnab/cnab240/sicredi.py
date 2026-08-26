@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import ClassVar
 
 from ...core.documentos import so_digitos
 from ..pagamento import Pagamento
@@ -14,6 +15,8 @@ __all__ = ["RemessaSicredi240"]
 
 @dataclass
 class RemessaSicredi240(RemessaCnab240Base):
+    campo_de_carteira: ClassVar[str | None] = "codigo_carteira"
+
     def __post_init__(self) -> None:
         self.especie_titulo = "03"
         self.forma_cadastramento = "1"

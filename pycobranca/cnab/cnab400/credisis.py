@@ -9,6 +9,7 @@ FEBRABAN e ``tamanho_registro`` volta a valer.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ..formatacao import campo_numerico
@@ -20,6 +21,8 @@ __all__ = ["RemessaCredisis400"]
 
 @dataclass
 class RemessaCredisis400(RemessaCnab400Base):
+    campo_de_carteira: ClassVar[str | None] = ""
+
     codigo_cedente: str = ""
     convenio: str = ""
 

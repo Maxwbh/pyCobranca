@@ -22,7 +22,7 @@ DV do nosso número com fatores fixos 3-1-9-7 (da esquerda para a direita).
 
 | Posições | Tam. | Conteúdo |
 |:--------:|:----:|----------|
-| 1     | 1 | Carteira |
+| 1     | 1 | Carteira — o dígito **significativo** (`09` grava `9`, não `0`) |
 | 2–5   | 4 | Agência |
 | 6–7   | 2 | Variação (`01` se ausente) |
 | 8–14  | 7 | Convênio (ou número do contrato na carteira 9) |
@@ -48,7 +48,7 @@ Tamanhos em **dígitos** (mín.–máx.); a máscara é descartada e o valor é 
 | Variação (modalidade) | até 2 dígitos, `01` quando ausente |
 | Quantidade de parcelas | até 3 dígitos, `001` quando ausente |
 | Nosso número | 1–7 dígitos |
-| Carteira | conjunto: 1, 3, 9, 09 |
+| Carteira | conjunto: 1, 3, 9, 09 — `9` e `09` são a **mesma** carteira e geram o mesmo boleto |
 
 ## Formatos de exibição
 

@@ -31,6 +31,7 @@ do que estes testes prendem.
 from __future__ import annotations
 
 import dataclasses
+import warnings
 
 import pytest
 import test_cnab_remessa as remessas
@@ -38,7 +39,7 @@ from exemplos_boletos import EXEMPLOS
 from test_validacao_externa import _confere
 
 from pycobranca.bancos.base import BancoBase
-from pycobranca.exceptions import PyCobrancaError
+from pycobranca.exceptions import CampoIgnorado, PyCobrancaError
 
 # --------------------------------------------------------------------------- #
 # Boleto
@@ -190,6 +191,9 @@ def test_nenhum_campo_da_remessa_desloca_o_registro(chave: str) -> None:
     for campo in campos:
         for digitos in (0, 1, 2, 5, 12, 25):
             remessa = _refaz(chave)
+            # A varredura mexe em todo campo, inclusive nos que o layout não
+            # grava — o aviso disso é assunto de `test_cnab_remessa.py`.
+            warnings.simplefilter("ignore", CampoIgnorado)
             setattr(remessa, campo, "9" * digitos)
             try:
                 comprimentos = {len(linha) for linha in _linhas(remessa)}
@@ -218,6 +222,9 @@ def test_remessa_so_levanta_erro_do_pacote(chave: str) -> None:
     for campo in campos:
         for digitos in (0, 1, 2, 5, 12, 25):
             remessa = _refaz(chave)
+            # A varredura mexe em todo campo, inclusive nos que o layout não
+            # grava — o aviso disso é assunto de `test_cnab_remessa.py`.
+            warnings.simplefilter("ignore", CampoIgnorado)
             setattr(remessa, campo, "9" * digitos)
             try:
                 remessa.gera_arquivo()

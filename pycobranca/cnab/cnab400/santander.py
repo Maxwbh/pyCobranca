@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from ...core.documentos import so_alfanumerico, so_digitos
 from ..formatacao import format_valor
@@ -14,6 +15,8 @@ __all__ = ["RemessaSantander400"]
 
 @dataclass
 class RemessaSantander400(RemessaCnab400Base):
+    campo_de_carteira: ClassVar[str | None] = "codigo_carteira"
+
     codigo_transmissao: str = ""
     codigo_carteira: str = "1"
 

@@ -227,7 +227,10 @@ def _remessas_400():
             conta_corrente="12345678",
             codigo_cedente="1234",
             digito_conta="5",
-            carteira="18",
+            # Sem `carteira`: o layout da CrediSIS não tem esse campo, e passá-la
+            # aqui era uma promessa que o arquivo não cumpria — o aviso
+            # `CampoIgnorado` acusou isto na primeira execução. O arquivo gerado
+            # é byte a byte o mesmo.
             convenio="1234567",
             sequencial_remessa="1",
             **_COMUM_400,
@@ -1056,3 +1059,83 @@ def _classes_de_remessa():
 def test_nenhuma_remessa_aceita_campo_que_nao_grava(cls) -> None:
     """Campo aceito e ignorado é pior que ausente: promete e não cumpre."""
     assert _campos_nao_lidos(cls) == set()
+
+
+# --------------------------------------------------------------------------- #
+# `carteira` informada num layout que não a grava
+# --------------------------------------------------------------------------- #
+#
+# ``carteira`` está na base, então **toda** remessa a aceita — mas oito layouts
+# não têm esse campo: a CrediSIS e o Santander no 400, e seis dos sete 240, onde
+# a FEBRABAN separa o *código da carteira* (posição 58 do segmento P, ``1`` a
+# ``4``) da *modalidade* do banco. Nesses, informar ``carteira`` não fazia nada,
+# em silêncio.
+#
+# Quem monta a remessa com o mesmo dicionário do boleto — que é o caminho
+# natural — acreditava ter escolhido a carteira, e o arquivo saía com a do
+# padrão. O arquivo em si está correto; o que faltava era o sinal.
+
+
+def _remessas_que_ignoram_carteira():
+    return [
+        cls for cls in _classes_de_remessa() if getattr(cls, "campo_de_carteira", None) is not None
+    ]
+
+
+def test_ha_layouts_que_nao_gravam_carteira() -> None:
+    """Guarda contra o teste abaixo passar por não ter encontrado nada."""
+    assert len(_remessas_que_ignoram_carteira()) == 8
+
+
+@pytest.mark.parametrize("chave", ["240/sicoob", "240/caixa", "400/santander", "400/credisis"])
+def test_carteira_informada_onde_o_layout_nao_grava_avisa(chave: str) -> None:
+    """O aviso nomeia o campo que aquele layout realmente grava."""
+    import warnings
+
+    from pycobranca.exceptions import CampoIgnorado
+
+    familia, nome = chave.split("/")
+    fabrica = _remessas_400 if familia == "400" else _remessas_240
+    remessa = fabrica()[nome]
+    remessa.carteira = "9"
+
+    with warnings.catch_warnings(record=True) as avisos:
+        warnings.simplefilter("always")
+        arquivo = remessa.gera_arquivo()
+
+    ignorados = [a for a in avisos if issubclass(a.category, CampoIgnorado)]
+    assert len(ignorados) == 1, f"{chave}: esperado 1 aviso, veio {len(ignorados)}"
+    mensagem = str(ignorados[0].message)
+    assert "`carteira` não é gravada neste layout" in mensagem
+    alvo = type(remessa).campo_de_carteira
+    assert (repr(alvo) in mensagem) if alvo else ("não tem campo de carteira" in mensagem)
+    # O aviso não muda o arquivo: ele continua o mesmo de antes.
+    assert len(arquivo) > 0
+
+
+@pytest.mark.parametrize("chave", ["240/sicoob", "400/santander"])
+def test_sem_carteira_informada_nao_ha_aviso(chave: str) -> None:
+    """Aviso que sai sempre vira ruído e some do radar de quem lê."""
+    import warnings
+
+    from pycobranca.exceptions import CampoIgnorado
+
+    familia, nome = chave.split("/")
+    fabrica = _remessas_400 if familia == "400" else _remessas_240
+    with warnings.catch_warnings(record=True) as avisos:
+        warnings.simplefilter("always")
+        fabrica()[nome].gera_arquivo()
+    assert [a for a in avisos if issubclass(a.category, CampoIgnorado)] == []
+
+
+def test_layout_que_grava_carteira_nao_avisa() -> None:
+    """Os treze que usam ``carteira`` continuam sem ruído."""
+    import warnings
+
+    from pycobranca.exceptions import CampoIgnorado
+
+    with warnings.catch_warnings(record=True) as avisos:
+        warnings.simplefilter("always")
+        for nome in ("itau", "sicoob", "inter", "safra"):
+            _remessas_400()[nome].gera_arquivo()
+    assert [a for a in avisos if issubclass(a.category, CampoIgnorado)] == []

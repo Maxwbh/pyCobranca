@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 from ...core.documentos import so_digitos
 from ...core.dv import modulo11_flex
@@ -14,6 +15,8 @@ __all__ = ["RemessaSicoob240"]
 
 @dataclass
 class RemessaSicoob240(RemessaCnab240Base):
+    campo_de_carteira: ClassVar[str | None] = "modalidade_carteira"
+
     modalidade_carteira: str = "01"
     tipo_formulario: str = "4"
     parcela: str = "01"
