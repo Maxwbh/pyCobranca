@@ -19,6 +19,20 @@ PIX no CNAB de remessa.
     O contexto e o `BoletoEmitido` dizem qual é qual — **`vinculado` / `pix_vinculado`**. Se você
     expõe o QR a pagadores, use esse campo para decidir o que rotular.
 
+!!! info "A *cobrança híbrida* da Resolução BCB 587 é a primeira linha, não a segunda"
+    A [Resolução BCB nº 587](https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20BCB&numero=587)
+    (18/09/2026) dá nome próprio a **cobrança híbrida** — boleto e QR Pix no mesmo documento —, com
+    vigência em **1º/02/2027**. Ela corresponde ao `pix_copia_cola`, e o texto exclui o outro
+    caminho por dois motivos independentes: a modalidade é restrita a **Pix Cobrança com
+    vencimento** (art. 11-AA, §2º), que é dinâmico, e exige que o PSP do recebedor seja **a mesma
+    instituição que emitiu o boleto** (§5º) — o que a chave informada em `pix_chave` não garante.
+
+    "Híbrido", no topo desta página, descreve o documento; na resolução, nomeia a modalidade. O QR
+    avulso continua servindo para receber, com a ressalva do quadro acima — só não é *aquilo*.
+
+    Nada a fazer por prazo: a modalidade é **facultativa** para as instituições e vale só para
+    títulos **com vencimento**. Quem gera o QR é o banco, como já é hoje.
+
 ### Identificando o QR avulso — e conciliando depois
 
 Como o QR avulso não dá baixa, o identificador deixa de ser conveniência e vira **o que torna a
