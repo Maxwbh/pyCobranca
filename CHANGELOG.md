@@ -2,6 +2,20 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Corrigido
+
+- **Sequencial da remessa no header do Inter (077), posições 111–117.** O campo saía alinhado à
+  esquerda e completado com espaços — `"1      "` — enquanto `nome_arquivo()` o escrevia com
+  zeros à esquerda, `CI400_001_0000001.REM`. O manual (seção 3.1) condiciona o upload a serem o
+  mesmo número, então o Internet Banking recusava uma remessa **correta no conteúdo**. As duas
+  grafias só coincidiam quando o sequencial já ocupava as sete posições; como a remessa começa
+  em 1, na prática divergiam sempre. A causa está dentro do módulo: o sequencial era o único
+  campo numérico escrito com `_format_size`, o formatador de texto — carteira, agência, conta,
+  dias-limite, CPF/CNPJ, CEP e a contagem do trailer sempre usaram `zfill`/`rjust`. O arquivo
+  gerado muda em sete posições do header; o resto é byte a byte idêntico.
+
 ## [1.1.1] - 2026-08-26
 
 ### Adicionado
