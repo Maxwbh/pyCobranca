@@ -59,11 +59,18 @@ class Itau(BancoBase):
 
     #: Carteiras cujo DAC sai de ``carteira + nosso número``, sem agência nem conta.
     #:
-    #: A ``112`` é a única das aceitas aqui que entra, e entra com lastro: **duas de três
-    #: implementações independentes conferidas** a tratam assim, e dois relatos de campo a
-    #: verificaram contra boletos emitidos pelo próprio Itaú. As demais são as diretas que
-    #: o manual excetua — a nota 23 escreve ``145`` e o anexo 4 escreve ``146``,
-    #: contradição do próprio manual, e nenhuma das duas está em :data:`carteiras`.
+    #: **Só a 112**, e com lastro: **duas de três implementações independentes conferidas**
+    #: a tratam assim, e dois relatos de campo a verificaram contra boletos emitidos pelo
+    #: próprio Itaú.
+    #:
+    #: O conjunto já trouxe 126, 131, 145, 146, 150 e 168 — as diretas que a nota 23
+    #: excetua —, mas **nenhuma delas está em** :data:`carteiras`, e ``validar()`` recusa
+    #: carteira fora dessa tupla. Eram seis entradas que o ramo curto nunca podia alcançar:
+    #: prometiam um comportamento impossível de exercitar, e nenhum teste podia cobri-las
+    #: porque o boleto levanta antes de chegar aqui. Saíram sem mudar nada observável.
+    #: Voltar qualquer uma exige acrescentá-la a :data:`carteiras` **com o manual e vetor de
+    #: referência** — não é edição deste conjunto sozinho. O nome que a nota 23 dá à sexta é
+    #: em si duvidoso: ela escreve ``145`` e o anexo 4 do mesmo manual escreve ``146``.
     #:
     #: **Não** entram 104, 115, 147 e 188, embora a nota 23 diga "exceto as carteiras
     #: escriturais" e a tabela de carteiras (nota 5) classifique as quatro assim. O anexo
@@ -72,9 +79,7 @@ class Itau(BancoBase):
     #: composição curta. Sem vetor de referência que decida, mudar o código de barras
     #: dessas carteiras pela leitura de um trecho que o próprio manual contradiz seria
     #: quebrar a paridade sem prova.
-    _DAC_SEM_AGENCIA_CONTA: ClassVar[frozenset[str]] = frozenset(
-        {"112", "126", "131", "145", "146", "150", "168"}
-    )
+    _DAC_SEM_AGENCIA_CONTA: ClassVar[frozenset[str]] = frozenset({"112"})
 
     @property
     def dac_nosso_numero(self) -> int:
