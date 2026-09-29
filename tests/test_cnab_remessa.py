@@ -567,19 +567,50 @@ def test_digito_da_conta_e_obrigatorio_no_inter() -> None:
     assert any("digito_conta" in m for m in erro.value.erros)
 
 
-def test_nome_do_arquivo_do_inter_casa_com_o_sequencial_do_header() -> None:
+def _header_do_inter(sequencial) -> str:
+    remessa = _remessas_400()["inter"]
+    remessa.sequencial_remessa = sequencial
+    return remessa.gera_arquivo().replace("\r\n", "\n").split("\n")[0]
+
+
+#: Larguras que a versão anterior deste teste não cobria. Ele fixava ``"0000001"``
+#: — sete dígitos exatos, a **única** largura em que as duas grafias coincidiam
+#: por acaso — e passava com o defeito em pé.
+SEQUENCIAIS_DO_INTER = ["1", "42", "0000001", "1234567", 7]
+
+
+@pytest.mark.parametrize("sequencial", SEQUENCIAIS_DO_INTER, ids=repr)
+def test_nome_do_arquivo_do_inter_casa_com_o_sequencial_do_header(sequencial) -> None:
     """O manual (seção 3.1) condiciona o upload a essa igualdade.
 
     A biblioteca gera o conteúdo e o chamador nomeia o arquivo — é justamente onde
     os dois se separam. ``nome_arquivo()`` deriva o nome do mesmo campo que vai no
     header, então não há como divergirem.
+
+    Varre larguras porque a igualdade não é o que estava quebrado: o header gravava
+    ``"1      "`` e o nome ``CI400_001_0000001.REM``. Com um sequencial de sete
+    dígitos os dois batiam, e era só esse que o teste usava.
     """
     remessa = _remessas_400()["inter"]
-    remessa.sequencial_remessa = "0000001"
+    remessa.sequencial_remessa = sequencial
     header = remessa.gera_arquivo().replace("\r\n", "\n").split("\n")[0]
-    assert remessa.nome_arquivo() == "CI400_001_0000001.REM"
-    assert header[110:117] == "0000001"  # itens 111-117 do header
-    assert remessa.nome_arquivo()[10:17] == header[110:117]
+    assert remessa.nome_arquivo()[10:17] == header[110:117]  # itens 111-117 do header
+
+
+@pytest.mark.parametrize("sequencial", SEQUENCIAIS_DO_INTER, ids=repr)
+def test_o_sequencial_do_header_do_inter_e_numerico(sequencial) -> None:
+    """O campo tem de sair só com dígitos, nas sete posições.
+
+    Prende o defeito pelo lado que falhou: não foi cálculo, foi **formatador**. O
+    sequencial é o único campo numérico do módulo — carteira, agência, conta,
+    dias-limite, CPF/CNPJ, CEP e a contagem do trailer usam ``zfill``/``rjust`` —
+    e estava escrito com ``_format_size``, que é o de texto. Exigir ``isdigit()``
+    é o que impede a troca de voltar sem ser vista; a igualdade com o nome, acima,
+    sozinha não impediria (as duas pontas erradas do mesmo jeito passariam).
+    """
+    campo = _header_do_inter(sequencial)[110:117]
+    assert campo.isdigit(), f"sequencial saiu como texto: {campo!r}"
+    assert len(campo) == 7
 
 
 def test_nome_do_arquivo_preenche_o_sequencial_com_zeros() -> None:
@@ -587,6 +618,7 @@ def test_nome_do_arquivo_preenche_o_sequencial_com_zeros() -> None:
     remessa = _remessas_400()["inter"]
     remessa.sequencial_remessa = "1"
     assert remessa.nome_arquivo() == "CI400_001_0000001.REM"
+    assert _header_do_inter("1")[110:117] == "0000001"
 
 
 # --- Safra: posições conferidas contra o manual, já que não há paridade -------
