@@ -123,6 +123,27 @@ def test_o_dac_direto_depende_de_agencia_e_conta() -> None:
     assert boleto_exemplo(carteira="112", agencia="0057", conta="12345").dac_nosso_numero == 5
 
 
+def test_toda_carteira_do_dac_curto_e_alcancavel() -> None:
+    """Nenhuma entrada de ``_DAC_SEM_AGENCIA_CONTA`` pode estar fora de ``carteiras``.
+
+    Este é o único teste do módulo que lê a constante, e de propósito: o defeito que
+    ele prende **não tem comportamento**. O conjunto trazia 126, 131, 145, 146, 150 e
+    168, nenhuma em :data:`Itau.carteiras`, e ``validar()`` recusa carteira fora dessa
+    tupla — o ramo curto nunca era alcançado por elas. Seis entradas prometendo um
+    comportamento que nenhum boleto podia exercitar, e que nenhum teste de
+    comportamento podia cobrir, porque a construção levanta antes.
+
+    Não substitui ``test_so_a_112_ignora_agencia_e_conta_no_dac``, que mede a regra de
+    fora: os dois olham coisas diferentes. Aquele pega a composição errada numa
+    carteira alcançável; este pega a entrada que não chega a lugar nenhum.
+    """
+    inertes = sorted(Itau._DAC_SEM_AGENCIA_CONTA - set(Itau.carteiras))
+    assert inertes == [], (
+        f"carteiras no conjunto do DAC curto mas fora de Itau.carteiras: {inertes} — "
+        "ou entram em carteiras (com manual e vetor), ou saem do conjunto"
+    )
+
+
 # --- preenchimento com zeros: entra no DAC, então é regra, não formatação -----
 
 
