@@ -82,7 +82,7 @@ Dois fatos supervenientes mudaram o veredito:
 Para emissão em lote (100–200 boletos), o WeasyPrint levaria **~4,4 minutos** num lote de 200 —
 enquanto o ReportLab entrega em **~2 segundos**, viabilizando até resposta síncrona.
 
-> **Padrão promovido a 1º: `ReportLabBackend` (`modelo="moderno"`).** Visual idêntico à
+> **Padrão promovido a 1º: o backend ReportLab com `modelo="moderno"`.** Visual idêntico à
 > referência, ~120× mais rápido, PDFs 3× menores e zero dependências de sistema.
 
 ### Backend único (decisão final)
