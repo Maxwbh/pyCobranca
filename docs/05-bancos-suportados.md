@@ -54,7 +54,7 @@ Um traço na matriz significa que o layout ainda não foi portado, não que o ba
 aquele meio. Banestes e HSBC emitem boleto mas ainda não têm CNAB; o Citibank tem remessa 400
 sem layout de **retorno 400** próprio.
 
-Ler um retorno sem layout próprio **não falha em silêncio desde a 1.1.2**: sai um aviso
+Ler um retorno sem layout próprio **não falha em silêncio desde a 1.1.1**: sai um aviso
 `LayoutGenerico` dizendo que os campos podem estar em outras posições — ver
 [06 — Quando o banco não tem layout próprio](06-cnab.md#quando-o-banco-nao-tem-layout-proprio).
 
