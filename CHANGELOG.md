@@ -2,14 +2,14 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
-## [Não publicado]
+## [1.1.2] - 2026-10-01
 
 ### Alterado
 
 - **O sdist deixou de levar os testes.** O wheel já saía limpo — o setuptools só empacota o que
   `packages` declara —, mas o sdist leva o repositório quase inteiro por padrão, e ali viajavam
   `tests/` com 38 arquivos e 302 KB, quase tudo fixture `.rem`/`.RET`. Quem instala a biblioteca
-  não usa nada disso. O sdist cai de **177 para 139 arquivos** (758 → 655 KB); o wheel não muda.
+  não usa nada disso. O sdist cai de **161 para 123 arquivos** (743 → 654 KB); o wheel não muda.
   O `MANIFEST.in` também passa a excluir `docs/`, `examples/`, `site/` e `.github/`, que hoje não
   entram mas entrariam ao primeiro descuido — o padrão do sdist é incluir, não excluir.
 

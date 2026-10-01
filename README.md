@@ -416,7 +416,7 @@ Detalhes de carteiras, quirks e fixtures por banco na
 |---------|-----------|
 | **Boleto** | Código de barras (44 pos.), linha digitável (DVs), fator de vencimento e regras por banco. |
 | **PDF** | ReportLab (Python puro): modelos *clássico* e *moderno*, carnê e tema. |
-| **Remessa CNAB** | 400 (13 bancos) e 240 (7 bancos), com `Pagamento`/`PagamentoPix`. |
+| **Remessa CNAB** | 400 (14 bancos) e 240 (7 bancos), com `Pagamento`/`PagamentoPix`. |
 | **Retorno CNAB** | Parsing 400/240 por banco + tradução de ocorrências. |
 | **PIX/Bolepix** | BR Code (EMV) + CRC16, QR no PDF e segmento PIX na remessa. |
 | **API REST** | Serialização JSON dos artefatos (OpenAPI 3.0), pronta para consumo HTTP. |
@@ -468,7 +468,7 @@ errado vira título rejeitado. Por isso a verificação tem **três camadas inde
 |---|---|
 | **Paridade com a [BrCobrança](https://github.com/kivanio/brcobranca)** (Ruby) | Para **18 dos 19 bancos**, código de barras, linha digitável e nosso número foram gerados pela BrCobrança com os mesmos dados de entrada e conferidos campo a campo. O Inter (077) não existe nessa nem em outra implementação aberta: a saída dele vem do manual do próprio banco, e a verificação independente é a camada seguinte. |
 | **Verificador FEBRABAN independente** | Um validador que **não usa o código do núcleo** confere DV geral (módulo 11), os três DVs de campo (módulo 10), o round-trip linha ↔ barras, fator de vencimento, valor, banco e moeda. |
-| **Remessa byte a byte** | **26 fixtures** de remessa (16 em CNAB 400, 10 em CNAB 240, 15 bancos) comparadas **byte a byte** — inalteradas através de todas as refatorações do projeto. |
+| **Remessa byte a byte** | **28 fixtures** de remessa (18 em CNAB 400, 10 em CNAB 240, 17 bancos) comparadas **byte a byte** — inalteradas através de todas as refatorações do projeto. |
 
 **346 testes** rodando em Python 3.12, 3.13 e 3.14 a cada push. Reproduza em 3 comandos:
 
