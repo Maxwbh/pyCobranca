@@ -2,6 +2,39 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Alterado
+
+- **O sdist deixou de levar os testes.** O wheel já saía limpo — o setuptools só empacota o que
+  `packages` declara —, mas o sdist leva o repositório quase inteiro por padrão, e ali viajavam
+  `tests/` com 38 arquivos e 302 KB, quase tudo fixture `.rem`/`.RET`. Quem instala a biblioteca
+  não usa nada disso. O sdist cai de **177 para 139 arquivos** (758 → 655 KB); o wheel não muda.
+  O `MANIFEST.in` também passa a excluir `docs/`, `examples/`, `site/` e `.github/`, que hoje não
+  entram mas entrariam ao primeiro descuido — o padrão do sdist é incluir, não excluir.
+
+  **O custo, declarado:** quem empacota para uma distro (Debian, conda-forge) não consegue mais
+  rodar a suíte contra o arquivo publicado, prática comum entre eles; o caminho passa a ser clonar
+  o repositório na tag correspondente.
+
+  Um sdist gordo não quebra instalação nenhuma, e é por isso que passaria despercebido de novo.
+  `tests/test_distribuicao.py` passa a **construir as distribuições de verdade** e conferir o que
+  elas levam: falha quando algo indevido volta, e também quando falta ao sdist algo de que ele
+  precisa — `tools/` carrega o backend declarado em `backend-path`, e sem ele o wheel não constrói
+  a partir do sdist, o que um prune generoso demais quebraria em silêncio.
+
+### Corrigido
+
+- **Sequencial da remessa no header do Inter (077), posições 111–117.** O campo saía alinhado à
+  esquerda e completado com espaços — `"1      "` — enquanto `nome_arquivo()` o escrevia com
+  zeros à esquerda, `CI400_001_0000001.REM`. O manual (seção 3.1) condiciona o upload a serem o
+  mesmo número, então o Internet Banking recusava uma remessa **correta no conteúdo**. As duas
+  grafias só coincidiam quando o sequencial já ocupava as sete posições; como a remessa começa
+  em 1, na prática divergiam sempre. A causa está dentro do módulo: o sequencial era o único
+  campo numérico escrito com `_format_size`, o formatador de texto — carteira, agência, conta,
+  dias-limite, CPF/CNPJ, CEP e a contagem do trailer sempre usaram `zfill`/`rjust`. O arquivo
+  gerado muda em sete posições do header; o resto é byte a byte idêntico.
+
 ## [1.1.1] - 2026-08-26
 
 ### Adicionado

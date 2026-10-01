@@ -69,8 +69,17 @@ class RemessaInter400(RemessaCnab400Base):
         return " " * 20
 
     def complemento(self) -> str:
-        """Posições 101–394: 10 brancos + sequencial da remessa(7) + 277 brancos."""
-        sequencial = self._format_size(str(self.sequencial_remessa), 7)
+        """Posições 101–394: 10 brancos + sequencial da remessa(7) + 277 brancos.
+
+        O sequencial é **numérico**, com zeros à esquerda — a mesma grafia que
+        :meth:`nome_arquivo` usa. Escrevê-lo com ``_format_size`` (que alinha à
+        esquerda e completa com espaços, e é o formatador de *texto* deste módulo)
+        dava ``"1      "`` no header contra ``CI400_001_0000001.REM`` no nome: o
+        manual (seção 3.1) condiciona o upload a serem o mesmo número, então o
+        Internet Banking recusava uma remessa correta no conteúdo. As duas grafias
+        só coincidiam quando o sequencial já ocupava as sete posições.
+        """
+        sequencial = so_digitos(str(self.sequencial_remessa)).zfill(7)
         return " " * 10 + sequencial + " " * 277
 
     def validar(self) -> None:
