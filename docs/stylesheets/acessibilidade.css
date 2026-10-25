@@ -1,0 +1,59 @@
+/* Contraste mínimo WCAG 2 AA (4,5:1 para texto normal).
+ *
+ * O `teal` do mkdocs-material resolve para #009485, que contra branco dá
+ * **3,77:1** — abaixo do mínimo. O Lighthouse acusava 25 elementos na home,
+ * de três tipos: o título no cabeçalho (branco sobre teal), os links das
+ * tabelas (teal sobre branco) e os comentários nos blocos de código.
+ *
+ * A troca é para o **Teal 700** do Material Design, #00796B, que dá 5,32:1.
+ * Mesma família de matiz, então a identidade visual não muda — só escurece o
+ * suficiente para o texto ser legível por quem tem baixa visão ou lê numa
+ * tela sob luz forte.
+ *
+ * Só o tema **claro**: no escuro o teal aparece sobre fundo escuro, onde
+ * escurecer reduziria o contraste em vez de aumentar. O defeito medido era
+ * exclusivo do claro.
+ */
+
+[data-md-color-scheme="default"][data-md-color-primary="teal"] {
+  --md-primary-fg-color: #00796b;
+  --md-primary-fg-color--light: #00897b;
+  --md-primary-fg-color--dark: #00695c;
+}
+
+[data-md-color-scheme="default"][data-md-color-accent="teal"] {
+  --md-accent-fg-color: #00796b;
+}
+
+/* O link do corpo de texto tem variável própria e não herda das de cima. */
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #00796b;
+}
+
+/* Rodapé: o texto de copyright saía #7F7F7F sobre #171717, ou 4,48:1 —
+ * reprovava por três centésimos. #858585 dá 4,86:1.
+ *
+ * O tema declara `--md-footer-fg-color--lighter:#ffffff73` (branco a ~45% de
+ * opacidade) em `:root,[data-md-color-scheme=default]`. O atributo fica no
+ * `<body>`, então redefinir a variável só no `:root` (o `<html>`) não adianta:
+ * a declaração do próprio `<body>` vence a que viria por herança. Daí o
+ * seletor de atributo aqui também.
+ *
+ * Vale para os dois esquemas — a barra do rodapé é escura no claro e no
+ * escuro, e no `slate` o mesmo #858585 sai sobre #111317, ou 5,00:1. */
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-footer-fg-color--lighter: #858585;
+}
+
+/* Comentários nos blocos de código: #717171 sobre #f5f5f5 dava 4,48:1 —
+ * reprovava por dois centésimos. #6E6E6E dá 4,68:1. */
+[data-md-color-scheme="default"] .md-typeset .highlight .c,
+[data-md-color-scheme="default"] .md-typeset .highlight .c1,
+[data-md-color-scheme="default"] .md-typeset .highlight .cm,
+[data-md-color-scheme="default"] .md-typeset .highlight .cs,
+[data-md-color-scheme="default"] .md-typeset .highlight .cp,
+[data-md-color-scheme="default"] .md-typeset .highlight .cpf,
+[data-md-color-scheme="default"] .md-typeset .highlight .ch {
+  color: #6e6e6e;
+}
