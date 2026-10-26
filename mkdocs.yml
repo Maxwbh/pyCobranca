@@ -47,6 +47,16 @@ theme:
         icon: material/weather-sunny
         name: Tema claro
 
+# Correções de acessibilidade sobre o tema — ver os comentários em cada arquivo.
+# O CSS leva o `teal` do tema claro de #009485 para #00796B, porque o primeiro
+# dá 3,77:1 contra branco e o mínimo da WCAG AA é 4,5:1. O JS dá nome ao
+# diálogo de busca, que o material emite sem `aria-label`.
+extra_css:
+  - stylesheets/acessibilidade.css
+
+extra_javascript:
+  - javascripts/acessibilidade.js
+
 markdown_extensions:
   - admonition
   - attr_list
