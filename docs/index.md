@@ -13,7 +13,7 @@ description: >-
 
 **Boletos, CNAB 240/400 e PIX para 19 bancos — em Python puro, num único `pip install`.**
 
-A PyCobrança é a plataforma Open Source de cobrança bancária brasileira em Python. Uma única
+A PyCobrança é uma plataforma Open Source de cobrança bancária brasileira em Python. Uma única
 biblioteca cobre o ciclo completo: emite boletos (código de barras, linha digitável e PDF), gera e
 lê arquivos CNAB (remessa e retorno 240/400), produz PIX/Bolepix e concilia o extrato OFX — sem
 dependências de sistema.

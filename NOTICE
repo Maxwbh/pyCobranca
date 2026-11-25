@@ -2,8 +2,22 @@
 PyCobrança — RECONHECIMENTOS
 ================================================================================
 
-Copyright (c) 2026 M&S DO BRASIL LTDA
+Copyright (c) 2026 M&S do Brasil LTDA
 Licenciado sob a BSD 3-Clause License — ver o arquivo LICENSE.
+
+Mantenedora: M&S do Brasil LTDA — CNPJ 05.230.380/0001-74
+             Sete Lagoas — MG, Brasil
+             https://msbrasil.inf.br · contato@msbrasil.inf.br
+
+MARCA. O nome "M&S do Brasil", o símbolo dos losangos entrelaçados e as
+assinaturas da empresa NÃO são cobertos pela licença deste software. A
+BSD 3-Clause vale para o código; ela não concede direito algum sobre a
+identidade visual de quem o mantém. Citar a empresa pelo nome em texto é
+livre, e a assinatura pode ser usada sem alteração para indicar que um
+projeto é mantido ou apoiado pela M&S — "um projeto M&S do Brasil" ou "com
+apoio da M&S do Brasil" — quando for verdade. Os demais usos dependem de
+autorização: contato@msbrasil.inf.br. Condições completas e os arquivos da
+assinatura em docs/images/marca/NOTICE.md.
 
 Este arquivo é informativo e não altera os termos da licença.
 
@@ -44,6 +58,15 @@ citados a esta biblioteca, nem vínculo entre os projetos.
 ACKNOWLEDGEMENTS (English)
 
 This file is informational and does not modify the license terms (see LICENSE).
+
+TRADEMARK. The name "M&S do Brasil", the interlaced-diamonds symbol and the
+company's signatures are NOT covered by this software's license. The BSD
+3-Clause License applies to the code; it grants no rights over the maintainer's
+visual identity. Naming the company in text is free, and the signature may be
+used unaltered to state that a project is maintained or supported by M&S — "um
+projeto M&S do Brasil" / "com apoio da M&S do Brasil" — where that is true. Any
+other use requires permission: contato@msbrasil.inf.br. Full terms and the
+signature files: docs/images/marca/NOTICE.md.
 
 PyCobrança is an independent implementation. The normative sources for the
 rules it implements are the official manuals: FEBRABAN CNAB 240/400 layouts,

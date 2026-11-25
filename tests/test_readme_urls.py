@@ -35,10 +35,12 @@ def _carrega_modulo():
 urls = _carrega_modulo()
 TEXTO = README.read_text(encoding="utf-8")
 
-#: Todo alvo de ``<img src>``, ``![](...)`` e ``[](...)`` do README.
-ALVOS = [m[2] for m in urls.IMG_HTML.finditer(TEXTO)] + [
-    m[3] for m in urls.MARKDOWN.finditer(TEXTO)
-]
+#: Todo alvo de ``<img src>``, ``<source srcset>``, ``![](...)`` e ``[](...)``.
+ALVOS = (
+    [m[2] for m in urls.IMG_HTML.finditer(TEXTO)]
+    + [m[2] for m in urls.SOURCE_HTML.finditer(TEXTO)]
+    + [m[3] for m in urls.MARKDOWN.finditer(TEXTO)]
+)
 RELATIVOS = [a for a in ALVOS if not urls.NAO_E_CAMINHO.match(a)]
 
 
@@ -111,9 +113,27 @@ def test_imagem_vira_raw_e_link_vira_blob() -> None:
     assert f"{urls.TREE}/examples" in convertido  # diretório usa tree, não blob
 
 
+def test_a_variante_de_tema_escuro_tambem_vira_raw() -> None:
+    """O ``<source srcset>`` do ``<picture>`` é imagem como qualquer outra.
+
+    Ele carrega a assinatura da M&S na versão de fundo escuro — a que o GitHub
+    mostra a quem lê no tema escuro. Converter só o ``<img src>`` deixaria um
+    caminho relativo morto no arquivo publicado, que é exatamente a falha que
+    este módulo existe para impedir.
+    """
+    convertido = urls.para_absoluto(TEXTO, RAIZ)
+    assert f'srcset="{urls.RAW}/docs/images/marca/' in convertido
+    assert 'srcset="docs/' not in convertido, "sobrou caminho relativo em srcset"
+
+
 @pytest.mark.parametrize(
     "alvo",
-    ["https://pypi.org/project/pycobranca/", "mailto:maxwbh@gmail.com", "#instalacao", "//exemplo"],
+    [
+        "https://pypi.org/project/pycobranca/",
+        "mailto:contato@msbrasil.inf.br",
+        "#instalacao",
+        "//exemplo",
+    ],
 )
 def test_url_externa_e_ancora_ficam_intactas(alvo: str) -> None:
     """Converter o que não é caminho do repositório quebraria o link."""

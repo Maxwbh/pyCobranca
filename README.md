@@ -2,7 +2,7 @@
 
 <img src="docs/images/pycobranca-banner.svg" alt="PyCobrança — boletos, CNAB e PIX em Python puro" width="820">
 
-# A plataforma Open Source mais completa para cobrança bancária em Python
+# Cobrança bancária brasileira em Python puro
 
 **Boletos, CNAB 240/400 e PIX para 19 bancos — com uma única biblioteca, em Python puro.**
 
@@ -17,7 +17,7 @@
 
 </div>
 
-**PyCobrança** é a plataforma Open Source de **cobrança bancária brasileira** em Python. Uma única
+**PyCobrança** é uma plataforma Open Source de **cobrança bancária brasileira** em Python. Uma única
 biblioteca cobre todo o ciclo: emite boletos (código de barras, linha digitável e PDF), gera e lê
 arquivos **CNAB** (remessa e retorno 240/400) e produz **PIX/Bolepix** (QR Code e segmento PIX no
 CNAB) — para **19 bancos**, com uma API limpa e **sem dependências de sistema** (tudo em Python
@@ -549,14 +549,27 @@ grandes para alinharmos o desenho.
 
 Distribuída sob a licença **[BSD-3-Clause](LICENSE)** — permissiva: permite uso comercial,
 modificação e redistribuição, exigindo apenas a manutenção do aviso de copyright.
-© 2026 **[M&S DO BRASIL LTDA](https://msbrasil.inf.br)**.
+© 2026 **[M&S do Brasil LTDA](https://msbrasil.inf.br)**.
+
+## 🏢 Quem mantém
+
+Desenvolvida e mantida pela **[M&S do Brasil LTDA](https://msbrasil.inf.br)** — engenharia de
+software para sistemas que não podem parar. Empresa de desenvolvimento constituída em **2002**,
+sediada em **Sete Lagoas/MG**, com atendimento remoto em todo o Brasil.
+
+- 🌐 Site — [msbrasil.inf.br](https://msbrasil.inf.br)
+- ✉️ E-mail — [contato@msbrasil.inf.br](mailto:contato@msbrasil.inf.br)
+- 🐙 GitHub — [github.com/Maxwbh](https://github.com/Maxwbh)
+
+Dúvidas sobre a biblioteca rendem mais nas
+[_issues_](https://github.com/Maxwbh/pyCobranca/issues) do que no e-mail: ficam registradas para
+quem esbarrar no mesmo ponto depois.
 
 ## 🙏 Créditos
 
-Desenvolvida e mantida pela **[M&S DO BRASIL LTDA](https://msbrasil.inf.br)**. Projeto independente:
-a fonte normativa das regras implementadas são os manuais oficiais — layouts CNAB 240/400 da
-**FEBRABAN**, os manuais de cobrança de cada banco e a especificação EMV/BR Code do **Banco
-Central do Brasil**.
+Projeto independente: a fonte normativa das regras implementadas são os manuais oficiais —
+layouts CNAB 240/400 da **FEBRABAN**, os manuais de cobrança de cada banco e a especificação
+EMV/BR Code do **Banco Central do Brasil**.
 
 Reconhecemos quem abriu caminho no ecossistema brasileiro de cobrança, na ordem em que
 influenciaram este projeto:
@@ -573,6 +586,25 @@ Créditos completos em [`NOTICE`](NOTICE). Cada projeto citado permanece sob a p
 menção é um agradecimento e não implica endosso.
 
 Feito com ☕ para o ecossistema de pagamentos brasileiro.
+
+---
+
+<div align="center">
+
+<a href="https://msbrasil.inf.br">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/marca/ms-assinatura-horizontal-fundo-escuro.svg">
+    <img src="docs/images/marca/ms-assinatura-horizontal-fundo-claro.svg" alt="M&amp;S do Brasil" width="150">
+  </picture>
+</a>
+
+**um projeto M&S do Brasil**
+
+A assinatura acima identifica a M&S do Brasil LTDA e **não** é coberta pela licença BSD-3-Clause
+desta biblioteca — a licença vale para o código. Condições de uso em
+[`docs/images/marca/NOTICE.md`](docs/images/marca/NOTICE.md).
+
+</div>
 
 ---
 

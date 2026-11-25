@@ -73,3 +73,10 @@ anonimizadas.
 
 Ao contribuir, você concorda que sua contribuição será licenciada sob a
 [BSD-3-Clause](LICENSE) do projeto.
+
+## Quem mantém
+
+A PyCobrança é mantida pela [M&S do Brasil LTDA](https://msbrasil.inf.br), de Sete Lagoas/MG.
+Discussão técnica e relato de defeito vão nas
+[_issues_](https://github.com/Maxwbh/pyCobranca/issues), que ficam registradas; o canal
+[contato@msbrasil.inf.br](mailto:contato@msbrasil.inf.br) fica para o que não cabe em público.
