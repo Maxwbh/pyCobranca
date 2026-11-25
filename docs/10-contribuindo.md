@@ -87,3 +87,10 @@ correto quando apontam para outra página. Páginas novas entram na `nav` do `mk
 ## Referências
 
 - Manuais de layout CNAB (FEBRABAN) e EMV QR Code (Banco Central) por banco.
+
+## Quem mantém
+
+A PyCobrança é mantida pela [M&S do Brasil LTDA](https://msbrasil.inf.br), de Sete Lagoas/MG.
+Discussão técnica e relato de defeito vão nas
+[issues](https://github.com/Maxwbh/pyCobranca/issues), que ficam registradas; o canal
+[contato@msbrasil.inf.br](mailto:contato@msbrasil.inf.br) fica para o que não cabe em público.

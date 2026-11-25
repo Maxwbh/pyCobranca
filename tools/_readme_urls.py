@@ -41,6 +41,15 @@ TREE = f"https://github.com/Maxwbh/pyCobranca/tree/{REF}"
 IMG_HTML = re.compile(r'(<img\s[^>]*?\bsrc=")([^"]+)(")', re.IGNORECASE)
 MARKDOWN = re.compile(r"(!?)(\[[^\]]*\]\()([^)\s]+)(\))")
 
+#: ``<source srcset="...">`` do ``<picture>`` que troca a arte por tema de cor.
+#:
+#: Sem isto a variante de tema escuro ficaria com caminho relativo depois da
+#: conversão — fora do repositório ele não resolve. O PyPI não renderiza
+#: ``<picture>`` (o ``<img>`` de dentro é que aparece), mas deixar um caminho
+#: morto no arquivo publicado é a mesma pegadinha que o ``<img src>`` já evita.
+#: Só um alvo por ``srcset``: a arte é vetorial, não há lista de densidades.
+SOURCE_HTML = re.compile(r'(<source\s[^>]*?\bsrcset=")([^",]+)(")', re.IGNORECASE)
+
 #: Esquemas e âncoras que não são caminho do repositório.
 NAO_E_CAMINHO = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|//|#)", re.IGNORECASE)
 
@@ -75,7 +84,7 @@ def para_absoluto(texto: str, raiz: Path) -> str:
     def _md(m: re.Match[str]) -> str:
         return f"{m[1]}{m[2]}{_absoluta(m[3], raiz, imagem=bool(m[1]))}{m[4]}"
 
-    return MARKDOWN.sub(_md, IMG_HTML.sub(_img, texto))
+    return MARKDOWN.sub(_md, SOURCE_HTML.sub(_img, IMG_HTML.sub(_img, texto)))
 
 
 @contextmanager

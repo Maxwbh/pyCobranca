@@ -4,7 +4,7 @@ site_url: https://maxwbh.github.io/pyCobranca/
 repo_url: https://github.com/Maxwbh/pyCobranca
 repo_name: Maxwbh/pyCobranca
 edit_uri: edit/main/docs/
-copyright: BSD-3-Clause · M&S DO BRASIL LTDA
+copyright: BSD-3-Clause · um projeto <a href="https://msbrasil.inf.br">M&amp;S do Brasil</a>
 
 docs_dir: docs
 site_dir: site
@@ -12,6 +12,13 @@ site_dir: site
 # `docs/changelog.md` é copiado do CHANGELOG.md na hora do build (ver docs/10-contribuindo.md).
 hooks:
   - mkdocs_hooks.py
+
+# O aviso de uso da marca é para quem lê o repositório — está ao lado dos SVGs
+# e é linkado do README. Os arquivos da assinatura continuam publicados (o
+# `<picture>` do README os busca por URL crua); só o texto fica de fora, senão
+# viraria página órfã do site, fora do `nav` e dentro da busca.
+exclude_docs: |
+  images/marca/NOTICE.md
 
 theme:
   name: material
